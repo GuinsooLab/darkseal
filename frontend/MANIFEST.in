@@ -1,0 +1,9 @@
+recursive-include darkseal_application/static/dist *
+recursive-include darkseal_application/static/fonts *
+recursive-include darkseal_application/static/images *
+
+recursive-include darkseal_application/.*/static/dist *
+recursive-include darkseal_application/.*/static/fonts *
+recursive-include darkseal_application/.*/static/images *
+
+global-include requirements-*txt

@@ -1,0 +1,25 @@
+<!--
+  Copyright Contributors to the Darkseal project.
+  SPDX-License-Identifier: Apache-2.0
+-->
+
+<!doctype html>
+<html lang="en-US">
+  <head>
+    <meta charset="utf-8">
+    <title>Darkseal - Data Discovery Portal</title>
+    <meta name="description" content="data discovery & metadata engine">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#ffffff">
+    <link rel="shortcut icon" href="/static/images/favicons/darkseal.svg" />
+
+    <%= htmlWebpackPlugin.tags.headTags %>
+
+    <!-- Do not remove: some analytics scripts attach to this. -->
+    <script id="analyitcs-script-stub"></script>
+  </head>
+  <body class="{{ env }}">
+    <div id="content"/>
+    <%= htmlWebpackPlugin.tags.bodyTags %>
+  </body>
+</html>

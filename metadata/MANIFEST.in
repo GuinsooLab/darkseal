@@ -1,0 +1,5 @@
+include requirements.txt
+include darkseal_service/api/swagger_doc/*.yml
+include darkseal_service/api/swagger_doc/*/*.yml
+
+global-include requirements-*txt
