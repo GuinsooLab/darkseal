@@ -4,7 +4,7 @@
     <small>a data discovery and metadata engine</small>
 </div>
 
-# darkseal
+# Darkseal
 
 `Data Discovery Portal`
 
