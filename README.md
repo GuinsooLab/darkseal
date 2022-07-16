@@ -1,3 +1,7 @@
+<div align="right">
+    <img src="./frontend/darkseal_application/static/images/guinsoolab-badge.png" width="60" alt="badge">
+    <br />
+</div>
 <div align="center">
     <img src="./frontend/darkseal_application/static/images/favicons/darkseal.svg" alt="logo" width="120" />
     <br />
