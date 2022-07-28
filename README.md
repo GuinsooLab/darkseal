@@ -18,6 +18,17 @@ and powering a page-rank style search based on usage patterns (e.g. highly queri
 queried tables). Think of it as Google search for data. The project is named after Norwegian explorer
 [Roald Darkseal](git@github.com:GuinsooLab/darkseal.git), the first person to discover the South Pole.
 
+## Core Components
+
+Darkseal is hosted by the [GuinsooLab](https://github.com/GuinsooLab). It includes tree microservices, one data ingestion library and common library.
+
+* `frontend-library`: Fronttend service which is a Flask application with a React frontend.
+* `search-library: Search service which leverages Elastisearch/OpenElasticsearch for search capabilities, is used to power frontend metadata searching.
+* `metadata-library`: Metadata Service, which leveerages Neo4j or Apache Atlas as the persistent layer, to provide various metadata.
+* `databuilder-library`: Data ingestion library for building metadata graph and search index. Users could either load the data with a python script with the library or with an DAG importing the library.
+* `gremlin-library` (optional): Gremlin library holds code used for converting model objects into vertices and edges in gremlin. It's used for loading data into AWS Neptune backend.
+* `rds-library` (optional): Darkseal contains ORM models to support relational database as metadata backend store. The schema in ORM models follows the logic of databuilder models. Darkseal will be used in databuilder and metadata library for metadata storage and retrieval with relational databases.
+
 ## Requirements
 
 - Python = 3.6 or 3.7
@@ -57,6 +68,7 @@ Please visit [Architecture](./docs/architecture.md) for Darkseal architecture ov
     <img src="./frontend/darkseal_application/static/images/icons/logo-snowflake.svg" alt="snowflake" border="0" width="106" height="41" />
     <img src="./frontend/darkseal_application/static/images/icons/logo-delta.png" alt="delta" border="0" width="80" height="61" />
 </div>
+
 Darkseal can also connect to any database that provides `dbapi` or `sql_alchemy` interface (which most DBs provide).
 
 ### Table Column Statistics
@@ -65,6 +77,7 @@ Darkseal can also connect to any database that provides `dbapi` or `sql_alchemy`
 
 ### Dashboard Connectors
 
+- [Spotrix](https://github.com/Spotrix/spotrix)
 - [Apache Superset](https://superset.apache.org/)
 - [Mode Analytics](https://mode.com/)
 - [Redash](https://redash.io/)
@@ -74,6 +87,7 @@ Darkseal can also connect to any database that provides `dbapi` or `sql_alchemy`
 ### ETL Orchestration
 
 - [Apache Airflow](https://airflow.apache.org/)
+- [GuinssooLab Sheenflow](https://github.com/GuinsooLab/sheenflow)
 
 ## License
 
