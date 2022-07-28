@@ -18,9 +18,9 @@ setup(
     description='Common code library for Darkseal',
     long_description=open('README.md').read(),
     long_description_content_type='text/markdown',
-    url='http://192.168.104.51/bingqi_ji/darkseal',
-    maintainer='bingqi_ji',
-    maintainer_email='bingqi_ji@idgcapital.com',
+    url='https://github.com/GuinsooLab/darkseal',
+    maintainer='ciusji',
+    maintainer_email='bqjimaster@gmail.com',
     packages=find_packages(exclude=['tests*']),
     install_requires=[
         # Packages in here should rarely be pinned. This is because these
