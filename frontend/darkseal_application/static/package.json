@@ -5,7 +5,7 @@
   "main": "index.js",
   "repository": {
     "type": "git",
-    "url": "git@192.168.104.51:bingqi_ji/darkseal.git"
+    "url": "https://github.com/GuinsooLab/darkseal"
   },
   "scripts": {
     "betterer:update": "betterer --update",

@@ -1,6 +1,6 @@
 #set -ex
 
-#REPO="git@192.168.104.51:bingqi_ji/darkseal.git"
+#REPO="https://github.com/GuinsooLab/darkseal"
 #DIR=temp-clone
 # We use https://www.mkdocs.org/user-guide/deploying-your-docs/ to build/deploy docs
 # Currently the doc is built/deployed manually. We should first build and deploy locally and verify it.

@@ -1,9 +1,9 @@
 site_name: Darkseal
 repo_name: Darkseal
-repo_url: git@192.168.104.51:bingqi_ji/darkseal.git
+repo_url: https://github.com/GuinsooLab/darkseal
 site_description: "darkseal is a metadata driven application for improving the productivity of data analysts, data scientists and engineers when interacting with data."
 site_author: Darkseal Project Authors.
-site_url: git@192.168.104.51:bingqi_ji/darkseal.git
+site_url: https://github.com/GuinsooLab/darkseal
 remote_branch: gh-pages
 
 copyright: 'Copyright &copy; 2018-2021 Darkseal Project Authors.'
