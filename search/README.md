@@ -1,11 +1,6 @@
-# Amundsen Search Service
-[![PyPI version](https://badge.fury.io/py/amundsen-search.svg)](https://badge.fury.io/py/amundsen-search)
-[![Coverage Status](https://img.shields.io/codecov/c/github/amundsen-io/amundsensearchlibrary/master.svg)](https://codecov.io/gh/amundsen-io/amundsensearchlibrary?branch=master)
-[![License](https://img.shields.io/:license-Apache%202-blue.svg)](LICENSE)
-[![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)
-[![Slack Status](https://img.shields.io/badge/slack-join_chat-white.svg?logo=slack&style=social)](https://join.slack.com/t/amundsenworkspace/shared_invite/enQtNTk2ODQ1NDU1NDI0LTc3MzQyZmM0ZGFjNzg5MzY1MzJlZTg4YjQ4YTU0ZmMxYWU2MmVlMzhhY2MzMTc1MDg0MzRjNTA4MzRkMGE0Nzk)
+# Darkseal Search Service
 
-Amundsen Search service serves a Restful API and is responsible for searching metadata. The service leverages [Elasticsearch](https://www.elastic.co/products/elasticsearch "Elasticsearch") for most of it's search capabilites.
+Darkseal Search service serves a Restful API and is responsible for searching metadata. The service leverages [Elasticsearch](https://www.elastic.co/products/elasticsearch "Elasticsearch") for most of it's search capabilites.
 
 By default, it creates in total 3 indexes:
 * table_search_index
@@ -13,112 +8,9 @@ By default, it creates in total 3 indexes:
 * dashboard_search_index
 * feature_search_index
 
-For information about Amundsen and our other services, refer to this [README.md](./../README.md). Please also see our instructions for a [quick start](./../docs/installation.md#bootstrap-a-default-version-of-amundsen-using-docker) setup  of Amundsen with dummy data, and an [overview of the architecture](./../docs/architecture.md#architecture).
+For information about Amundsen and our other services, refer to this [README.md](./../README.md). 
 
 ## Requirements
 
 - Python >= 3.6
 - elasticsearch 6.x (currently it doesn't support 7.x)
-
-## Doc
-- https://www.amundsen.io/amundsen
-
-
-## Instructions to start the Search service from distribution
-
-```bash
-$ venv_path=[path_for_virtual_environment]
-$ python3 -m venv $venv_path
-$ source $venv_path/bin/activate
-$ python3 setup.py install
-$ python3 darkseal_search/search_wsgi.py
-
-# In a different terminal, verify the service is up by running
-$ curl -v http://localhost:5001/healthcheck
-```
-
-
-## Instructions to start the Search service from source
-
-```bash
-$ git clone https://github.com/amundsen-io/amundsen.git
-$ cd search
-$ venv_path=[path_for_virtual_environment]
-$ python3 -m venv $venv_path
-$ source $venv_path/bin/activate
-$ pip3 install -e ".[all]" .
-$ python3 darkseal_search/search_wsgi.py
-
-# In a different terminal, verify the service is up by running
-$ curl -v http://localhost:5001/healthcheck
-```
-
-## Instructions to start the service from Docker
-
-```bash
-$ docker pull amundsendev/amundsen-search:latest
-$ docker run -p 5001:5001 amundsendev/amundsen-search
-# - alternative, for production environment with Gunicorn (see its homepage link below)
-$ ## docker run -p 5001:5001 amundsendev/amundsen-search gunicorn --bind 0.0.0.0:5001 darkseal_search.search_wsgi
-
-# In a different terminal, verify the service is up by running
-$ curl -v http://localhost:5001/healthcheck
-```
-
-
-## Production environment
-By default, Flask comes with a Werkzeug webserver, which is used for development. For production environments a production grade web server such as [Gunicorn](https://gunicorn.org/ "Gunicorn") should be used.
-
-```bash
-$ pip3 install gunicorn
-$ gunicorn darkseal_search.search_wsgi
-
-# In a different terminal, verify the service is up by running
-$ curl -v http://localhost:8000/healthcheck
-```
-For more imformation see the [Gunicorn configuration documentation](https://docs.gunicorn.org/en/latest/run.html "documentation").
-
-### Configuration outside local environment
-By default, Search service uses [LocalConfig](darkseal_search/config.py "LocalConfig") that looks for Elasticsearch running in localhost.
-In order to use different end point, you need to create a [Config](darkseal_search/config.py "Config") suitable for your use case. Once a config class has been created, it can be referenced by an [environment variable](darkseal_search/search_wsgi.py "environment variable"): `SEARCH_SVC_CONFIG_MODULE_CLASS`
-
-For example, in order to have different config for production, you can inherit Config class, create Production config and passing production config class into environment variable. Let's say class name is ProdConfig and it's in darkseal_search.config module. then you can set as below:
-
-`SEARCH_SVC_CONFIG_MODULE_CLASS=darkseal_search.config.ProdConfig`
-
-This way Search service will use production config in production environment. For more information on how the configuration is being loaded and used, here's reference from Flask [doc](http://flask.pocoo.org/docs/1.0/config/#development-production "doc").
-
-# Developer guide
-## Code style
-- PEP 8: Amundsen Search service follows [PEP8 - Style Guide for Python Code](https://www.python.org/dev/peps/pep-0008/ "PEP8 - Style Guide for Python Code"). 
-- Typing hints: Amundsen Search service also utilizes [Typing hint](https://docs.python.org/3/library/typing.html "Typing hint") for better readability.
-
-## API documentation
-We have Swagger documentation setup with OpenApi 3.0.2. This documentation is generated via [Flasgger](https://github.com/flasgger/flasgger). 
-When adding or updating an API please make sure to update the documentation. To see the documentation run the application locally and go to `localhost:5001/apidocs/`. 
-Currently the documentation only works with local configuration. 
-
-## Code structure
-Amundsen Search service consists of three packages, API, Models, and Proxy.
-
-### [API package](darkseal_search/api "API package")
-A package that contains [Flask Restful resources](https://flask-restful.readthedocs.io/en/latest/api.html#flask_restful.Resource "Flask Restful resources") that serves Restful API request.
-The [routing of API](https://flask-restful.readthedocs.io/en/latest/quickstart.html#resourceful-routing "routing of API") is being registered [here](darkseal_search/__init__.py "here").
-
-### [Proxy package](darkseal_search/proxy "Proxy package")
-Proxy package contains proxy modules that talks dependencies of Search service. There are currently two modules in Proxy package, [Elasticsearch](darkseal_search/proxy/elasticsearch.py "Elasticsearch") and [Statsd](darkseal_search/proxy/statsd_utilities.py "Statsd").
-
-##### [Elasticsearch proxy module](darkseal_search/proxy/elasticsearch.py "Elasticsearch proxy module")
-[Elasticsearch](https://www.elastic.co/products/elasticsearch "Elasticsearch") proxy module serves various use case of searching metadata from Elasticsearch. It uses [Query DSL](https://www.elastic.co/guide/en/elasticsearch/reference/current/query-dsl.html "Query DSL") for the use case, execute the search query and transform into [model](darkseal_search/models "model").
-
-##### [Atlas proxy module](darkseal_search/proxy/atlas.py "Atlas proxy module") 
-[Apache Atlas](https://atlas.apache.org/ "Apache Atlas") proxy module uses Atlas to serve the Atlas requests. At the moment the Basic Search REST API is used via the [Python Client](https://atlasclient.readthedocs.io/ "Atlas Client"). 
-
-
-##### [Statsd utilities module](darkseal_search/proxy/statsd_utilities.py "Statsd utilities module")
-[Statsd](https://github.com/etsy/statsd/wiki "Statsd") utilities module has methods / functions to support statsd to publish metrics. By default, statsd integration is disabled and you can turn in on from [Search service configuration](https://github.com/amundsen-io/amundsensearchlibrary/blob/master/darkseal_search/config.py#L7 "Search service configuration").
-For specific configuration related to statsd, you can configure it through [environment variable.](https://statsd.readthedocs.io/en/latest/configure.html#from-the-environment "environment variable.")
-
-### [Models package](darkseal_search/models "Models package")
-Models package contains many modules where each module has many Python classes in it. These Python classes are being used as a schema and a data holder. All data exchange within Amundsen Search service use classes in Models to ensure validity of itself and improve readability and maintainability.
-
