@@ -26,8 +26,8 @@ Darkseal is hosted by the [GuinsooLab](https://github.com/GuinsooLab). It includ
 * `search-library: Search service which leverages Elastisearch/OpenElasticsearch for search capabilities, is used to power frontend metadata searching.
 * `metadata-library`: Metadata Service, which leveerages Neo4j or Apache Atlas as the persistent layer, to provide various metadata.
 * `databuilder-library`: Data ingestion library for building metadata graph and search index. Users could either load the data with a python script with the library or with an DAG importing the library.
-* `gremlin-library` (optional): Gremlin library holds code used for converting model objects into vertices and edges in gremlin. It's used for loading data into AWS Neptune backend.
-* `rds-library` (optional): Darkseal contains ORM models to support relational database as metadata backend store. The schema in ORM models follows the logic of databuilder models. Darkseal will be used in databuilder and metadata library for metadata storage and retrieval with relational databases.
+* `gremlin-library` (experimental): Gremlin library holds code used for converting model objects into vertices and edges in gremlin. It's used for loading data into AWS Neptune backend.
+* `rds-library` (experimental): Darkseal contains ORM models to support relational database as metadata backend store. The schema in ORM models follows the logic of databuilder models. Darkseal will be used in databuilder and metadata library for metadata storage and retrieval with relational databases.
 
 ## Requirements
 
