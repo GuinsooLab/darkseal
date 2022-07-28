@@ -1,15 +1,15 @@
 # Darkseal Databuilder
 
-Darkseal Databuilder is a data ingestion library, which is inspired by [Apache Gobblin](https://gobblin.apache.org/). It could be used in an orchestration framework(e.g. Apache Airflow) to build data from Amundsen. You could use the library either with an adhoc python script([example](https://github.com/amundsen-io/amundsen/blob/main/databuilder/example/scripts/sample_data_loader.py)) or inside an Apache Airflow DAG([example](https://github.com/amundsen-io/amundsen/blob/main/databuilder/example/dags/hive_sample_dag.py)).
+Darkseal Databuilder is a data ingestion library, which is inspired by [Apache Gobblin](https://gobblin.apache.org/). It could be used in an orchestration framework(e.g. Apache Airflow) to build data from Darkseal.
 
-For information about Amundsen and our other services, visit the [main repository](https://github.com/amundsen-io/amundsen#amundsen) `README.md` . Please also see our instructions for a [quick start](https://github.com/amundsen-io/amundsen/blob/master/docs/installation.md#bootstrap-a-default-version-of-amundsen-using-docker) setup  of Amundsen with dummy data, and an [overview of the architecture](https://github.com/amundsen-io/amundsen/blob/master/docs/architecture.md#architecture).
+For information about Darkseal and our other services, visit the [main repository](https://github.com/GuinsooLab/darkseal) `README.md` . Please also see our instructions for a [quick start](https://ciusji.gitbook.io/guinsoolab/products/data-discovery/darkseal) setup  of Amundsen with dummy data, and an [overview of the Darkseal](https://ciusji.gitbook.io/guinsoolab/products/data-discovery/darkseal/overview).
 
 ## Requirements
 - Python >= 3.6.x
 - elasticsearch 6.x (currently it doesn't support 7.x)
 
 ## Doc
-- https://www.amundsen.io/amundsen/
+- https://ciusji.gitbook.io/guinsoolab/products/data-discovery/darkseal
 
 ## Concept
 ETL job consists of extraction of records from the source, transform records, if necessary, and load records into the sink. Amundsen Databuilder is a ETL framework for Amundsen and there are corresponding components for ETL called Extractor, Transformer, and Loader that deals with record level operation. A component called task controls all these three components.
