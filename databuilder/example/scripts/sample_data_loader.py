@@ -47,8 +47,8 @@ from databuilder.transformer.generic_transformer import (
     CALLBACK_FUNCTION, FIELD_NAME, GenericTransformer,
 )
 
-es_host = os.getenv('CREDENTIALS_ELASTICSEARCH_PROXY_HOST', '192.168.120.12')
-neo_host = os.getenv('CREDENTIALS_NEO4J_PROXY_HOST', '192.168.120.14')
+es_host = os.getenv('CREDENTIALS_ELASTICSEARCH_PROXY_HOST', '192.168.120.13')
+neo_host = os.getenv('CREDENTIALS_NEO4J_PROXY_HOST', '192.168.120.17')
 
 es_port = os.getenv('CREDENTIALS_ELASTICSEARCH_PROXY_PORT', 9200)
 neo_port = os.getenv('CREDENTIALS_NEO4J_PROXY_PORT', 7687)
@@ -68,7 +68,7 @@ NEO4J_ENDPOINT = f'bolt://{neo_host}:{neo_port}'
 neo4j_endpoint = NEO4J_ENDPOINT
 
 neo4j_user = 'neo4j'
-neo4j_password = '123456'
+neo4j_password = 'test'
 
 LOGGER = logging.getLogger(__name__)
 

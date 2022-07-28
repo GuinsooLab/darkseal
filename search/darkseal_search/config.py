@@ -39,7 +39,7 @@ class LocalConfig(Config):
     DEBUG = False
     TESTING = False
     STATS = False
-    LOCAL_HOST = '192.168.120.12'
+    LOCAL_HOST = '192.168.120.13'
     PROXY_PORT = '9200'
     PROXY_ENDPOINT = os.environ.get('PROXY_ENDPOINT',
                                     'http://{LOCAL_HOST}:{PORT}'.format(

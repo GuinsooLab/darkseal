@@ -48,7 +48,7 @@ class Config:
     LOG_CONFIG_FILE = None
 
     PROXY_USER = os.environ.get('CREDENTIALS_PROXY_USER', 'neo4j')
-    PROXY_PASSWORD = os.environ.get('CREDENTIALS_PROXY_PASSWORD', '123456')
+    PROXY_PASSWORD = os.environ.get('CREDENTIALS_PROXY_PASSWORD', 'test')
 
     PROXY_ENCRYPTED = False
     """Whether the connection to the proxy should use SSL/TLS encryption."""
@@ -103,7 +103,7 @@ class LocalConfig(Config):
     TESTING = False
     LOG_LEVEL = 'DEBUG'
     # LOCAL_HOST = '0.0.0.0'
-    LOCAL_HOST = '192.168.120.14'
+    LOCAL_HOST = '192.168.120.17'
 
     PROXY_HOST = os.environ.get('PROXY_HOST', f'bolt://{LOCAL_HOST}')
     PROXY_PORT = os.environ.get('PROXY_PORT', 7687)

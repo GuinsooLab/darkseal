@@ -30,7 +30,7 @@ from databuilder.task.task import DefaultTask
 from databuilder.transformer.base_transformer import NoopTransformer
 
 es_host = '192.168.120.12'
-neo_host = '192.168.120.14'
+neo_host = '192.168.120.17'
 if len(sys.argv) > 1:
     es_host = sys.argv[1]
 if len(sys.argv) > 2:
@@ -49,7 +49,7 @@ NEO4J_ENDPOINT = f'bolt://{neo_host or "localhost"}:7687'
 neo4j_endpoint = NEO4J_ENDPOINT
 
 neo4j_user = 'neo4j'
-neo4j_password = '123456'
+neo4j_password = 'test'
 
 LOGGER = logging.getLogger(__name__)
 
