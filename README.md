@@ -77,7 +77,7 @@ Darkseal can also connect to any database that provides `dbapi` or `sql_alchemy`
 
 ### Dashboard Connectors
 
-- [Spotrix](https://github.com/Spotrix/spotrix)
+- [Spotrix](https://github.com/Spotrix/spotrix) 🌈
 - [Apache Superset](https://superset.apache.org/)
 - [Mode Analytics](https://mode.com/)
 - [Redash](https://redash.io/)
