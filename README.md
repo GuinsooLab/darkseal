@@ -20,11 +20,18 @@ Darkseal includes the following:
 
 ## Snapshots & Gifs
 
-![]()
+coming ...
 
 ## Architecture
 
-![]()
+Darkseal depends on following components to build a metadata platform:
+
+- JsonSchemas for defining Metadata Schemas
+- Dropwizard/Jetty for REST APIs
+- MySQL 8.x to store Metadata ([Guinsoo](https://github.com/ciusji/guinsoo) is coming)
+- ElasticSearch/OpenElasticsearch 7.x to index Metadata and power
+
+![](./metadata-ui/src/main/resources/ui/public/gdp-darkseal.svg)
 
 ## Documentation & Supports
 
