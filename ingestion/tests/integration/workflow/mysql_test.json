@@ -1,0 +1,32 @@
+{
+  "source": {
+    "type": "mysql",
+    "serviceName": "local_mysql_test",
+    "serviceConnection": {
+      "config": {
+        "type": "Mysql",
+        "username": "openmetadata_user",
+        "database":"openmetadata_db",
+        "password": "openmetadata_password",
+        "hostPort": "localhost:3306",
+        "connectionOptions": {},
+        "connectionArguments": {}
+      }
+    },
+    "sourceConfig": {
+      "config": {
+        "enableDataProfiler": false
+      }
+    }
+  },
+  "sink": {
+    "type": "metadata-rest",
+    "config": {}
+  },
+  "workflowConfig": {
+    "openMetadataServerConfig": {
+      "hostPort": "http://localhost:8585/api",
+      "authProvider": "no-auth"
+    }
+  }
+}

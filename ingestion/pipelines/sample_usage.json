@@ -1,0 +1,41 @@
+{
+  "source": {
+    "type": "sample-usage",
+    "serviceName": "sample_data",
+    "serviceConnection": {
+      "config": {
+        "type": "SampleData",
+        "sampleDataFolder": "./examples/sample_data"
+      }
+    },
+    "sourceConfig": {
+      "config":{
+        "type":"DatabaseUsage"
+      }
+    }
+  },
+  "processor": {
+    "type": "query-parser",
+    "config": {
+    }
+  },
+  "stage": {
+    "type": "table-usage",
+    "config": {
+      "filename": "/tmp/sample_usage"
+    }
+  },
+  "bulkSink": {
+    "type": "metadata-usage",
+    "config": {
+      "filename": "/tmp/sample_usage"
+    }
+  },
+  "workflowConfig": {
+    "openMetadataServerConfig": {
+      "hostPort": "http://localhost:8585/api",
+      "authProvider": "no-auth"
+    }
+  }
+}
+
