@@ -9,7 +9,7 @@
   </parent>
   <modelVersion>4.0.0</modelVersion>
 
-  <artifactId>openmetadata-ui</artifactId>
+  <artifactId>metadata-ui</artifactId>
 
   <properties>
     <dropwizard.swagger.version>2.0.12-1</dropwizard.swagger.version>
@@ -19,12 +19,12 @@
 
   <dependencies>
     <dependency>
-      <groupId>org.open-metadata</groupId>
+      <groupId>io.github.GuinsooLab</groupId>
       <artifactId>common</artifactId>
       <version>${project.version}</version>
     </dependency>
     <dependency>
-      <groupId>org.open-metadata</groupId>
+      <groupId>io.github.GuinsooLab</groupId>
       <artifactId>catalog-rest-service</artifactId>
       <version>${project.version}</version>
     </dependency>
