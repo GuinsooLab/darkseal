@@ -31,9 +31,9 @@
       <artifactId>fernet-java8</artifactId>
     </dependency>
     <dependency>
-      <groupId>org.open-metadata</groupId>
+      <groupId>io.github.GuinsooLab</groupId>
       <artifactId>common</artifactId>
-      <version>${project.version}</version>
+      <version>0.11.3</version>
     </dependency>
     <dependency>
       <groupId>io.dropwizard</groupId>
@@ -450,7 +450,7 @@
         <artifactId>swagger-maven-plugin</artifactId>
         <configuration>
           <resourcePackages>
-            <resourcePackage>org.openmetadata.catalog.resources</resourcePackage>
+            <resourcePackage>org.metadata.catalog.resources</resourcePackage>
           </resourcePackages>
           <useResourcePackagesChildren>true</useResourcePackagesChildren>
           <outputDirectory>${basedir}/target/classes/assets/</outputDirectory>
@@ -500,7 +500,7 @@
         <version>${jsonschema2pojo.version}</version>
         <configuration>
           <sourceDirectory>${basedir}/src/main/resources/json/schema</sourceDirectory>
-          <targetPackage>org.openmetadata.catalog</targetPackage>
+          <targetPackage>org.metadata.catalog</targetPackage>
           <includeJsr303Annotations>true</includeJsr303Annotations>
           <generateBuilders>true</generateBuilders>
         </configuration>

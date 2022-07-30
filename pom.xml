@@ -110,6 +110,9 @@
     <!--  4.9.3 uses esnext instead of commonjs and it requires changes on how we run Jest tests  -->
     <!--  upgrade only when we find how to import esnext modules in nodejs  -->
     <antlr.version>4.10.1</antlr.version>
+    <testng.version>7.6.0</testng.version>
+    <dropwizard-micrometer.version>2.0.5</dropwizard-micrometer.version>
+    <json-schema-validator.version>1.0.70</json-schema-validator.version>
   </properties>
   <dependencyManagement>
     <dependencies>
@@ -615,9 +618,9 @@
           <version>${maven-surefire.version}</version>
           <configuration>
             <includes>
-              <include>org.openmetadata.catalog.resources.**.*.java</include>
-              <include>org.openmetadata.catalog.util.*.java</include>
-              <include>org.openmetadata.catalog.EnumBackwardCompatibilityTest</include>
+              <include>org.metadata.catalog.resources.**.*.java</include>
+              <include>org.metadata.catalog.util.*.java</include>
+              <include>org.metadata.catalog.EnumBackwardCompatibilityTest</include>
             </includes>
           </configuration>
         </plugin>
@@ -648,11 +651,6 @@
           <groupId>org.jacoco</groupId>
           <artifactId>jacoco-maven-plugin</artifactId>
           <version>${jacoco-plugin.version}</version>
-        </plugin>
-        <plugin>
-          <groupId>org.sonarsource.scanner.maven</groupId>
-          <artifactId>sonar-maven-plugin</artifactId>
-          <version>${maven.sonar-plugin.version}</version>
         </plugin>
       </plugins>
     </pluginManagement>
