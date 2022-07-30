@@ -446,50 +446,6 @@
         </executions>
       </plugin>
       <plugin>
-        <groupId>io.openapitools.swagger</groupId>
-        <artifactId>swagger-maven-plugin</artifactId>
-        <configuration>
-          <resourcePackages>
-            <resourcePackage>org.metadata.catalog.resources</resourcePackage>
-          </resourcePackages>
-          <useResourcePackagesChildren>true</useResourcePackagesChildren>
-          <outputDirectory>${basedir}/target/classes/assets/</outputDirectory>
-          <outputFilename>swagger</outputFilename>
-          <outputFormats>JSON,YAML</outputFormats>
-          <prettyPrint>true</prettyPrint>
-          <swaggerConfig>
-            <servers>
-              <server>
-                <url>http://localhost:8585/api</url>
-                <description>Endpoint URL</description>
-              </server>
-            </servers>
-            <info>
-              <title>OpenMetadata Apis</title>
-              <version>${project.parent.version}</version>
-              <contact>
-                <email>openmetadata-dev@googlegroups.com</email>
-                <name>OpenMetadata</name>
-                <url>https://open-metadata.org</url>
-              </contact>
-              <license>
-                <url>https://www.apache.org/licenses/LICENSE-2.0</url>
-                <name>Apache 2.0</name>
-              </license>
-            </info>
-            <descriptionFile>../docs/openmetadata-apis/apis.md</descriptionFile>
-          </swaggerConfig>
-        </configuration>
-        <executions>
-          <execution>
-            <phase>compile</phase>
-            <goals>
-              <goal>generate</goal>
-            </goals>
-          </execution>
-        </executions>
-      </plugin>
-      <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-source-plugin</artifactId>
         <version>${maven-src-plugin.version}</version>
