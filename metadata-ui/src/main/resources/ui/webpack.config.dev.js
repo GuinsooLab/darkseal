@@ -208,7 +208,7 @@ module.exports = {
           to: outputPath,
         },
         {
-          from: path.join(__dirname, 'public/logo192.png'),
+          from: path.join(__dirname, 'public/favicon.png'),
           to: outputPath,
         },
         {
