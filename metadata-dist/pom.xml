@@ -30,18 +30,18 @@
 
   <dependencies>
     <dependency>
-      <groupId>org.open-metadata</groupId>
+      <groupId>io.github.GuinsooLab</groupId>
       <artifactId>catalog-rest-service</artifactId>
-      <version>${project.version}</version>
+      <version>0.11.3</version>
     </dependency>
     <dependency>
-      <groupId>org.open-metadata</groupId>
+      <groupId>io.github.GuinsooLab</groupId>
       <artifactId>common</artifactId>
       <version>${project.version}</version>
     </dependency>
     <dependency>
-      <groupId>org.open-metadata</groupId>
-      <artifactId>openmetadata-ui</artifactId>
+      <groupId>io.github.GuinsooLab</groupId>
+      <artifactId>metadata-ui</artifactId>
       <version>${project.version}</version>
     </dependency>
   </dependencies>

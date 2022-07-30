@@ -11,6 +11,7 @@
  *  limitations under the License.
  */
 
-export const urlJoinSlack = 'https://slack.open-metadata.org';
-export const urlGitbookDocs = 'https://docs.open-metadata.org/';
-export const urlGithubRepo = 'https://github.com/open-metadata/OpenMetadata';
+export const urlJoinSlack = 'https://slack.guinsoolab.org#darkseal';
+export const urlGitbookDocs =
+  'https://ciusji.gitbook.io/guinsoolab/products/data-discovery/darkseal/';
+export const urlGithubRepo = 'https://github.com/GuinsooLab/darkseal';

@@ -20,7 +20,25 @@ Darkseal includes the following:
 
 ## Snapshots & Gifs
 
-coming ...
+### Welcome
+
+![Welcome](./docs/overview/overview-1.png)
+
+### New Service
+
+![New Service](./docs/overview/overview-2.png)
+
+### Explore Tables
+
+![Explore Tables](./docs/overview/overview-3.png)
+
+### Table Lineage
+
+![Table Lineage](./docs/overview/overview-4.png)
+
+### Table Schema
+
+![Table Schema](./docs/overview/overview-5.png)
 
 ## Architecture
 
