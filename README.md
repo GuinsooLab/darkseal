@@ -49,7 +49,67 @@ Darkseal depends on following components to build a metadata platform:
 - MySQL 8.x to store Metadata ([Guinsoo](https://github.com/ciusji/guinsoo) is coming)
 - ElasticSearch/OpenElasticsearch 7.x to index Metadata and power
 
-![](./metadata-ui/src/main/resources/ui/public/gdp-darkseal.svg)
+![dgp-darkseal](./metadata-ui/src/main/resources/ui/public/gdp-darkseal.svg)
+
+
+## Service Integration
+
+### Database Service Support
+
+- Athena
+- AzureSQL
+- BigQuery
+- Clickhouse
+- Databricks
+- Datalake
+- Db2
+- DeltaLake
+- Druid
+- DynamoDB
+- Glue
+- Hive
+- MariaDB
+- Mssql
+- MySQL
+- Oracle
+- Pinot
+- Postgres
+- Presto
+- Redshift
+- SQLite
+- Salesforce
+- SingleStore
+- Snowflake
+- Trino
+- Vertica
+- [GuinsooLab Stack](https://github.com/GuinsooLab)
+
+### Message Service Support
+
+- Kafka
+- Pulsar
+
+### Dashboard Service Support
+
+- Looker
+- Metabase
+- Mode
+- PowerBI
+- Redash
+- Superset
+- Tableau
+- [Spotrix](https://github.com/Spotrix/spotrix) 🚀
+
+### Pipeline Service Support
+
+- Airbyte
+- Airflow
+- Glue
+- [Sheenflow](https://github.com/GuinsooLab/sheenflow)
+
+### ML Model Service Support
+
+- Mlflow
 
 ## Documentation & Supports
 
@@ -57,7 +117,7 @@ Darkseal depends on following components to build a metadata platform:
 - [Install & Deploy](https://ciusji.gitbook.io/guinsoolab/products/data-discovery/darkseal/deployment)
 - [Quickstart With Darkseal](https://ciusji.gitbook.io/guinsoolab/products/data-discovery/darkseal/quickstart)
 - [Darkseal Main Concepts](https://ciusji.gitbook.io/guinsoolab/products/data-discovery/darkseal/main-concepts)
-- [Dearkseal Integrates in GuinsooLab or Bigdata Platform](https://ciusji.gitbook.io/guinsoolab/products/data-discovery/darkseal/integrations)
+- [Dearkseal Service Integrates](https://ciusji.gitbook.io/guinsoolab/products/data-discovery/darkseal/integrations)
 - [Roadmap](https://ciusji.gitbook.io/guinsoolab/products/data-discovery/darkseal/roadmap)
 
 ## Contributors
