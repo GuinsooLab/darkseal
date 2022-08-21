@@ -886,7 +886,7 @@ body .list-option.rdw-option-active {
 }
 
 .nav-apps {
-  background: #061d41;
+  background: #072C4F;
   width: 60px;
   height: 100vh;
   position: absolute;
@@ -896,7 +896,7 @@ body .list-option.rdw-option-active {
 }
 
 .app-nav-ul {
-  margin-top: 48px;
+  margin-top: 24px;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -905,7 +905,7 @@ body .list-option.rdw-option-active {
 }
 
 .app-nav-li {
-  height: 60px;
+  height: 50px;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -935,7 +935,7 @@ body .list-option.rdw-option-active {
   bottom: 0;
   left: 0;
   width: 60px;
-  height: 60px;
+  height: 50px;
   text-align: center;
-  line-height: 60px;
+  line-height: 50px;
 }
