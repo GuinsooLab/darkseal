@@ -56,12 +56,12 @@ const App: FunctionComponent = () => {
         <ul className="app-nav-ul">
           <li className="app-nav-li">
             <a href="/">
-              <SVGIcons alt="home" icon={Icons.HOME_APP} width="20" />
+              <SVGIcons alt="home" icon={Icons.HOME_APP} width="18" />
             </a>
           </li>
           <li className="app-nav-li">
             <a href="/explore">
-              <SVGIcons alt="explore" icon={Icons.EXPLORE_APP} width="20" />
+              <SVGIcons alt="explore" icon={Icons.EXPLORE_APP} width="18" />
             </a>
           </li>
           <li className="app-nav-li">
@@ -69,7 +69,7 @@ const App: FunctionComponent = () => {
               <SVGIcons
                 alt="custom-properties"
                 icon={Icons.SETTINGS_APP}
-                width="18"
+                width="16"
               />
             </a>
           </li>
@@ -81,7 +81,7 @@ const App: FunctionComponent = () => {
               <SVGIcons
                 alt="custom-properties"
                 icon={Icons.WHATS_NEW_APP}
-                width="20"
+                width="18"
               />
             </a>
           </li>
