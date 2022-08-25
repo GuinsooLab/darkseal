@@ -29,6 +29,7 @@ CONFIG_FILE_PATH=${BOOTSTRAP_DIR}/../conf/openmetadata.yaml
 SCRIPT_ROOT_DIR="${BOOTSTRAP_DIR}/sql"
 
 # Which java to use
+echo $JAVA_HOME
 if [ -z "${JAVA_HOME}" ]; then
   JAVA="java"
 else
@@ -48,6 +49,15 @@ if [ -d "${LIBS_DIR}" ]; then
 else
   CLASSPATH=`mvn -pl catalog-rest-service -q exec:exec -Dexec.executable=echo -Dexec.args="%classpath"`
 fi
+
+echo "********************************"
+echo Darkseal Envs
+echo $CLASSPATH
+echo $TABLE_INITIALIZER_MAIN_CLASS
+echo $CONFIG_FILE_PATH
+echo $SCRIPT_ROOT_DIR
+echo $debug
+echo "********************************"
 
 execute() {
   if  [ ${debug} ] ; then

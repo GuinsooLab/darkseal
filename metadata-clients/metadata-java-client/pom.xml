@@ -3,13 +3,13 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <parent>
-        <artifactId>openmetadata-clients</artifactId>
-        <groupId>org.open-metadata</groupId>
+        <artifactId>metadata-clients</artifactId>
+        <groupId>io.github.GuinsooLab</groupId>
         <version>0.11.3</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
-    <artifactId>openmetadata-java-client</artifactId>
+    <artifactId>metadata-java-client</artifactId>
     <properties>
         <java.version>11</java.version>
         <maven.compiler.source>${java.version}</maven.compiler.source>
@@ -19,8 +19,8 @@
     </properties>
     <dependencies>
         <dependency>
-            <groupId>org.open-metadata</groupId>
-            <artifactId>openmetadata-core</artifactId>
+            <groupId>io.github.GuinsooLab</groupId>
+            <artifactId>metadata-core</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>
@@ -84,11 +84,6 @@
 
     <build>
         <plugins>
-            <!--Reformat Code to comply with Google Java Style -->
-            <plugin>
-                <groupId>com.theoryinpractise</groupId>
-                <artifactId>googleformatter-maven-plugin</artifactId>
-            </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-source-plugin</artifactId>

@@ -112,10 +112,6 @@
 
   <build>
     <plugins>
-      <plugin>
-        <groupId>com.theoryinpractise</groupId>
-        <artifactId>googleformatter-maven-plugin</artifactId>
-      </plugin>
     </plugins>
   </build>
 </project>

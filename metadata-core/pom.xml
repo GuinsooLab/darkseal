@@ -143,11 +143,6 @@
 
     <build>
         <plugins>
-            <!--Reformat Code to comply with Google Java Style -->
-            <plugin>
-                <groupId>com.theoryinpractise</groupId>
-                <artifactId>googleformatter-maven-plugin</artifactId>
-            </plugin>
             <plugin>
                 <groupId>org.antlr</groupId>
                 <artifactId>antlr4-maven-plugin</artifactId>

@@ -423,10 +423,6 @@
         </executions>
       </plugin>
       <plugin>
-        <groupId>com.theoryinpractise</groupId>
-        <artifactId>googleformatter-maven-plugin</artifactId>
-      </plugin>
-      <plugin>
         <groupId>org.codehaus.mojo</groupId>
         <artifactId>buildnumber-maven-plugin</artifactId>
         <version>1.4</version>
