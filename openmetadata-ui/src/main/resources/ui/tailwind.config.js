@@ -14,13 +14,13 @@
 const defaultTheme = require('tailwindcss/defaultTheme');
 
 // Primary colors for text and controls
-const primary = '#7147E8';
-const primaryII = '#8D6AF1';
-const primaryHover = '#5523E0';
-const primaryActive = '#450DE2';
-const primaryHoverLite = '#DBD1F9';
-const secondary = '#B02AAC';
-const secondaryBG = '#B02AAC40';
+const primary = '#061d41';
+const primaryII = '#081c41';
+const primaryHover = '#062c4f';
+const primaryActive = '#062c4f';
+const primaryHoverLite = 'hsl(215, 100%, 25%)';
+const secondary = 'hsl(215, 100%, 25%)';
+const secondaryBG = 'hsl(209, 50%, 25%)';
 
 // state colors
 const ideal = '#C4C4C4';
@@ -104,7 +104,6 @@ module.exports = {
         'grey-muted-lite': textMutedLite,
         'grey-dark': textDark,
         'grey-backdrop': backdropBG,
-        'primary-lite': primaryBG,
         primary: primary,
         'primary-II': primaryII,
         'primary-hover': primaryHover,

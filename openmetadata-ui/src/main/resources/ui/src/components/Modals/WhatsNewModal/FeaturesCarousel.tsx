@@ -76,15 +76,7 @@ const FeaturesCarousel = ({ data }: Props) => {
             {d.path ? (
               d.isImage ? (
                 <img alt="feature" className="tw-w-full" src={d.path} />
-              ) : (
-                <iframe
-                  allowFullScreen
-                  className="tw-w-full"
-                  frameBorder={0}
-                  height={457}
-                  src={d.path}
-                />
-              )
+              ) : null
             ) : null}
           </div>
         </div>

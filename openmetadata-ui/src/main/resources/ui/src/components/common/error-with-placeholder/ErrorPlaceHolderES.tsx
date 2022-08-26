@@ -84,7 +84,7 @@ const ErrorPlaceHolderES = ({ type, errorMessage, query = '' }: Props) => {
       <div className="tw-mb-5" data-testid="es-error">
         <div className="tw-mb-3 tw-text-center">
           <p>
-            <span>Welcome to OpenMetadata. </span>
+            <span>Welcome to Darkseal. </span>
             <span data-testid="error-text">{`We are unable to ${errorText} Elasticsearch for entity indexes.`}</span>
           </p>
 

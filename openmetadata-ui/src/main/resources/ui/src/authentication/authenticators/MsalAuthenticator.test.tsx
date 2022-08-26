@@ -30,12 +30,10 @@ describe('Test MsalAuthenticator component', () => {
   it('Checks if the MsalAuthenticator renders', async () => {
     const onLogoutMock = jest.fn();
     const onLoginMock = jest.fn();
-    const onFailedLoginMock = jest.fn();
     const authenticatorRef = null;
     render(
       <MsalAuthenticator
         ref={authenticatorRef}
-        onLoginFailure={onFailedLoginMock}
         onLoginSuccess={onLoginMock}
         onLogoutSuccess={onLogoutMock}>
         <p data-testid="children" />

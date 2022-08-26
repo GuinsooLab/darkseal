@@ -2,7 +2,7 @@ export const addServiceGuide = [
   {
     step: 1,
     title: 'Add a New Service',
-    description: `Choose from the range of services that OpenMetadata integrates with. 
+    description: `Choose from the range of services that Darkseal integrates with. 
     To add a new service, start by selecting a Service Category (Database, Messaging, Dashboard, or Pipeline). 
     From the list of available services, select the one you’d want to integrate with.`,
   },
@@ -52,7 +52,7 @@ export const addMetadataIngestionGuide = [
     step: 2,
     title: 'Configure DBT Model',
     description: `A DBT model provides transformation logic that creates a table from raw data. Lineage traces the path of data across tables, but a DBT model provides specifics. 
-    Select the  required DBT source provider and fill in the mandatory fields. Integrate with DBT from OpenMetadata to view the models used to generate tables.`,
+    Select the  required DBT source provider and fill in the mandatory fields. Integrate with DBT from Darkseal to view the models used to generate tables.`,
   },
   {
     ...schedulingIngestionGuide,
@@ -70,7 +70,7 @@ export const addUsageIngestionGuide = [
     step: 1,
     title: 'Add Usage Ingestion',
     description: `Usage ingestion can be configured and deployed after a metadata ingestion has been set up. The usage ingestion workflow obtains the query log 
-    and table creation details from the underlying database and feeds it to OpenMetadata. Metadata and usage can have only one pipeline for a database service. 
+    and table creation details from the underlying database and feeds it to Darkseal. Metadata and usage can have only one pipeline for a database service. 
     Define the Query Log Duration (in days), Stage File Location, and Result Limit to start.`,
   },
   {

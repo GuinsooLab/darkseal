@@ -73,11 +73,13 @@ import IconEditLineage from '../assets/svg/ic-edit-lineage.svg';
 import IconEdit from '../assets/svg/ic-edit.svg';
 import IconExclamationCircle from '../assets/svg/ic-exclamation-circle.svg';
 import IconExplore from '../assets/svg/ic-explore.svg';
+import IconExploreApp from '../assets/svg/ic-explore-app.svg';
 import IconFeed from '../assets/svg/ic-feed.svg';
 import IconFilter from '../assets/svg/ic-filter.svg';
 import IconFolder from '../assets/svg/ic-folder.svg';
 import IconGrowthArrow from '../assets/svg/ic-growth-arrow.svg';
 import IconHome from '../assets/svg/ic-home.svg';
+import IconHomeApp from '../assets/svg/ic-home-app.svg';
 import IconIncreaseArrow from '../assets/svg/ic-increase-arrow.svg';
 import IconIssues from '../assets/svg/ic-issues.svg';
 import IconLineage from '../assets/svg/ic-lineage.svg';
@@ -92,6 +94,7 @@ import IconReports from '../assets/svg/ic-reports.svg';
 import IconSchema from '../assets/svg/ic-schema.svg';
 import IconSearch from '../assets/svg/ic-search.svg';
 import IconSettings from '../assets/svg/ic-settings.svg';
+import IconSettingsApp from '../assets/svg/ic-settings-app.svg';
 import IconSQLBuilder from '../assets/svg/ic-sql-builder.svg';
 import IconStar from '../assets/svg/ic-star.svg';
 import IconStore from '../assets/svg/ic-store.svg';
@@ -161,6 +164,7 @@ import IconWarning from '../assets/svg/warning.svg';
 import IconWebhookGrey from '../assets/svg/webhook-grey.svg';
 import IconWebhookPrimary from '../assets/svg/webhook-primary.svg';
 import IconWebhook from '../assets/svg/webhook.svg';
+import IconWhatsNewApp from '../assets/svg/whatsNew-app.svg';
 import IconWhatsNew from '../assets/svg/whatsNew.svg';
 
 type Props = {
@@ -184,9 +188,11 @@ export const Icons = {
   EDIT_PRIMARY: 'icon-edit-primary',
   EDIT_OUTLINE_PRIMARY: 'icon-edit-outline-primary',
   EXPLORE: 'icon-explore',
+  EXPLORE_APP: 'icon-explore-app',
   MY_DATA: 'icon-my-data',
   REPORTS: 'icon-reports',
   SETTINGS: 'icon-settings',
+  SETTINGS_APP: 'icon-settings-app',
   SQL_BUILDER: 'icon-sql-builder',
   TEAMS: 'icon-teams',
   TEAMS_GREY: 'icon-teams-grey',
@@ -209,6 +215,7 @@ export const Icons = {
   LINEAGE: 'icon-lineage',
   MANAGE: 'icon-manage',
   HOME: 'icon-home',
+  HOME_APP: 'icon-home-app',
   GROWTH_ARROW: 'icon-growth-arrow',
   LOSS_ARROW: 'icon-loss-arrow',
   CHECK_CIRCLE: 'icon-check-circle',
@@ -236,6 +243,7 @@ export const Icons = {
   DOC_PRIMARY: 'doc-primary',
   API: 'api',
   WHATS_NEW: 'whats-new',
+  WHATS_NEW_APP: 'whats-new-app',
   TABLE: 'table',
   TOPIC: 'topic',
   DASHBOARD: 'dashboard',
@@ -347,6 +355,10 @@ const SVGIcons: FunctionComponent<Props> = ({
       IconComponent = IconExplore;
 
       break;
+    case Icons.EXPLORE_APP:
+      IconComponent = IconExploreApp;
+
+      break;
     case Icons.WORKFLOWS:
       IconComponent = IconWorkflows;
 
@@ -369,6 +381,10 @@ const SVGIcons: FunctionComponent<Props> = ({
       break;
     case Icons.SETTINGS:
       IconComponent = IconSettings;
+
+      break;
+    case Icons.SETTINGS_APP:
+      IconComponent = IconSettingsApp;
 
       break;
     case Icons.LOGO:
@@ -479,6 +495,10 @@ const SVGIcons: FunctionComponent<Props> = ({
       IconComponent = IconHome;
 
       break;
+    case Icons.HOME_APP:
+      IconComponent = IconHomeApp;
+
+      break;
     case Icons.GROWTH_ARROW:
       IconComponent = IconGrowthArrow;
 
@@ -585,6 +605,10 @@ const SVGIcons: FunctionComponent<Props> = ({
       break;
     case Icons.WHATS_NEW:
       IconComponent = IconWhatsNew;
+
+      break;
+    case Icons.WHATS_NEW_APP:
+      IconComponent = IconWhatsNewApp;
 
       break;
     case Icons.TABLE:
