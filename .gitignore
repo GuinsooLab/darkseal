@@ -61,26 +61,26 @@ dist
 secrets
 
 # ts build info and report
-metadata-ui/src/main/resources/ui/webpack
-metadata-ui/src/main/resources/ui/tsconfig.tsbuildinfo
+openmetadata-ui/src/main/resources/ui/webpack
+openmetadata-ui/src/main/resources/ui/tsconfig.tsbuildinfo
 
 #tests
 .coverage
 /ingestion/coverage.xml
 /ingestion/junit/*
-metadata-ui/src/main/resources/ui/src/test/unit/coverage
-metadata-ui/src/main/resources/ui/test-report.xml
+openmetadata-ui/src/main/resources/ui/src/test/unit/coverage
+openmetadata-ui/src/main/resources/ui/test-report.xml
 
 # Cypress artifacts
-metadata-ui/src/main/resources/ui/cypress/screenshots
-metadata-ui/src/main/resources/ui/cypress/videos
-metadata-ui/src/main/resources/ui/cypress/fixtures
+openmetadata-ui/src/main/resources/ui/cypress/screenshots
+openmetadata-ui/src/main/resources/ui/cypress/videos
+openmetadata-ui/src/main/resources/ui/cypress/fixtures
 
 #UI - Dereferenced Schemas
-metadata-ui/src/main/resources/ui/src/jsons/connectionSchemas
+openmetadata-ui/src/main/resources/ui/src/jsons/connectionSchemas
 
 #UI - Generated TS
-metadata-ui/src/main/resources/ui/src/generated
+openmetadata-ui/src/main/resources/ui/src/generated
 
 #vscode
 */.vscode/*
@@ -99,10 +99,10 @@ mlruns/
 /ingestion/tests/integration/source/mlflow/tests/db/
 
 # Antlr
-/metadata-ui/src/main/resources/ui/src/antlr/generated/Fqn.interp
-/metadata-ui/src/main/resources/ui/src/antlr/generated/Fqn.tokens
-/metadata-ui/src/main/resources/ui/src/antlr/generated/FqnLexer.interp
-/metadata-ui/src/main/resources/ui/src/antlr/generated/FqnLexer.tokens
+/openmetadata-ui/src/main/resources/ui/src/antlr/generated/Fqn.interp
+/openmetadata-ui/src/main/resources/ui/src/antlr/generated/Fqn.tokens
+/openmetadata-ui/src/main/resources/ui/src/antlr/generated/FqnLexer.interp
+/openmetadata-ui/src/main/resources/ui/src/antlr/generated/FqnLexer.tokens
 
 # SQLAlchemy tests
 file:cachedb

@@ -17,19 +17,19 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
 
-  <groupId>io.github.GuinsooLab</groupId>
-  <artifactId>darkseal</artifactId>
-  <name>darkseal</name>
-  <description>DarkSeal</description>
-  <version>0.11.3</version>
-  <url>https://github.com/GuinsooLab/darkseal</url>
+  <groupId>org.open-metadata</groupId>
+  <artifactId>catalog</artifactId>
+  <name>OpenMetadata-catalog</name>
+  <description>Openmetadata catalog</description>
+  <version>0.11.4</version>
+  <url>https://github.com/open-metadata/OpenMetadata</url>
   <modules>
     <module>common</module>
     <module>catalog-rest-service</module>
-    <module>metadata-ui</module>
-    <module>metadata-dist</module>
-    <module>metadata-core</module>
-    <module>metadata-clients</module>
+    <module>openmetadata-ui</module>
+    <module>openmetadata-dist</module>
+    <module>openmetadata-core</module>
+    <module>openmetadata-clients</module>
   </modules>
   <packaging>pom</packaging>
 
@@ -40,12 +40,18 @@
     </license>
   </licenses>
 
+  <scm>
+    <connection>scm:git:git@github.com:Open-Metadata/OpenMetadata</connection>
+    <developerConnection>scm:git:git@github.com:Open-Metadata/OpenMetadata</developerConnection>
+    <url>scm:git:git@github.com:Open-Metadata/OpenMetadata</url>
+  </scm>
+
   <developers>
     <developer>
-      <name>Darkseal</name>
-      <email>bqjimaster@gmail.com</email>
-      <organization>GuinsooLab</organization>
-      <organizationUrl>https://github.com/GuinsooLab</organizationUrl>
+      <name>OpenMetadata</name>
+      <email>openmetadata@getcollate.io</email>
+      <organization>Get Collate</organization>
+      <organizationUrl>https://getcollate.io/</organizationUrl>
     </developer>
   </developers>
 
@@ -110,6 +116,17 @@
     <!--  4.9.3 uses esnext instead of commonjs and it requires changes on how we run Jest tests  -->
     <!--  upgrade only when we find how to import esnext modules in nodejs  -->
     <antlr.version>4.10.1</antlr.version>
+
+    <!--   sonar   -Dsonar.login=XXX  -->
+    <sonar.projectKey>open-metadata_OpenMetadata</sonar.projectKey>
+    <sonar.moduleKey>${project.artifactId}</sonar.moduleKey>
+    <sonar.organization>open-metadata</sonar.organization>
+    <sonar.host.url>https://sonarcloud.io</sonar.host.url>
+    <sonar.working.directory>target/sonar</sonar.working.directory>
+    <maven.sonar-plugin.version>3.7.0.1746</maven.sonar-plugin.version>
+    <sonar.language>java</sonar.language>
+    <sonar.skip>false</sonar.skip>
+    <sonar.dynamicAnalysis>reuseReports</sonar.dynamicAnalysis>
     <testng.version>7.6.0</testng.version>
     <dropwizard-micrometer.version>2.0.5</dropwizard-micrometer.version>
     <json-schema-validator.version>1.0.70</json-schema-validator.version>
@@ -551,9 +568,66 @@
     </profile>
 
   </profiles>
+  <reporting>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-jxr-plugin</artifactId>
+        <version>3.1.1</version>
+      </plugin>
+    </plugins>
+  </reporting>
   <build>
     <pluginManagement>
       <plugins>
+        <plugin>
+          <groupId>com.theoryinpractise</groupId>
+          <artifactId>googleformatter-maven-plugin</artifactId>
+          <version>1.7.3</version>
+          <executions>
+            <execution>
+              <id>reformat-sources</id>
+              <configuration>
+                <includeStale>false</includeStale>
+                <style>GOOGLE</style>
+                <formatMain>true</formatMain>
+                <formatTest>true</formatTest>
+                <filterModified>false</filterModified>
+                <skip>false</skip>
+                <fixImports>true</fixImports>
+                <maxLineLength>120</maxLineLength>
+              </configuration>
+              <goals>
+                <goal>format</goal>
+              </goals>
+              <phase>process-sources</phase>
+            </execution>
+          </executions>
+        </plugin>
+        <plugin>
+           <groupId>org.apache.maven.plugins</groupId>
+           <artifactId>maven-checkstyle-plugin</artifactId>
+           <version>3.1.2</version>
+           <configuration>
+             <configLocation>./checkstyle/checkstyle.xml</configLocation>
+               <includeTestSourceDirectory>true</includeTestSourceDirectory>
+           </configuration>
+           <dependencies>
+            <dependency>
+              <groupId>com.puppycrawl.tools</groupId>
+              <artifactId>checkstyle</artifactId>
+              <version>10.3</version>
+            </dependency>
+          </dependencies>
+        </plugin>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-release-plugin</artifactId>
+          <version>2.5</version>
+          <configuration>
+            <arguments>-Dgpg.passphrase=${gpg.passphrase}</arguments>
+          </configuration>
+        </plugin>
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-compiler-plugin</artifactId>
@@ -618,9 +692,9 @@
           <version>${maven-surefire.version}</version>
           <configuration>
             <includes>
-              <include>org.metadata.catalog.resources.**.*.java</include>
-              <include>org.metadata.catalog.util.*.java</include>
-              <include>org.metadata.catalog.EnumBackwardCompatibilityTest</include>
+              <include>org.openmetadata.catalog.resources.**.*.java</include>
+              <include>org.openmetadata.catalog.util.*.java</include>
+              <include>org.openmetadata.catalog.EnumBackwardCompatibilityTest</include>
             </includes>
           </configuration>
         </plugin>
@@ -651,6 +725,11 @@
           <groupId>org.jacoco</groupId>
           <artifactId>jacoco-maven-plugin</artifactId>
           <version>${jacoco-plugin.version}</version>
+        </plugin>
+        <plugin>
+          <groupId>org.sonarsource.scanner.maven</groupId>
+          <artifactId>sonar-maven-plugin</artifactId>
+          <version>${maven.sonar-plugin.version}</version>
         </plugin>
       </plugins>
     </pluginManagement>

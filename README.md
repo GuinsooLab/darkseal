@@ -1,131 +1,76 @@
-<div align="right">
-    <img src="./metadata-ui/src/main/resources/ui/public/guinsoolab-badge.png" width="60" alt="badge">
-    <br />
-</div>
 <div align="center">
-    <img src="./metadata-ui/src/main/resources/ui/public/darkseal.svg" alt="logo" width="120" />
-    <br />
-    <small>A Single place to Discover, Collaborate, and Get your data right</small>
+    <img src="./docs/.gitbook/assets/openmetadata-banner.png" align="center" alt="OpenMetadata" height="350"/>
+  <hr />
+
+[![Build Status](https://github.com/open-metadata/OpenMetadata/actions/workflows/maven-build.yml/badge.svg?event=push)](https://github.com/open-metadata/OpenMetadata/actions/workflows/maven-build.yml)
+[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=open-metadata_OpenMetadata&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=open-metadata_OpenMetadata)
+[![Release](https://img.shields.io/github/release/open-metadata/OpenMetadata/all.svg)](https://github.com/open-metadata/OpenMetadata/releases)
+![GitHub commit activity](https://img.shields.io/github/commit-activity/m/open-metadata/OpenMetadata)
+[![Twitter Follow](https://img.shields.io/twitter/follow/open_metadata?style=social)](https://twitter.com/intent/follow?screen_name=open_metadata)
+<a href="https://slack.open-metadata.org/"><img src="https://img.shields.io/badge/slack-join-E01E5A?logo=slack" alt="Join us on Slack" height="22"/></a>
+[![License](https://img.shields.io/github/license/open-metadata/OpenMetadata.svg)](LICENSE)
+
 </div>
 
-# Darkseal
+- [What is OpenMetadata?](#what-is-openmetadata )
+- [Features](#features)
+- [Try our Sandbox](#try-our-sandbox)
+- [Install & Run](#install-and-run-openmetadata)
+- [Roadmap](roadmap.md)
+- [Documentation and support](#documentation-and-support)
+- [Contributors](#contributors)
+- [License](#license)
 
-Darkseal includes the following:
+# What is OpenMetadata?
+[OpenMetadata](https://open-metadata.org/) is an Open Standard for Metadata. A Single place to Discover, Collaborate, and Get your data right.
+<img src="https://user-images.githubusercontent.com/1417689/129423079-d21cbf3f-786f-4d4a-b6c3-b66feca234b8.png"  width="800">
 
-- **Metadata schemas** - Defines core abstractions and vocabulary for metadata with schemas for Types, Entities, Relationships between entities. This is the foundation of the Open Metadata Standard.
-- **Metadata store** - Stores metadata graph that connects data assets, user, and tool generated metadata.
-- **Metadata APIs** - For producing and consuming metadata built on schemas for User Interfaces and Integration of tools, systems, and services.
-- **Ingestion framework** - A pluggable framework for integrating tools and ingesting metadata to the metadata store. Ingestion framework already supports well know data warehouses - Google BigQuery, Snowflake, Amazon Redshift, and Apache Hive, and databases - MySQL, Postgres, Oracle, MSSQL, and [Guinsoo](https://github.com/ciusji/guinsoo).
-- **Metadata User Interface** - One single place for users to discover, and collaborate on all data.
+OpenMetadata includes the following:
+- **Metadata schemas** - defines core abstractions and vocabulary for metadata with schemas for Types, Entities, Relationships between entities. This is the foundation of the Open Metadata Standard.
 
-## Snapshots & Gifs
+- **Metadata store** - stores metadata graph that connects data assets, user, and tool generated metadata.
 
-### Welcome
+- **Metadata APIs** - for producing and consuming metadata built on schemas for User Interfaces and Integration of tools, systems, and services.
 
-![Welcome](./docs/overview/overview-1.png)
+- **Ingestion framework** - a pluggable framework for integrating tools and ingesting metadata to the metadata store. Ingestion framework already supports well know data warehouses - Google BigQuery, Snowflake, Amazon Redshift, and Apache Hive, and databases - MySQL, Postgres, Oracle, and MSSQL.
 
-### New Service
+- **OpenMetadata User Interface** - one single place for users to discover, and collaborate on all data.
 
-![New Service](./docs/overview/overview-2.png)
+## Features
 
-### Explore Tables
+Check all the supported features [here](https://docs.open-metadata.org/features) ✨
 
-![Explore Tables](./docs/overview/overview-3.png)
+![](./docs/.gitbook/assets/lineage.gif)
 
-### Table Lineage
+## Try our Sandbox
 
-![Table Lineage](./docs/overview/overview-4.png)
+Take a look and play with sample data at [http://sandbox.open-metadata.org](http://sandbox.open-metadata.org)
 
-### Table Schema
-
-![Table Schema](./docs/overview/overview-5.png)
-
-## Architecture
-
-Darkseal depends on following components to build a metadata platform:
-
-- JsonSchemas for defining Metadata Schemas
-- Dropwizard/Jetty for REST APIs
-- MySQL 8.x to store Metadata ([Guinsoo](https://github.com/ciusji/guinsoo) is coming)
-- ElasticSearch/OpenElasticsearch 7.x to index Metadata and power
-
-![dgp-darkseal](./metadata-ui/src/main/resources/ui/public/gdp-darkseal.svg)
+[<img src="./docs/.gitbook/assets/demo-button.png" height="50"/>](http://sandbox.open-metadata.org)
 
 
-## Service Integration
+## Install and run OpenMetadata
+Get up and running in few minutes. See the OpenMetadata documentation for [installation instructions](https://docs.open-metadata.org/deploy/local-deployment).
 
-### Database Service Support
+## Documentation and Support
 
-- Athena
-- AzureSQL
-- BigQuery
-- Clickhouse
-- Databricks
-- Datalake
-- Db2
-- DeltaLake
-- Druid
-- DynamoDB
-- Glue
-- Hive
-- MariaDB
-- Mssql
-- MySQL
-- Oracle
-- Pinot
-- Postgres
-- Presto
-- Redshift
-- SQLite
-- Salesforce
-- SingleStore
-- Snowflake
-- Trino
-- Vertica
-- [GuinsooLab Stack](https://github.com/GuinsooLab)
+Check out [OpenMetadata documentation](https://docs.open-metadata.org/) for a complete description of OpenMetadata's features.
 
-### Message Service Support
+Join [our Slack Community](https://slack.open-metadata.org/) if you get stuck, want to chat, or are thinking of a new feature.
 
-- Kafka
-- Pulsar
+Or join the group at [https://groups.google.com/g/openmetadata-users](https://groups.google.com/g/openmetadata-users)
 
-### Dashboard Service Support
-
-- Looker
-- Metabase
-- Mode
-- PowerBI
-- Redash
-- Superset
-- Tableau
-- [Spotrix](https://github.com/Spotrix/spotrix) 🚀
-
-### Pipeline Service Support
-
-- Airbyte
-- Airflow
-- Glue
-- [Sheenflow](https://github.com/GuinsooLab/sheenflow)
-
-### ML Model Service Support
-
-- Mlflow
-
-## Documentation & Supports
-
-- [Overview](https://ciusji.gitbook.io/guinsoolab/products/data-discovery/darkseal/overview)
-- [Install & Deploy](https://ciusji.gitbook.io/guinsoolab/products/data-discovery/darkseal/deployment)
-- [Quickstart With Darkseal](https://ciusji.gitbook.io/guinsoolab/products/data-discovery/darkseal/quickstart)
-- [Darkseal Main Concepts](https://ciusji.gitbook.io/guinsoolab/products/data-discovery/darkseal/main-concepts)
-- [Dearkseal Service Integrates](https://ciusji.gitbook.io/guinsoolab/products/data-discovery/darkseal/integrations)
-- [Roadmap](https://ciusji.gitbook.io/guinsoolab/products/data-discovery/darkseal/roadmap)
+We're here to help - and make OpenMetadata even better!
 
 ## Contributors
 
 We ❤️ all contributions, big and small! Check out our [CONTRIBUTING](./CONTRIBUTING.md) guide to get started and let us know how we can help.
 
-Don't want to miss anything? Give the project a ⭐ 🚀
+Don't want to miss anything? Give the project a ⭐ 🚀 
+
+Big thanks to all of you who already support us!
+
+[![Stargazers repo roster for @open-metadata/OpenMetadata](https://reporoster.com/stars/open-metadata/OpenMetadata)](https://github.com/open-metadata/OpenMetadata/stargazers)
 
 ## License
-
-Darkseal is released under [Apache License, Version 2.0](http://www.apache.org/licenses/LICENSE-2.0)
+OpenMetadata is released under [Apache License, Version 2.0](http://www.apache.org/licenses/LICENSE-2.0)

@@ -12950,8 +12950,7 @@ body .editor-wrapper ul,body #description ul,body .content-container ul{
 }
 .main-container{
     display:flex;
-    height:100vh;
-    margin-left: 60px;
+    height:100vh
 }
 .profile-image{
     display:inline-block;
