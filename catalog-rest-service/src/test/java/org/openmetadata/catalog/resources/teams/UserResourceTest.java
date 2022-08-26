@@ -457,6 +457,46 @@ public class UserResourceTest extends EntityResourceTest<User, CreateUser> {
   }
 
   @Test
+  void get_listUsersWithBotFilter_200_ok(TestInfo test) throws IOException {
+    ResultList<User> users = listEntities(null, 100_000, null, null, ADMIN_AUTH_HEADERS);
+    int initialUserCount = users.getPaging().getTotal();
+    Map<String, String> botQueryParams = new HashMap<>();
+    botQueryParams.put("isBot", "true");
+    ResultList<User> bots = listEntities(botQueryParams, 100_000, null, null, ADMIN_AUTH_HEADERS);
+    int initialBotCount = bots.getPaging().getTotal();
+
+    // Create 3 bot users
+    CreateUser create = createRequest(test, 0).withIsBot(true);
+    User bot0 = createAndCheckEntity(create, ADMIN_AUTH_HEADERS);
+    create = createRequest(test, 1).withIsBot(true);
+    User bot1 = createAndCheckEntity(create, ADMIN_AUTH_HEADERS);
+    create = createRequest(test, 2).withIsBot(true);
+    User bot2 = createAndCheckEntity(create, ADMIN_AUTH_HEADERS);
+
+    Predicate<User> isBot0 = u -> u.getId().equals(bot0.getId());
+    Predicate<User> isBot1 = u -> u.getId().equals(bot1.getId());
+    Predicate<User> isBot2 = u -> u.getId().equals(bot2.getId());
+
+    users = listEntities(null, 100_000, null, null, ADMIN_AUTH_HEADERS);
+    assertEquals(initialUserCount + 3, users.getPaging().getTotal());
+
+    // list bot users
+    bots = listEntities(botQueryParams, 100_000, null, null, ADMIN_AUTH_HEADERS);
+    assertEquals(initialBotCount + 3, bots.getData().size());
+    assertEquals(initialBotCount + 3, bots.getPaging().getTotal());
+    assertTrue(bots.getData().stream().anyMatch(isBot0));
+    assertTrue(bots.getData().stream().anyMatch(isBot1));
+    assertTrue(bots.getData().stream().anyMatch(isBot2));
+
+    Map<String, String> queryParams = new HashMap<>();
+    queryParams.put("isBot", "false");
+
+    // list users (not bots)
+    users = listEntities(queryParams, 100_000, null, null, ADMIN_AUTH_HEADERS);
+    assertEquals(initialUserCount - initialBotCount, users.getPaging().getTotal());
+  }
+
+  @Test
   void get_listUsersWithTeamsPagination(TestInfo test) throws IOException {
     TeamResourceTest teamResourceTest = new TeamResourceTest();
     Team team1 = teamResourceTest.createEntity(teamResourceTest.createRequest(test, 1), ADMIN_AUTH_HEADERS);
@@ -814,7 +854,7 @@ public class UserResourceTest extends EntityResourceTest<User, CreateUser> {
       expectedOwnedEntities.add(new EntityReference().withId(ref.getId()).withType(Entity.TABLE));
     }
 
-    TestUtils.assertEntityReferenceList(expectedOwnedEntities, userAfterDeletion.getOwns());
+    assertEntityReferenceList(expectedOwnedEntities, userAfterDeletion.getOwns());
   }
 
   @Override
@@ -836,7 +876,7 @@ public class UserResourceTest extends EntityResourceTest<User, CreateUser> {
     for (UUID teamId : listOrEmpty(createRequest.getTeams())) {
       expectedTeams.add(new EntityReference().withId(teamId).withType(Entity.TEAM));
     }
-    TestUtils.assertEntityReferenceList(expectedTeams, user.getTeams());
+    assertEntityReferenceList(expectedTeams, user.getTeams());
 
     if (createRequest.getProfile() != null) {
       assertEquals(createRequest.getProfile(), user.getProfile());

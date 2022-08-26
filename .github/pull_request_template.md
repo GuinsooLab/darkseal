@@ -19,7 +19,7 @@ I worked on the ..... because ...
 #
 ### Checklist:
 <!-- add an x in [] if done, don't mark items that you didn't do !-->
-- [x] I have read the `CONTRIBUTING` document.
+- [x] I have read the [**CONTRIBUTING**](https://docs.open-metadata.org/open-source-community/developer) document.
 - [ ] I have commented on my code, particularly in hard-to-understand areas.
 - [ ] I have added tests that prove my fix is effective or that my feature works.
 - [x] All new and existing tests passed.
@@ -29,6 +29,6 @@ I worked on the ..... because ...
 <!-- Please see the contributing guidelines and then add your reviewer(s) !-->
 <!--- OpenMetadata community thanks you for explaining your changes in detail !-->
 <!--- If you are unsure of people to review your work, you can add anyone of these developers :) !-->
-<!--- Frontend: @metadata/ui -->
-<!--- Backend: @metadata/backend -->
-<!--- Ingestion: @metadata/ingestion -->
+<!--- Frontend: @open-metadata/ui -->
+<!--- Backend: @open-metadata/backend -->
+<!--- Ingestion: @open-metadata/ingestion -->

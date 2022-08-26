@@ -3,9 +3,9 @@
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <parent>
-    <artifactId>darkseal</artifactId>
-    <groupId>io.github.GuinsooLab</groupId>
-    <version>0.11.3</version>
+    <artifactId>catalog</artifactId>
+    <groupId>org.open-metadata</groupId>
+    <version>0.11.4</version>
   </parent>
   <modelVersion>4.0.0</modelVersion>
 
@@ -31,9 +31,9 @@
       <artifactId>fernet-java8</artifactId>
     </dependency>
     <dependency>
-      <groupId>io.github.GuinsooLab</groupId>
+      <groupId>org.open-metadata</groupId>
       <artifactId>common</artifactId>
-      <version>0.11.3</version>
+      <version>${project.version}</version>
     </dependency>
     <dependency>
       <groupId>io.dropwizard</groupId>
@@ -423,6 +423,10 @@
         </executions>
       </plugin>
       <plugin>
+        <groupId>com.theoryinpractise</groupId>
+        <artifactId>googleformatter-maven-plugin</artifactId>
+      </plugin>
+      <plugin>
         <groupId>org.codehaus.mojo</groupId>
         <artifactId>buildnumber-maven-plugin</artifactId>
         <version>1.4</version>
@@ -442,6 +446,50 @@
         </executions>
       </plugin>
       <plugin>
+        <groupId>io.openapitools.swagger</groupId>
+        <artifactId>swagger-maven-plugin</artifactId>
+        <configuration>
+          <resourcePackages>
+            <resourcePackage>org.openmetadata.catalog.resources</resourcePackage>
+          </resourcePackages>
+          <useResourcePackagesChildren>true</useResourcePackagesChildren>
+          <outputDirectory>${basedir}/target/classes/assets/</outputDirectory>
+          <outputFilename>swagger</outputFilename>
+          <outputFormats>JSON,YAML</outputFormats>
+          <prettyPrint>true</prettyPrint>
+          <swaggerConfig>
+            <servers>
+              <server>
+                <url>http://localhost:8585/api</url>
+                <description>Endpoint URL</description>
+              </server>
+            </servers>
+            <info>
+              <title>OpenMetadata Apis</title>
+              <version>${project.parent.version}</version>
+              <contact>
+                <email>openmetadata-dev@googlegroups.com</email>
+                <name>OpenMetadata</name>
+                <url>https://open-metadata.org</url>
+              </contact>
+              <license>
+                <url>https://www.apache.org/licenses/LICENSE-2.0</url>
+                <name>Apache 2.0</name>
+              </license>
+            </info>
+            <descriptionFile>../docs/openmetadata-apis/apis.md</descriptionFile>
+          </swaggerConfig>
+        </configuration>
+        <executions>
+          <execution>
+            <phase>compile</phase>
+            <goals>
+              <goal>generate</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-source-plugin</artifactId>
         <version>${maven-src-plugin.version}</version>
@@ -452,7 +500,7 @@
         <version>${jsonschema2pojo.version}</version>
         <configuration>
           <sourceDirectory>${basedir}/src/main/resources/json/schema</sourceDirectory>
-          <targetPackage>org.metadata.catalog</targetPackage>
+          <targetPackage>org.openmetadata.catalog</targetPackage>
           <includeJsr303Annotations>true</includeJsr303Annotations>
           <generateBuilders>true</generateBuilders>
         </configuration>
