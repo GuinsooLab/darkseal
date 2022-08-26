@@ -20,40 +20,40 @@ import {
   inPageSearchOptions,
   isInPageSearchAllowed,
 } from '../../utils/RouterUtils';
-import { activeLink, normalLink } from '../../utils/styleconstant';
+// import { activeLink, normalLink } from '../../utils/styleconstant';
 import SVGIcons, { Icons } from '../../utils/SvgUtils';
 import SearchOptions from '../app-bar/SearchOptions';
 import Suggestions from '../app-bar/Suggestions';
 import Avatar from '../common/avatar/Avatar';
 import PopOver from '../common/popover/PopOver';
 import DropDown from '../dropdown/DropDown';
-import { WhatsNewModal } from '../Modals/WhatsNewModal';
+// import { WhatsNewModal } from '../Modals/WhatsNewModal';
 import { NavBarProps } from './NavBar.interface';
 
 const NavBar = ({
   settingDropdown,
-  supportDropdown,
+  // supportDropdown,
   profileDropdown,
   searchValue,
-  isFeatureModalOpen,
+  // isFeatureModalOpen,
   isTourRoute = false,
   pathname,
   username,
   isSearchBoxOpen,
   hasNotification,
   handleSearchBoxOpen,
-  handleFeatureModal,
+  // handleFeatureModal,
   handleSearchChange,
   handleKeyDown,
   handleOnClick,
 }: NavBarProps) => {
   const [searchIcon, setSearchIcon] = useState<string>('icon-searchv1');
   const [suggestionSearch, setSuggestionSearch] = useState<string>('');
-  const navStyle = (value: boolean) => {
-    if (value) return { color: activeLink };
-
-    return { color: normalLink };
-  };
+  // const navStyle = (value: boolean) => {
+  //   if (value) return { color: activeLink };
+  //
+  //   return { color: normalLink };
+  // };
 
   const debouncedOnChange = useCallback(
     (text: string): void => {
@@ -70,23 +70,27 @@ const NavBar = ({
 
   return (
     <>
-      <div className="tw-h-16 tw-py-3 tw-border-b-2 tw-border-separator">
+      <div
+        className="tw-h-16 tw-border-b tw-border-separator"
+        style={{ height: '48px', paddingTop: '5px', paddingBottom: '5px' }}>
         <div className="tw-flex tw-items-center tw-flex-row tw-justify-between tw-flex-nowrap tw-px-6 centered-layout">
           <div className="tw-flex tw-items-center tw-flex-row tw-justify-between tw-flex-nowrap">
-            <NavLink className="tw-flex-shrink-0" id="openmetadata_logo" to="/">
-              <SVGIcons alt="OpenMetadata Logo" icon={Icons.LOGO} width="90" />
-            </NavLink>
+            <NavLink
+              className="tw-flex-shrink-0"
+              id="openmetadata_logo"
+              to="/"
+            />
             <div className="tw-ml-5">
-              <NavLink
-                className="tw-nav focus:tw-no-underline"
-                data-testid="appbar-item"
-                id="explore"
-                style={navStyle(pathname.startsWith('/explore'))}
-                to={{
-                  pathname: '/explore/tables',
-                }}>
-                Explore
-              </NavLink>
+              {/* <NavLink*/}
+              {/*  className="tw-nav focus:tw-no-underline"*/}
+              {/*  data-testid="appbar-item"*/}
+              {/*  id="explore"*/}
+              {/*  style={navStyle(pathname.startsWith('/explore'))}*/}
+              {/*  to={{*/}
+              {/*    pathname: '/explore/tables',*/}
+              {/*  }}>*/}
+              {/*  Explore*/}
+              {/* </NavLink>*/}
               <DropDown
                 dropDownList={settingDropdown}
                 label="Settings"
@@ -153,22 +157,22 @@ const NavBar = ({
                   alt="Alert bell icon"
                   className="tw-align-middle tw-mr-2"
                   icon={Icons.ALERT_BELL}
-                  width="20"
+                  width="18"
                 />
                 {hasNotification ? <span className="tw-bell-badge" /> : null}
               </Link>
             </button>
-            <button
-              className="tw-nav focus:tw-no-underline hover:tw-underline tw-flex-shrink-0"
-              data-testid="whatsnew-modal"
-              onClick={() => handleFeatureModal(true)}>
-              <SVGIcons
-                alt="Doc icon"
-                className="tw-align-middle tw-mr-1"
-                icon={Icons.WHATS_NEW}
-                width="20"
-              />
-            </button>
+            {/* <button*/}
+            {/*  className="tw-nav focus:tw-no-underline hover:tw-underline tw-flex-shrink-0"*/}
+            {/*  data-testid="whatsnew-modal"*/}
+            {/*  onClick={() => handleFeatureModal(true)}>*/}
+            {/*  <SVGIcons*/}
+            {/*    alt="Doc icon"*/}
+            {/*    className="tw-align-middle tw-mr-1"*/}
+            {/*    icon={Icons.WHATS_NEW}*/}
+            {/*    width="20"*/}
+            {/*  />*/}
+            {/* </button>*/}
             <button
               className="tw-nav focus:tw-no-underline hover:tw-underline tw-flex-shrink-0"
               data-testid="tour">
@@ -177,27 +181,27 @@ const NavBar = ({
                   alt="tour icon"
                   className="tw-align-middle tw-mr-0.5"
                   icon={Icons.TOUR}
-                  width="20"
+                  width="18"
                 />
               </Link>
             </button>
-            <div className="tw-flex-shrink-0">
-              <DropDown
-                dropDownList={supportDropdown}
-                icon={
-                  <SVGIcons
-                    alt="Doc icon"
-                    className="tw-align-middle tw-mt-0.5 tw-mr-1"
-                    icon={Icons.HELP_CIRCLE}
-                    width="20"
-                  />
-                }
-                isDropDownIconVisible={false}
-                isLableVisible={false}
-                label="Need Help"
-                type="link"
-              />
-            </div>
+            {/*  <div className="tw-flex-shrink-0">*/}
+            {/*    <DropDown*/}
+            {/*      dropDownList={supportDropdown}*/}
+            {/*      icon={*/}
+            {/*        <SVGIcons*/}
+            {/*          alt="Doc icon"*/}
+            {/*          className="tw-align-middle tw-mt-0.5 tw-mr-1"*/}
+            {/*          icon={Icons.HELP_CIRCLE}*/}
+            {/*          width="18"*/}
+            {/*        />*/}
+            {/*      }*/}
+            {/*      isDropDownIconVisible={false}*/}
+            {/*      isLableVisible={false}*/}
+            {/*      label="Need Help"*/}
+            {/*      type="link"*/}
+            {/*    />*/}
+            {/*  </div>*/}
           </div>
           <div data-testid="dropdown-profile">
             <DropDown
@@ -227,12 +231,12 @@ const NavBar = ({
             />
           </div>
         </div>
-        {isFeatureModalOpen && (
-          <WhatsNewModal
-            header="What’s new!"
-            onCancel={() => handleFeatureModal(false)}
-          />
-        )}
+        {/* {isFeatureModalOpen && (*/}
+        {/*  <WhatsNewModal*/}
+        {/*    header="What’s new!"*/}
+        {/*    onCancel={() => handleFeatureModal(false)}*/}
+        {/*  />*/}
+        {/* )}*/}
       </div>
     </>
   );

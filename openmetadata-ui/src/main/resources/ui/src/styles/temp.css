@@ -14,6 +14,7 @@
 .main-container {
   display: flex;
   height: 100vh;
+  margin-left: 60px;
 }
 
 .profile-image {
@@ -882,4 +883,59 @@ body .list-option.rdw-option-active {
 .login-slider.slick-dots li button:before {
   color: #fff !important;
   opacity: 0.5 !important;
+}
+
+.nav-apps {
+  background: #072C4F;
+  width: 60px;
+  height: 100vh;
+  position: absolute;
+  top: 0;
+  left: 0;
+  text-align: center;
+}
+
+.app-nav-ul {
+  margin-top: 24px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+}
+
+.app-nav-li {
+  height: 50px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.app-nav-li > a {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 2px;
+  height: 36px;
+  width: 36px;
+}
+
+.app-nav-li > a > img {
+  /*height: 20px;*/
+  /*width: 20px;*/
+}
+
+.app-nav-li > a:hover {
+  background: #000000;
+}
+
+.app-nav-li-help-x {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 60px;
+  height: 50px;
+  text-align: center;
+  line-height: 50px;
 }

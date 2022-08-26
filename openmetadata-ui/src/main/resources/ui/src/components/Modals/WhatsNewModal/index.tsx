@@ -37,7 +37,7 @@ export const WhatsNewModal: FunctionComponent<Props> = ({
   onCancel,
 }: Props) => {
   const [activeData, setActiveData] = useState(WHATS_NEW[LATEST_VERSION_ID]);
-  const [checkedValue, setCheckedValue] = useState<ToggleType>('features');
+  const [checkedValue, setCheckedValue] = useState<ToggleType>('change-log');
 
   const getToggleButtonClasses = (type: string): string => {
     return (

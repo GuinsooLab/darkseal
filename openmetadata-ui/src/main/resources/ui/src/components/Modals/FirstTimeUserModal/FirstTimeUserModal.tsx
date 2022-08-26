@@ -75,7 +75,7 @@ export const FirstTimeUserModal: FunctionComponent<Props> = ({
               />
             )}
             <p className="tw-modal-title tw-text-h4 tw-font-semibold tw-text-primary-active tw-mt-5">
-              Welcome to OpenMetadata
+              Welcome to Darkseal
             </p>
           </div>
         </div>

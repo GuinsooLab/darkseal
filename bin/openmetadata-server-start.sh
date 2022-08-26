@@ -10,7 +10,7 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 
- if [ $# -lt 1 ];
+if [ $# -lt 1 ];
 then
 	echo "USAGE: $0 [-daemon] openmetadata.yaml"
 	exit 1

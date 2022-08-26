@@ -33,6 +33,7 @@ import WebSocketProvider from './components/web-scoket/web-scoket.provider';
 import { toastOptions } from './constants/toast.constants';
 import ErrorBoundry from './ErrorBoundry/ErrorBoundry';
 import AppRouter from './router/AppRouter';
+import SVGIcons, { Icons } from './utils/SvgUtils';
 
 const App: FunctionComponent = () => {
   library.add(
@@ -50,6 +51,42 @@ const App: FunctionComponent = () => {
 
   return (
     <div className="main-container">
+      <div className="nav-apps">
+        <SVGIcons alt="Darkseal Logo" icon={Icons.LOGO} width="45" />
+        <ul className="app-nav-ul">
+          <li className="app-nav-li">
+            <a href="/">
+              <SVGIcons alt="home" icon={Icons.HOME_APP} width="18" />
+            </a>
+          </li>
+          <li className="app-nav-li">
+            <a href="/explore">
+              <SVGIcons alt="explore" icon={Icons.EXPLORE_APP} width="18" />
+            </a>
+          </li>
+          <li className="app-nav-li">
+            <a href="/custom-properties">
+              <SVGIcons
+                alt="custom-properties"
+                icon={Icons.SETTINGS_APP}
+                width="16"
+              />
+            </a>
+          </li>
+          <li className="app-nav-li-help-x">
+            <a
+              href="https://ciusji.gitbook.io/guinsoolab/products/data-discovery/darkseal/overview"
+              rel="noreferrer"
+              target="_blank">
+              <SVGIcons
+                alt="custom-properties"
+                icon={Icons.WHATS_NEW_APP}
+                width="18"
+              />
+            </a>
+          </li>
+        </ul>
+      </div>
       <div className="content-wrapper" data-testid="content-wrapper">
         <Router>
           <ErrorBoundry>

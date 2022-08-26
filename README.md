@@ -1,9 +1,9 @@
 <div align="right">
-    <img src="./metadata-ui/src/main/resources/ui/public/guinsoolab-badge.png" width="60" alt="badge">
+    <img src="./openmetadata-ui/src/main/resources/ui/public/guinsoolab-badge.png" width="60" alt="badge">
     <br />
 </div>
 <div align="center">
-    <img src="./metadata-ui/src/main/resources/ui/public/darkseal.svg" alt="logo" width="120" />
+    <img src="./openmetadata-ui/src/main/resources/ui/public/darkseal.svg" alt="logo" width="120" />
     <br />
     <small>A Single place to Discover, Collaborate, and Get your data right</small>
 </div>
@@ -51,6 +51,24 @@ Darkseal depends on following components to build a metadata platform:
 
 ![dgp-darkseal](./metadata-ui/src/main/resources/ui/public/gdp-darkseal.svg)
 
+
+## Build From Source
+
+```bash
+# Clone source
+git clone git@github.com:GuinsooLab/darkseal.git
+
+# Package 
+mvn clean package -DskipTests
+
+# Prepare database and indexes
+./bootstrap/bootstrap_storage.sh drop-create-all
+
+# Start Server
+./bin/openmetadata.sh start
+```
+
+For more information, please referer to [here](https://ciusji.gitbook.io/guinsoolab/products/data-discovery/darkseal).
 
 ## Service Integration
 
