@@ -49,7 +49,7 @@ Darkseal depends on following components to build a metadata platform:
 - MySQL 8.x to store Metadata ([Guinsoo](https://github.com/ciusji/guinsoo) is coming)
 - ElasticSearch/OpenElasticsearch 7.x to index Metadata and power
 
-![dgp-darkseal](./metadata-ui/src/main/resources/ui/public/gdp-darkseal.svg)
+![dgp-darkseal](./openmetadata-ui/src/main/resources/ui/public/gdp-darkseal.svg)
 
 
 ## Build From Source
