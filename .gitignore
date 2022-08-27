@@ -106,3 +106,5 @@ mlruns/
 
 # SQLAlchemy tests
 file:cachedb
+
+conf/openmetadata-dev.yaml
