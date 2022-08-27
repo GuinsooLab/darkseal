@@ -52,7 +52,9 @@ Darkseal depends on following components to build a metadata platform:
 ![dgp-darkseal](./openmetadata-ui/src/main/resources/ui/public/gdp-darkseal.svg)
 
 
-## Build From Source
+## Start Darkseal Server
+
+### Start From Source
 
 ```bash
 # Clone source
@@ -60,6 +62,26 @@ git clone git@github.com:GuinsooLab/darkseal.git
 
 # Package 
 mvn clean package -DskipTests
+
+# Prepare database and indexes
+./bootstrap/bootstrap_storage.sh create
+
+# Start Server
+java -cp catalog-rest-service org.openmetadata.catalog.CatalogApplication server ./conf/openmetadata.yaml
+```
+
+### Start From Built Package
+```bash
+# Clone source
+git clone git@github.com:GuinsooLab/darkseal.git
+
+# Package 
+mvn clean package -DskipTests
+
+# Change dist dir & un-tar files
+cd openmetadata-dist/target
+tar zxvf openmetadata-xxx.tar.gz
+cd openmetadata-xxx
 
 # Prepare database and indexes
 ./bootstrap/bootstrap_storage.sh create

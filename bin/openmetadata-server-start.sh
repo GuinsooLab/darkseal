@@ -38,7 +38,6 @@ fi
 
 # classpath addition for release
 
-echo $CLASSPATH
 for file in $base_dir/libs/*.jar;
 do
     CLASSPATH=$CLASSPATH:$file
@@ -48,6 +47,7 @@ if [ ! "x$EXT_CLASSPATH" = "x" ]; then
  CLASSPATH=$CLASSPATH:$EXT_CLASSPATH;
 fi
 
+echo $CLASSPATH
 
 COMMAND=$1
 case $COMMAND in
@@ -112,7 +112,7 @@ fi
 #Application classname
 APP_CLASS="org.openmetadata.catalog.CatalogApplication"
 
-# Launch mode
+# Launch mode-
 if [ "x$DAEMON_MODE" = "xtrue" ]; then
     nohup $JAVA $OPENMETADATA_HEAP_OPTS $OPENMETADATA_JVM_PERFORMANCE_OPTS -cp $CLASSPATH $OPENMETADATA_OPTS "$APP_CLASS" "server" "$@" > "$CONSOLE_OUTPUT_FILE" 2>&1 < /dev/null &
 else
