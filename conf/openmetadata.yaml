@@ -118,10 +118,10 @@ database:
   driverClass: com.mysql.cj.jdbc.Driver
   # the username and password
   user: root
-  password: Bi9shxo==
+  password: root
   # the JDBC URL; the database is called openmetadata_db
   # url: jdbc:${DB_SCHEME:-mysql}://${MYSQL_HOST:-localhost}:${MYSQL_PORT:-3306}/${MYSQL_DATABASE:-openmetadata_db}?allowPublicKeyRetrieval=true&useSSL=${DB_USE_SSL:-false}&serverTimezone=UTC
-  url: jdbc:mysql://192.168.120.14:3306/portfolio?useUnicode=true&characterEncoding=utf-8&serverTimezone=Asia/Shanghai
+  url: jdbc:mysql://192.168.120.17:3307/guinsoolab?useUnicode=true&characterEncoding=utf-8&serverTimezone=Asia/Shanghai
 
 migrationConfiguration:
   path: "./bootstrap/sql"

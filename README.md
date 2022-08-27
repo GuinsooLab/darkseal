@@ -62,7 +62,7 @@ git clone git@github.com:GuinsooLab/darkseal.git
 mvn clean package -DskipTests
 
 # Prepare database and indexes
-./bootstrap/bootstrap_storage.sh drop-create-all
+./bootstrap/bootstrap_storage.sh create
 
 # Start Server
 ./bin/openmetadata.sh start
