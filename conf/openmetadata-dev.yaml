@@ -22,12 +22,12 @@ server:
     - type: http
       port: ${SERVER_ADMIN_PORT:-8586}
 
-  # Above configuration for running http is fine for dev and testing.
-  # For production setup, where UI app will hit apis through DPS it
-  # is strongly recommended to run https instead. Note that only
-  # keyStorePath and keyStorePassword are mandatory properties. Values
-  # for other properties are defaults
-  #server:
+# Above configuration for running http is fine for dev and testing.
+# For production setup, where UI app will hit apis through DPS it 
+# is strongly recommended to run https instead. Note that only
+# keyStorePath and keyStorePassword are mandatory properties. Values
+# for other properties are defaults
+#server:
   #applicationConnectors:
   #  - type: https
   #    port: 8585
@@ -55,7 +55,7 @@ server:
   #    supportedCipherSuites: TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA256
   #    allowRenegotiation: true
   #    endpointIdentificationAlgorithm: (none)
-
+ 
   #adminConnectors:
   #  - type: https
   #    port: 8586
@@ -115,12 +115,13 @@ logging:
 
 database:
   # the name of the JDBC driver, mysql in our case
-  driverClass: ${DB_DRIVER_CLASS:-com.mysql.cj.jdbc.Driver}
+  driverClass: com.mysql.cj.jdbc.Driver
   # the username and password
-  user: ${MYSQL_USER:-openmetadata_user}
-  password: ${MYSQL_USER_PASSWORD:-openmetadata_password}
+  user: root
+  password: root
   # the JDBC URL; the database is called openmetadata_db
-  url: jdbc:${DB_SCHEME:-mysql}://${MYSQL_HOST:-localhost}:${MYSQL_PORT:-3306}/${MYSQL_DATABASE:-openmetadata_db}?allowPublicKeyRetrieval=true&useSSL=${DB_USE_SSL:-false}&serverTimezone=UTC
+  # url: jdbc:${DB_SCHEME:-mysql}://${MYSQL_HOST:-localhost}:${MYSQL_PORT:-3306}/${MYSQL_DATABASE:-openmetadata_db}?allowPublicKeyRetrieval=true&useSSL=${DB_USE_SSL:-false}&serverTimezone=UTC
+  url: jdbc:mysql://192.168.120.17:3307/guinsoolab?useUnicode=true&characterEncoding=utf-8&serverTimezone=Asia/Shanghai
 
 migrationConfiguration:
   path: "./bootstrap/sql"
@@ -152,16 +153,8 @@ jwtTokenConfiguration:
   keyId: ${JWT_KEY_ID:-"Gb389a-9f76-gdjs-a92j-0242bk94356"}
 
 elasticsearch:
-  host: ${ELASTICSEARCH_HOST:-localhost}
-  port: ${ELASTICSEARCH_PORT:-9200}
-  scheme: ${ELASTICSEARCH_SCHEME:-http}
-  username: ${ELASTICSEARCH_USER:-""}
-  password: ${ELASTICSEARCH_PASSWORD:-""}
-  truststorePath: ${ELASTICSEARCH_TRUST_STORE_PATH:-""}
-  truststorePassword: ${ELASTICSEARCH_TRUST_STORE_PASSWORD:-""}
-  connectionTimeoutSecs: ${ELASTICSEARCH_CONNECTION_TIMEOUT_SECS:-5}
-  socketTimeoutSecs: ${ELASTICSEARCH_SOCKET_TIMEOUT_SECS:-60}
-  batchSize: ${ELASTICSEARCH_BATCH_SIZE:-10}
+  host: 192.168.120.13
+  port: 9200
 
 eventHandlerConfiguration:
   eventHandlerClassNames:
@@ -207,16 +200,16 @@ slackEventPublishers:
     filters:
       - eventType: "entityCreated"
         entities:
-          - "*"
+         - "*"
       - eventType: "entityUpdated"
         entities:
-          - "*"
+         - "*"
       - eventType: "entitySoftDeleted"
         entities:
-          - "*"
+         - "*"
       - eventType: "entityDeleted"
         entities:
-          - "*"
+         - "*"
 
 # no_encryption_at_rest is the default value, and it does what it says. Please read the manual on how
 # to secure your instance of OpenMetadata with TLS and encryption at rest.
