@@ -29,27 +29,27 @@ const stepsData = [
     title: 'Ingest Sample Data',
     description:
       'Run sample data to ingest sample entities into your OpenMetadata.',
-    link: 'https://docs.open-metadata.org/integrations/ingest-sample-data',
+    link: 'https://ciusji.gitbook.io/guinsoolab/products/data-discovery/darkseal/overview',
   },
   {
     step: 2,
     title: 'Start Elasticsearch Docker',
     description: 'Ensure that the Elasticsearch docker is up and running.',
-    link: 'https://docs.open-metadata.org/integrations/ingest-sample-data#index-sample-data-into-elasticsearch',
+    link: 'https://ciusji.gitbook.io/guinsoolab/products/data-discovery/darkseal/overview',
   },
   {
     step: 3,
     title: 'Install Service Connectors',
     description:
       'There are a lot of connectors available here to index data from your services. Please checkout our connectors.',
-    link: 'https://docs.open-metadata.org/integrations/connectors',
+    link: 'https://ciusji.gitbook.io/guinsoolab/products/data-discovery/darkseal/overview',
   },
   {
     step: 4,
     title: 'More Help',
     description:
       'If you are still running into issues, please reach out to us on slack.',
-    link: 'https://slack.open-metadata.org',
+    link: 'https://ciusji.gitbook.io/guinsoolab/products/data-discovery/darkseal/overview',
   },
 ];
 
