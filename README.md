@@ -68,6 +68,10 @@ mvn clean package -DskipTests
 
 # Start Server
 java -cp catalog-rest-service org.openmetadata.catalog.CatalogApplication server ./conf/openmetadata.yaml
+
+# Start UI
+cd openmetadata-ui/src/ui
+yarn run start
 ```
 
 ### Start From Built Package
