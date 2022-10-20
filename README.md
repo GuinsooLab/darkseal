@@ -10,6 +10,8 @@
 
 # Darkseal
 
+![Intro](./docs/overview/darkseal-ecosystem-v2.jpg)
+
 Darkseal includes the following:
 
 - **Metadata schemas** - Defines core abstractions and vocabulary for metadata with schemas for Types, Entities, Relationships between entities. This is the foundation of the Open Metadata Standard.
