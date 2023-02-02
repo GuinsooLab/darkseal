@@ -1,9 +1,9 @@
 <div align="right">
-    <img src="./openmetadata-ui/src/main/resources/ui/public/guinsoolab-badge.png" width="60" alt="badge">
+    <img src="https://raw.githubusercontent.com/GuinsooLab/darkseal/master/openmetadata-ui/src/main/resources/ui/public/guinsoolab-badge.png" width="60" alt="badge">
     <br />
 </div>
 <div align="center">
-    <img src="./openmetadata-ui/src/main/resources/ui/public/darkseal.svg" alt="logo" width="120" />
+    <img src="https://raw.githubusercontent.com/GuinsooLab/darkseal/master/openmetadata-ui/src/main/resources/ui/public/darkseal.svg" alt="logo" width="120" />
     <br />
     <small>A Single place to Discover, Collaborate, and Get your data right</small>
 </div>
@@ -12,49 +12,9 @@
 
 ![Intro](./docs/overview/darkseal-ecosystem-v2.jpg)
 
-Darkseal includes the following:
+Unlock the value of data assets with an end-to-end metadata platform that includes data discovery, governance, data quality, observability, and people collaboration.
 
-- **Metadata schemas** - Defines core abstractions and vocabulary for metadata with schemas for Types, Entities, Relationships between entities. This is the foundation of the Open Metadata Standard.
-- **Metadata store** - Stores metadata graph that connects data assets, user, and tool generated metadata.
-- **Metadata APIs** - For producing and consuming metadata built on schemas for User Interfaces and Integration of tools, systems, and services.
-- **Ingestion framework** - A pluggable framework for integrating tools and ingesting metadata to the metadata store. Ingestion framework already supports well know data warehouses - Google BigQuery, Snowflake, Amazon Redshift, and Apache Hive, and databases - MySQL, Postgres, Oracle, MSSQL, and [Guinsoo](https://github.com/ciusji/guinsoo).
-- **Metadata User Interface** - One single place for users to discover, and collaborate on all data.
-
-## Snapshots & Gifs
-
-### Welcome
-
-![Welcome](./docs/overview/overview-1.png)
-
-### New Service
-
-![New Service](./docs/overview/overview-2.png)
-
-### Explore Tables
-
-![Explore Tables](./docs/overview/overview-3.png)
-
-### Table Lineage
-
-![Table Lineage](./docs/overview/overview-4.png)
-
-### Table Schema
-
-![Table Schema](./docs/overview/overview-5.png)
-
-## Architecture
-
-Darkseal depends on following components to build a metadata platform:
-
-- JsonSchemas for defining Metadata Schemas
-- Dropwizard/Jetty for REST APIs
-- MySQL 8.x to store Metadata ([Guinsoo](https://github.com/ciusji/guinsoo) is coming)
-- ElasticSearch/OpenElasticsearch 7.x to index Metadata and power
-
-![dgp-darkseal](./openmetadata-ui/src/main/resources/ui/public/gdp-darkseal.svg)
-
-
-## Start Darkseal Server
+## Quickstart
 
 ### Start From Source
 
@@ -98,74 +58,56 @@ cd openmetadata-xxx
 
 For more information, please referer to [here](https://ciusji.gitbook.io/guinsoolab/products/data-discovery/darkseal).
 
-## Service Integration
 
-### Database Service Support
+## Main Features
 
-- Athena
-- AzureSQL
-- BigQuery
-- Clickhouse
-- Databricks
-- Datalake
-- Db2
-- DeltaLake
-- Druid
-- DynamoDB
-- Glue
-- Hive
-- MariaDB
-- Mssql
-- MySQL
-- Oracle
-- Pinot
-- Postgres
-- Presto
-- Redshift
-- SQLite
-- Salesforce
-- SingleStore
-- Snowflake
-- Trino
-- Vertica
-- [GuinsooLab Stack](https://github.com/GuinsooLab)
+- Data Trust
+- Data Documentation
+- Data Governance
+- Discovery & Collaboration
+- Teams & Users with Roles and Policies
+- Data Glossaries
+- Data Insights
+- Data Lineage
+- Security & Compliance
+- Alerts & Notifications
 
-### Message Service Support
+## Core Components
 
-- Kafka
-- Pulsar
+Darkseal includes the following:
 
-### Dashboard Service Support
-
-- Looker
-- Metabase
-- Mode
-- PowerBI
-- Redash
-- Superset
-- Tableau
-- [Spotrix](https://github.com/Spotrix/spotrix) 🚀
-
-### Pipeline Service Support
-
-- Airbyte
-- Airflow
-- Glue
-- [Sheenflow](https://github.com/GuinsooLab/sheenflow)
-
-### ML Model Service Support
-
-- Mlflow
+- **Metadata schemas** - Defines core abstractions and vocabulary for metadata with schemas for Types, Entities, Relationships between entities. This is the foundation of the Open Metadata Standard.
+- **Metadata store** - Stores metadata graph that connects data assets, user, and tool generated metadata.
+- **Metadata APIs** - For producing and consuming metadata built on schemas for User Interfaces and Integration of tools, systems, and services.
+- **Ingestion framework** - A pluggable framework for integrating tools and ingesting metadata to the metadata store. Ingestion framework already supports well know data warehouses - Google BigQuery, Snowflake, Amazon Redshift, and Apache Hive, and databases - MySQL, Postgres, Oracle, MSSQL, and [Guinsoo](https://github.com/ciusji/guinsoo).
+- **Metadata User Interface** - One single place for users to discover, and collaborate on all data.
 
 ## Documentation & Supports
 
-- [Overview](https://ciusji.gitbook.io/guinsoolab/products/data-discovery/darkseal/overview)
-- [Install & Deploy](https://ciusji.gitbook.io/guinsoolab/products/data-discovery/darkseal/deployment)
-- [Quickstart With Darkseal](https://ciusji.gitbook.io/guinsoolab/products/data-discovery/darkseal/quickstart)
-- [Darkseal Main Concepts](https://ciusji.gitbook.io/guinsoolab/products/data-discovery/darkseal/main-concepts)
-- [Dearkseal Service Integrates](https://ciusji.gitbook.io/guinsoolab/products/data-discovery/darkseal/integrations)
-- [Roadmap](https://ciusji.gitbook.io/guinsoolab/products/data-discovery/darkseal/roadmap)
-
+- [Introduction 😋](https://ciusji.gitbook.io/darkseal/)
+- Overview
+  - [Tutorial](https://ciusji.gitbook.io/darkseal/overview/tutorial)
+  - [Features](https://ciusji.gitbook.io/darkseal/overview/features)
+  - [Releases](https://ciusji.gitbook.io/darkseal/overview/releases)
+  - [Roadmap](https://ciusji.gitbook.io/darkseal/overview/roadmap)
+- Deployment
+  - [Docker Deployment](https://ciusji.gitbook.io/darkseal/deployment/docker-deployment)
+  - [Bare Metal Deployment](https://ciusji.gitbook.io/darkseal/deployment/bare-metal-deployment)
+- Service Integrations
+  - [Database](https://ciusji.gitbook.io/darkseal/connectors/database)
+  - [Dashboard](https://ciusji.gitbook.io/darkseal/connectors/dashboard)
+  - [Messaging](https://ciusji.gitbook.io/darkseal/connectors/messaging)
+  - [Pipeline](https://ciusji.gitbook.io/darkseal/connectors/pipeline)
+  - [ML Model](https://ciusji.gitbook.io/darkseal/connectors/ml-model)
+  - [Metadata](https://ciusji.gitbook.io/darkseal/connectors/metadata)
+  - [Ingestion](https://ciusji.gitbook.io/darkseal/connectors/ingestion)
+- Developers
+  - [Architecture](https://ciusji.gitbook.io/darkseal/developers/architecture)
+  - [Contribute](https://ciusji.gitbook.io/darkseal/developers/contribute)
+  - [Web Hooks](https://ciusji.gitbook.io/darkseal/developers/web-hooks)
+- Appendix
+  - [FAQs](https://ciusji.gitbook.io/darkseal/appendix/faq)
+  
 ## Contributors
 
 We ❤️ all contributions, big and small! Check out our [CONTRIBUTING](./CONTRIBUTING.md) guide to get started and let us know how we can help.
@@ -175,3 +117,5 @@ Don't want to miss anything? Give the project a ⭐ 🚀
 ## License
 
 Darkseal is released under [Apache License, Version 2.0](http://www.apache.org/licenses/LICENSE-2.0)
+
+<img src="https://raw.githubusercontent.com/GuinsooLab/glab/main/src/images/guinsoolab-group.svg" width="120" alt="license" />
