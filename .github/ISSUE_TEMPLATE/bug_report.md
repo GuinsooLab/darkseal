@@ -22,8 +22,8 @@ A clear and concise description of what you expected to happen.
 **Version:**
  - OS: [e.g. iOS]
  - Python version:
- - OpenMetadata version: [e.g. 0.8]
- - OpenMetadata Ingestion package version: [e.g. `openmetadata-ingestion[docker]==XYZ`]
+ - Darkseal version: [e.g. 0.8]
+ - Darkseal Ingestion package version: [e.g. `darkseal-ingestion[docker]==XYZ`]
 
 **Additional context**
 Add any other context about the problem here.
