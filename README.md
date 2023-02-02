@@ -56,7 +56,7 @@ cd openmetadata-xxx
 ./bin/openmetadata.sh start
 ```
 
-For more information, please referer to [here](https://ciusji.gitbook.io/guinsoolab/products/data-discovery/darkseal).
+For more information, please referer to [here](https://ciusji.gitbook.io/darkseal/).
 
 
 ## Main Features
