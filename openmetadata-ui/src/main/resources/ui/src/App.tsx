@@ -75,7 +75,7 @@ const App: FunctionComponent = () => {
           </li>
           <li className="app-nav-li-help-x">
             <a
-              href="https://ciusji.gitbook.io/guinsoolab/products/data-discovery/darkseal/overview"
+              href="https://ciusji.gitbook.io/darkseal/"
               rel="noreferrer"
               target="_blank">
               <SVGIcons
