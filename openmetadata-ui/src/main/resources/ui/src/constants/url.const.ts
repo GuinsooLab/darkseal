@@ -12,6 +12,5 @@
  */
 
 export const urlJoinSlack = 'https://slack.guinsoolab.org#darkseal';
-export const urlGitbookDocs =
-  'https://ciusji.gitbook.io/guinsoolab/products/data-discovery/darkseal/';
+export const urlGitbookDocs = 'https://ciusji.gitbook.io/darkseal/';
 export const urlGithubRepo = 'https://github.com/GuinsooLab/darkseal';

@@ -68,7 +68,7 @@ const SearchOptions: FunctionComponent<SearchOptionsProp> = ({
                 {searchText}
                 <Tags
                   className="tw-text-grey-body"
-                  tag="In OpenMetadata"
+                  tag="In Darkseal"
                   type="outlined"
                 />
               </Link>

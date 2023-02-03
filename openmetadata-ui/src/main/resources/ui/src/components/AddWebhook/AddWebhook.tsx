@@ -448,7 +448,7 @@ const AddWebhook: FunctionComponent<AddWebhookProps> = ({
       <div className="tw-px-2">
         <h6 className="tw-heading tw-text-base">Configure Webhooks</h6>
         <div className="tw-mb-5">
-          OpenMetadata can be configured to automatically send out event
+          Darkseal can be configured to automatically send out event
           notifications to registered webhooks. Enter the webhook name, and an
           Endpoint URL to receive the HTTP call back on. Use Event Filters to
           only receive notifications based on events of interest, like when an

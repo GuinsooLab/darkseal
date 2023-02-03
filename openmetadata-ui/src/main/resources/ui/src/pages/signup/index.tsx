@@ -144,14 +144,14 @@ const Signup = () => {
             <div className="tw-flex tw-flex-col tw-items-center signup-box">
               <div className="tw-flex tw-justify-center tw-items-center tw-my-7">
                 <SVGIcons
-                  alt="OpenMetadata Logo"
+                  alt="Darkseal Logo"
                   icon={Icons.LOGO_SMALL}
                   width="50"
                 />
               </div>
               <div className="tw-mb-7">
                 <h4 className="tw-font-semibold">
-                  Join <span className="tw-text-primary">OpenMetadata</span>
+                  Join <span className="tw-text-primary">Darkseal</span>
                 </h4>
               </div>
               <div className="tw-px-8 tw-w-full">

@@ -14,10 +14,10 @@
 const defaultTheme = require('tailwindcss/defaultTheme');
 
 // Primary colors for text and controls
-const primary = '#061d41';
-const primaryII = '#081c41';
-const primaryHover = '#062c4f';
-const primaryActive = '#062c4f';
+const primary = 'hsl(212, 99%, 43%)';
+const primaryII = 'hsl(218, 100%, 29%)';
+const primaryHover = 'hsl(215, 99%, 36%)';
+const primaryActive = 'hsl(215, 99%, 36%)';
 const primaryHoverLite = 'hsl(215, 100%, 25%)';
 const secondary = 'hsl(215, 100%, 25%)';
 const secondaryBG = 'hsl(209, 50%, 25%)';
@@ -48,9 +48,9 @@ const bodyBG = '#F8F9FA';
 const bodyHoverBG = '#F5F6F8';
 const tagBG = '#EEEAF8';
 const badgeBG = '#D5D8DC';
-const primaryBG = '#7147E840'; // 'rgba(113, 71, 232, 0.25)';
+const primaryBG = '#1e61f040'; // 'rgba(113, 71, 232, 0.25)';
 const backdropBG = '#302E36';
-const lightBG = '#F4F0FD';
+const lightBG = '#c9dbfb';
 const taskStatusBG = '#E5F3F1';
 
 // Borders and Separators

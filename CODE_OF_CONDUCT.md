@@ -1,4 +1,4 @@
-# OpenMetadata Code of Conduct
+# Darkseal Code of Conduct
 
 ## Our Pledge
 

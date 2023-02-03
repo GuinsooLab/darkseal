@@ -34,6 +34,7 @@ import { toastOptions } from './constants/toast.constants';
 import ErrorBoundry from './ErrorBoundry/ErrorBoundry';
 import AppRouter from './router/AppRouter';
 import SVGIcons, { Icons } from './utils/SvgUtils';
+import { ROUTES } from './constants/constants';
 
 const App: FunctionComponent = () => {
   library.add(
@@ -52,30 +53,68 @@ const App: FunctionComponent = () => {
   return (
     <div className="main-container">
       <div className="nav-apps">
-        <SVGIcons alt="Darkseal Logo" icon={Icons.LOGO} width="45" />
+        <SVGIcons alt="Darkseal Logo" icon={Icons.LOGO} width="60" />
         <ul className="app-nav-ul">
           <li className="app-nav-li">
-            <a href="/">
-              <SVGIcons alt="home" icon={Icons.HOME_APP} width="18" />
-            </a>
-          </li>
-          <li className="app-nav-li">
-            <a href="/explore">
-              <SVGIcons alt="explore" icon={Icons.EXPLORE_APP} width="18" />
-            </a>
-          </li>
-          <li className="app-nav-li">
-            <a href="/custom-properties">
+            <a href={ROUTES.HOME}>
               <SVGIcons
-                alt="custom-properties"
-                icon={Icons.SETTINGS_APP}
-                width="16"
+                alt="home"
+                icon={Icons.ALL_APPLICATION_APP}
+                width="18"
               />
             </a>
           </li>
+          <li className="app-nav-li">
+            <a href={ROUTES.EXPLORE}>
+              <SVGIcons alt="explore" icon={Icons.TABLE_GREY_APP} width="18" />
+            </a>
+          </li>
+          <li className="app-nav-li">
+            <a href={ROUTES.EXPLORE}>
+              <SVGIcons alt="explore" icon={Icons.TOPIC_GREY_APP} width="18" />
+            </a>
+          </li>
+          <li className="app-nav-li">
+            <a href={ROUTES.EXPLORE}>
+              <SVGIcons
+                alt="explore"
+                icon={Icons.DASHBOARD_GREY_APP}
+                width="18"
+              />
+            </a>
+          </li>
+          <li className="app-nav-li">
+            <a href={ROUTES.EXPLORE}>
+              <SVGIcons
+                alt="explore"
+                icon={Icons.PIPELINE_GREY_APP}
+                width="18"
+              />
+            </a>
+          </li>
+          <li className="app-nav-li">
+            <a href={ROUTES.EXPLORE}>
+              <SVGIcons
+                alt="explore"
+                icon={Icons.MLMODAL_GREY_APP}
+                width="18"
+              />
+            </a>
+          </li>
+          <li className="app-nav-li">
+            <a href={ROUTES.EXPLORE}>
+              <SVGIcons alt="explore" icon={Icons.USERS_GREY_APP} width="18" />
+            </a>
+          </li>
+          <li className="app-nav-li">
+            <a href={ROUTES.EXPLORE}>
+              <SVGIcons alt="explore" icon={Icons.TEAMS_GREY_APP} width="18" />
+            </a>
+          </li>
+          {/* Darkseal help */}
           <li className="app-nav-li-help-x">
             <a
-              href="https://ciusji.gitbook.io/guinsoolab/products/data-discovery/darkseal/overview"
+              href="https://ciusji.gitbook.io/darkseal/"
               rel="noreferrer"
               target="_blank">
               <SVGIcons

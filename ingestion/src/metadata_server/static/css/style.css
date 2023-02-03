@@ -623,7 +623,7 @@
     height:50px;
     border-radius:50%;
     border:5px solid rgba(0,0,0,.1);
-    border-left-color:#7147e8;
+    border-left-color:#1e61f0;
     background:transparent;
     -webkit-animation:rotate 1s linear infinite;
     animation:rotate 1s linear infinite;
@@ -1701,7 +1701,7 @@
 }
 .pagination>.disabled>.tw-link,.pagination>.disabled>.tw-link:hover,.pagination>.disabled>.tw-link:focus{
     cursor:not-allowed;
-    color:#7147e8
+    color:#1e61f0
 }
 .ace_editor {
     position: relative;
@@ -11578,7 +11578,7 @@ body{
     color:rgba(113, 71, 232, var(--tw-text-opacity))
 }
 .custom-checkbox:not(:checked):not(:disabled):hover{
-    background-color:#7147E840
+    background-color:#1e61f040
 }
 .custom-checkbox:disabled{
     opacity:.5
@@ -11616,7 +11616,7 @@ body{
 .toggle-switch.open{
     --tw-border-opacity: 1;
     border-color:rgba(113, 71, 232, var(--tw-border-opacity));
-    background-color:#7147E840
+    background-color:#1e61f040
 }
 .toggle-switch .switch{
     height:.75rem;
@@ -12364,7 +12364,7 @@ body .editor-wrapper ul,body #description ul,body .content-container ul{
     border-color:rgba(209, 213, 219, var(--tw-border-opacity))
 }
 .tw-border-primary-lite{
-    border-color:#7147E840
+    border-color:#1e61f040
 }
 .tw-border-primary{
     --tw-border-opacity: 1;
@@ -12430,7 +12430,7 @@ body .editor-wrapper ul,body #description ul,body .content-container ul{
     background-color:rgba(209, 213, 219, var(--tw-bg-opacity))
 }
 .tw-bg-primary-lite{
-    background-color:#7147E840
+    background-color:#1e61f040
 }
 .tw-bg-primary{
     --tw-bg-opacity: 1;

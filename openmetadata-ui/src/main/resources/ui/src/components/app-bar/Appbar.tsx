@@ -207,7 +207,7 @@ const Appbar: React.FC = (): JSX.Element => {
             tooltip
             className="tw-font-medium tw-cursor-pointer"
             rows={1}
-            style={{ color: '#7147E8' }}>
+            style={{ color: '#1e61f0' }}>
             {name}
           </Ellipses>
         </Link>

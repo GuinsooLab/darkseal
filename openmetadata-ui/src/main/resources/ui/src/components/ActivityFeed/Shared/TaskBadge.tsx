@@ -36,7 +36,7 @@ const TaskBadge = ({ status }: { status: ThreadTaskStatus }) => {
           border: '1px solid #C6B5F6',
           boxShadow: '0px 1px 2px rgba(0, 0, 0, 0.06)',
           borderRadius: '2px',
-          color: '#7147E8',
+          color: '#1e61f0',
           fontSize: '12px',
         }}>
         <SVGIcons

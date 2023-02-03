@@ -24,7 +24,7 @@ const mockData = {
   displayName: 'table',
   description:
     // eslint-disable-next-line max-len
-    '"This schema defines the Table entity. A Table organizes data in rows and columns and is defined by a Schema. OpenMetadata does not have a separate abstraction for Schema. Both Table and Schema are captured in this entity."',
+    '"This schema defines the Table entity. A Table organizes data in rows and columns and is defined by a Schema. Darkseal does not have a separate abstraction for Schema. Both Table and Schema are captured in this entity."',
   category: 'entity',
   nameSpace: 'data',
   schema: '',

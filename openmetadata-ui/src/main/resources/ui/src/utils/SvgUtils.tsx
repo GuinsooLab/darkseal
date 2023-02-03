@@ -39,6 +39,7 @@ import IconControlMinus from '../assets/svg/control-minus.svg';
 import IconControlPlus from '../assets/svg/control-plus.svg';
 import IconCreateIngestion from '../assets/svg/creating-ingestion.svg';
 import IconDashboardGrey from '../assets/svg/dashboard-grey.svg';
+import IconDashboardGreyApp from '../assets/svg/dashboard-grey-app.svg';
 import IconDashboard from '../assets/svg/dashboard.svg';
 import IconAsstest from '../assets/svg/data-assets.svg';
 import IconDBTModelGrey from '../assets/svg/dbt-model-grey.svg';
@@ -64,6 +65,7 @@ import IconFitView from '../assets/svg/fitview.svg';
 import IconForeignKey from '../assets/svg/foriegnKey.svg';
 import IconGithubStar from '../assets/svg/github-star.svg';
 import IconAllApplication from '../assets/svg/ic-all-application.svg';
+import IconAllApplicationApp from '../assets/svg/ic-all-application.svg';
 import IconCheckCircle from '../assets/svg/ic-check-circle.svg';
 import IconCommentGrey from '../assets/svg/ic-comment-grey.svg';
 import IconDelete from '../assets/svg/ic-delete.svg';
@@ -119,15 +121,16 @@ import IconTaskOpen from '../assets/svg/in-progress.svg';
 import IconInfo from '../assets/svg/info.svg';
 import IconIngestion from '../assets/svg/ingestion.svg';
 import IconLineageColor from '../assets/svg/lineage-color.svg';
-import LogoMonogram from '../assets/svg/logo-monogram.svg';
 import Logo from '../assets/svg/logo.svg';
 import IconManageColor from '../assets/svg/manage-color.svg';
 import IconMinus from '../assets/svg/minus.svg';
 import IconMlModal from '../assets/svg/mlmodal.svg';
+import IconMlModalGreyApp from '../assets/svg/mlmodal-grey-app.svg';
 import IconPaperPlanePrimary from '../assets/svg/paper-plane-primary.svg';
 import IconPaperPlane from '../assets/svg/paper-plane.svg';
 import IconPendingBadge from '../assets/svg/pending-badge.svg';
 import IconPipelineGrey from '../assets/svg/pipeline-grey.svg';
+import IconPipelineGreyApp from '../assets/svg/pipeline-grey-app.svg';
 import IconPipeline from '../assets/svg/pipeline.svg';
 import IconPlusPrimery from '../assets/svg/plus-primery.svg';
 import IconPlus from '../assets/svg/plus.svg';
@@ -147,16 +150,20 @@ import IconSlackGrey from '../assets/svg/slack-grey.svg';
 import IconSlack from '../assets/svg/slack.svg';
 import IconSuccessBadge from '../assets/svg/success-badge.svg';
 import IconTableGrey from '../assets/svg/table-grey.svg';
+import IconTableGreyApp from '../assets/svg/table-grey-app.svg';
 import IconTable from '../assets/svg/table.svg';
 import IconTagGrey from '../assets/svg/tag-grey.svg';
 import IconTag from '../assets/svg/tag.svg';
 import IconTaskColor from '../assets/svg/Task-ic.svg';
 import IconTeamsGrey from '../assets/svg/teams-grey.svg';
+import IconTeamsGreyApp from '../assets/svg/teams-grey-app.svg';
 import IconTerns from '../assets/svg/terms.svg';
 import IconTier from '../assets/svg/tier.svg';
 import IconTopicGrey from '../assets/svg/topic-grey.svg';
+import IconTopicGreyApp from '../assets/svg/topic-grey-app.svg';
 import IconTopic from '../assets/svg/topic.svg';
 import IconUser from '../assets/svg/user.svg';
+import IconUserGreyApp from '../assets/svg/user-grey-app.svg';
 import IconVersionBlack from '../assets/svg/version-black.svg';
 import IconVersionWhite from '../assets/svg/version-white.svg';
 import IconVersion from '../assets/svg/version.svg';
@@ -196,6 +203,7 @@ export const Icons = {
   SQL_BUILDER: 'icon-sql-builder',
   TEAMS: 'icon-teams',
   TEAMS_GREY: 'icon-teams-grey',
+  TEAMS_GREY_APP: 'icon-teams-grey-app',
   WORKFLOWS: 'icon-workflows',
   MENU: 'icon-menu',
   FEED: 'icon-feed',
@@ -237,6 +245,7 @@ export const Icons = {
   SERVICE: 'service',
   INGESTION: 'ingestion',
   USERS: 'users',
+  USERS_GREY_APP: 'users-grey-app',
   TERMS: 'terms',
   DOC: 'doc',
   DOC_WHITE: 'doc-white',
@@ -248,8 +257,11 @@ export const Icons = {
   TOPIC: 'topic',
   DASHBOARD: 'dashboard',
   TABLE_GREY: 'table-grey',
+  TABLE_GREY_APP: 'table-grey-app',
   TOPIC_GREY: 'topic-grey',
+  TOPIC_GREY_APP: 'topic-grey-app',
   DASHBOARD_GREY: 'dashboard-grey',
+  DASHBOARD_GREY_APP: 'dashboard-grey-app',
   CONFIG: 'icon-config',
   SLACK: 'slack',
   SLACK_GREY: 'slack-grey',
@@ -259,7 +271,9 @@ export const Icons = {
   PROFILER: 'icon-profiler',
   PIPELINE: 'pipeline',
   MLMODAL: 'mlmodel-grey',
+  MLMODAL_GREY_APP: 'mlmodel-grey-app',
   PIPELINE_GREY: 'pipeline-grey',
+  PIPELINE_GREY_APP: 'pipeline-grey-app',
   DBTMODEL_GREY: 'dbtmodel-grey',
   DBTMODEL_LIGHT_GREY: 'dbtmodel-light-grey',
   DBTMODEL_PRIMERY: 'dbtmodel-primery',
@@ -321,6 +335,7 @@ export const Icons = {
   ALERT_BELL: 'alert-bell',
   TASK: 'ic-task',
   ALL_APPLICATION: 'all-application',
+  ALL_APPLICATION_APP: 'all-application-app',
   FOLDER: 'ic-folder',
   STAR: 'ic-star',
   MENTIONS: 'ic-mentions',
@@ -379,6 +394,10 @@ const SVGIcons: FunctionComponent<Props> = ({
       IconComponent = IconTeamsGrey;
 
       break;
+    case Icons.TEAMS_GREY_APP:
+      IconComponent = IconTeamsGreyApp;
+
+      break;
     case Icons.SETTINGS:
       IconComponent = IconSettings;
 
@@ -392,7 +411,7 @@ const SVGIcons: FunctionComponent<Props> = ({
 
       break;
     case Icons.LOGO_SMALL:
-      IconComponent = LogoMonogram;
+      IconComponent = Logo;
 
       break;
     case Icons.WELCOME_POPPER:
@@ -583,6 +602,10 @@ const SVGIcons: FunctionComponent<Props> = ({
       IconComponent = IconUser;
 
       break;
+    case Icons.USERS_GREY_APP:
+      IconComponent = IconUserGreyApp;
+
+      break;
     case Icons.TERMS:
       IconComponent = IconTerns;
 
@@ -623,6 +646,10 @@ const SVGIcons: FunctionComponent<Props> = ({
       IconComponent = IconMlModal;
 
       break;
+    case Icons.MLMODAL_GREY_APP:
+      IconComponent = IconMlModalGreyApp;
+
+      break;
     case Icons.DASHBOARD:
       IconComponent = IconDashboard;
 
@@ -631,12 +658,24 @@ const SVGIcons: FunctionComponent<Props> = ({
       IconComponent = IconTableGrey;
 
       break;
+    case Icons.TABLE_GREY_APP:
+      IconComponent = IconTableGreyApp;
+
+      break;
     case Icons.TOPIC_GREY:
       IconComponent = IconTopicGrey;
 
       break;
+    case Icons.TOPIC_GREY_APP:
+      IconComponent = IconTopicGreyApp;
+
+      break;
     case Icons.DASHBOARD_GREY:
       IconComponent = IconDashboardGrey;
+
+      break;
+    case Icons.DASHBOARD_GREY_APP:
+      IconComponent = IconDashboardGreyApp;
 
       break;
     case Icons.CONFIG:
@@ -673,6 +712,10 @@ const SVGIcons: FunctionComponent<Props> = ({
       break;
     case Icons.PIPELINE_GREY:
       IconComponent = IconPipelineGrey;
+
+      break;
+    case Icons.PIPELINE_GREY_APP:
+      IconComponent = IconPipelineGreyApp;
 
       break;
     case Icons.VERSION:
@@ -934,6 +977,10 @@ const SVGIcons: FunctionComponent<Props> = ({
       break;
     case Icons.ALL_APPLICATION:
       IconComponent = IconAllApplication;
+
+      break;
+    case Icons.ALL_APPLICATION_APP:
+      IconComponent = IconAllApplicationApp;
 
       break;
     case Icons.FOLDER:

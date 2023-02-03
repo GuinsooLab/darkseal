@@ -254,13 +254,13 @@ li.ProseMirror-selectednode:after {
 .toastui-editor-defaultUI .toastui-editor-ok-button {
   min-width: 63px;
   height: 32px;
-  background-color: #7147e8;
+  background-color: #1e61f0;
   color: #fff;
-  outline-color: #7147e8;
+  outline-color: #1e61f0;
 }
 
 .toastui-editor-defaultUI .toastui-editor-ok-button:hover {
-  background-color: #7147e8;
+  background-color: #1e61f0;
 }
 
 .toastui-editor-defaultUI .toastui-editor-close-button {
@@ -412,7 +412,7 @@ li.ProseMirror-selectednode:after {
 }
 
 .toastui-editor-defaultUI-toolbar .scroll-sync.active::before {
-  color: #7147e8;
+  color: #1e61f0;
 }
 
 .toastui-editor-defaultUI-toolbar .scroll-sync input {
@@ -451,7 +451,7 @@ li.ProseMirror-selectednode:after {
 }
 
 .toastui-editor-defaultUI-toolbar input:checked + .switch::before {
-  background-color: #7147e8;
+  background-color: #1e61f0;
   -webkit-transform: translateX(12px);
   -moz-transform: translateX(12px);
   -ms-transform: translateX(12px);
@@ -519,7 +519,7 @@ li.ProseMirror-selectednode:after {
 }
 
 .toastui-editor-popup-body input[type='text']:focus {
-  outline: 1px solid #7147e8;
+  outline: 1px solid #1e61f0;
   border-color: transparent;
 }
 
@@ -572,8 +572,8 @@ li.ProseMirror-selectednode:after {
 }
 
 .toastui-editor-popup-add-image .toastui-editor-tabs .tab-item.active {
-  color: #7147e8;
-  border-bottom: 2px solid #7147e8;
+  color: #1e61f0;
+  border-bottom: 2px solid #1e61f0;
 }
 
 .toastui-editor-popup-add-image .toastui-editor-file-name {
@@ -643,7 +643,7 @@ li.ProseMirror-selectednode:after {
   position: absolute;
   top: 0;
   left: 0;
-  border: 1px solid #7147e8;
+  border: 1px solid #1e61f0;
   background: rgba(0, 169, 255, 0.1);
   z-index: 30;
 }
@@ -985,12 +985,12 @@ li.ProseMirror-selectednode:after {
 
 table.ProseMirror-selectednode {
   border-radius: 2px;
-  outline: 2px solid #7147e8;
+  outline: 2px solid #1e61f0;
 }
 
 .html-block.ProseMirror-selectednode {
   border-radius: 2px;
-  outline: 2px solid #7147e8;
+  outline: 2px solid #1e61f0;
 }
 
 .toastui-editor-contents {
@@ -1259,11 +1259,11 @@ table.ProseMirror-selectednode {
 
 .toastui-editor-contents a {
   text-decoration: underline;
-  color: #7147e8;
+  color: #1e61f0;
 }
 
 .toastui-editor-contents a:hover {
-  color: #7147e8;
+  color: #1e61f0;
 }
 
 .toastui-editor-contents .image-link {
@@ -1557,7 +1557,7 @@ table.ProseMirror-selectednode {
 
 .toastui-editor-md-link.toastui-editor-md-link-desc.toastui-editor-md-marked-text,
 .toastui-editor-md-list-item-style.toastui-editor-md-list-item-odd {
-  color: #7147e8;
+  color: #1e61f0;
 }
 
 .toastui-editor-md-list-item-style.toastui-editor-md-list-item-even {

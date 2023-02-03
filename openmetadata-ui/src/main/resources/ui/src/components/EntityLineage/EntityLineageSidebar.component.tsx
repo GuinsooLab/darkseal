@@ -56,7 +56,7 @@ const EntityNode: FC<EntityNodeProps> = ({ type, label, draggable }) => {
           <SVGIcons alt={type} icon={`${type}-grey`} width="14" />
         </span>
         <span>
-          <FontAwesomeIcon icon={faGripVertical} style={{ color: '#7147E8' }} />
+          <FontAwesomeIcon icon={faGripVertical} style={{ color: '#1e61f0' }} />
         </span>
       </div>
       <p className="tw-text-grey-body tw-text-center tw-text-xs tw-pt-1.5">

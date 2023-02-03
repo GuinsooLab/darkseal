@@ -21,14 +21,14 @@ const ErrorPlaceHolderIngestion = () => {
         <div className="tw-card tw-flex tw-flex-col tw-justify-between tw-p-5 tw-w-4/5 tw-mx-auto">
           <div>
             <h6 className="tw-text-base tw-text-grey-body tw-font-medium">
-              Failed to find OpenMetadata - Managed Airflow APIs
+              Failed to find Darkseal - Managed Airflow APIs
             </h6>
 
             <p className="tw-text-grey-body tw-text-sm tw-mb-5">
-              OpenMetadata uses Airflow to run Ingestion Connectors. We
-              developed Managed APIs to deploy ingestion connectors. Please use
-              the OpenMetadata Airflow instance or refer to the guide below to
-              install the managed APIs in your Airflow installation.
+              Darkseal uses Airflow to run Ingestion Connectors. We developed
+              Managed APIs to deploy ingestion connectors. Please use the
+              Darkseal Airflow instance or refer to the guide below to install
+              the managed APIs in your Airflow installation.
             </p>
           </div>
 
