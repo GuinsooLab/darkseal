@@ -20,9 +20,9 @@ export const RightPanel = () => {
         Add a Custom Property
       </h6>
       <div className="tw-mb-5" data-testid="body">
-        OpenMetadata supports custom properties in the Table entity. Create a
-        custom property by adding a unique property name. The name must start
-        with a lowercase letter, as preferred in the camelCase format. Uppercase
+        Darkseal supports custom properties in the Table entity. Create a custom
+        property by adding a unique property name. The name must start with a
+        lowercase letter, as preferred in the camelCase format. Uppercase
         letters and numbers can be included in the field name; but spaces,
         underscores, and dots are not supported. Select the preferred property
         Type from among the options provided. Describe your custom property to

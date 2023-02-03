@@ -328,7 +328,7 @@
   .leaf-node.selected,
   .leaf-node.selected:hover {
     @apply tw-border-primary-active;
-    box-shadow: 0 0 0 0.5px #7147e8;
+    box-shadow: 0 0 0 0.5px #1e61f0;
   }
   .tw-filter-seperator {
     @apply tw-mb-1;
@@ -346,7 +346,7 @@
     focus:tw-outline-none focus:tw-border-focus hover:tw-border-hover focus:tw-shadow-none hover:tw-shadow-none;
   }
   .my-project-cron-clear-button {
-    background-color: #7147e8 !important;
+    background-color: #1e61f0 !important;
     border: none;
     border-radius: 4px;
   }

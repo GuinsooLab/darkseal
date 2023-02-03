@@ -758,7 +758,7 @@ body .list-option.rdw-option-active {
 }
 
 .slick-dots li.slick-active button:before {
-  color: #7147e8 !important;
+  color: #1e61f0 !important;
   opacity: 1 !important;
 }
 
@@ -863,7 +863,7 @@ body .list-option.rdw-option-active {
   padding: 8px;
   transform: translateX(100%);
   display: none;
-  border-right: 1px solid #d9ceee;
+  border-right: 1px solid #c9dbfb;
   transition: transform 0.3s ease-out;
   margin-left: -16px;
 }
@@ -895,8 +895,11 @@ body .list-option.rdw-option-active {
   text-align: center;
 }
 
+.nav-apps > img {
+  padding: 10px;
+}
+
 .app-nav-ul {
-  margin-top: 24px;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -905,7 +908,7 @@ body .list-option.rdw-option-active {
 }
 
 .app-nav-li {
-  height: 50px;
+  height: 60px;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -928,6 +931,7 @@ body .list-option.rdw-option-active {
 
 .app-nav-li > a:hover {
   background: #000000;
+  border-radius: 4px;
 }
 
 .app-nav-li-help-x {

@@ -31,7 +31,7 @@ const GithubStarButton: FunctionComponent = () => {
           <>
             <a
               className="link-text-grey tw-text-sm tw-font-medium"
-              href="https://github.com/open-metadata/OpenMetadata"
+              href="https://github.com/GuinsooLab/darkseal"
               rel="noopener noreferrer"
               target="_blank">
               <span className="tw-mr-1">Star us on Github</span>

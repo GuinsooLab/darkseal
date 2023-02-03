@@ -22,9 +22,8 @@ export const getSteps = (value: string, clearSearchTerm: () => void) => {
       content: () => (
         <p>
           Discover all your data assets in a single place with{' '}
-          <strong>OpenMetadata</strong>, a centralized metadata store.
-          Collaborate with your team and get a holistic picture of the data in
-          your organization.
+          <strong>Darkseal</strong>, a centralized metadata store. Collaborate
+          with your team and get a holistic picture of the data in organization.
         </p>
       ),
       stepInteraction: false,

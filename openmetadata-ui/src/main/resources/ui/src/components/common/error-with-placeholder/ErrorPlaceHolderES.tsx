@@ -28,7 +28,7 @@ const stepsData = [
     step: 1,
     title: 'Ingest Sample Data',
     description:
-      'Run sample data to ingest sample entities into your OpenMetadata.',
+      'Run sample data to ingest sample entities into your Darkseal.',
     link: 'https://ciusji.gitbook.io/darkseal/',
   },
   {
@@ -48,8 +48,8 @@ const stepsData = [
     step: 4,
     title: 'More Help',
     description:
-      'If you are still running into issues, please reach out to us on slack.',
-    link: 'https://ciusji.gitbook.io/darkseal/',
+      'If you are still running into issues, please reach out to us on GitHub.',
+    link: 'https://github.com/GuinsooLab/darkseal/issues',
   },
 ];
 

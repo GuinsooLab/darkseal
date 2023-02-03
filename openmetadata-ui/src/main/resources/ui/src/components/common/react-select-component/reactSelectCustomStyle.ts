@@ -1,6 +1,6 @@
 import { StylesConfig } from 'react-select';
 
-const primeryColor = '#7147E8';
+const primeryColor = '#1e61f0';
 const bodyTextColor = '#37352F';
 const borderColor = '#7046e8';
 

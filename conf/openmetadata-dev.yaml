@@ -12,7 +12,6 @@
 swagger:
   resourcePackage: org.openmetadata.catalog.resources
 
-
 server:
   rootPath: '/api/*'
   applicationConnectors:
@@ -23,7 +22,7 @@ server:
       port: ${SERVER_ADMIN_PORT:-8586}
 
 # Above configuration for running http is fine for dev and testing.
-# For production setup, where UI app will hit apis through DPS it 
+# For production setup, where UI app will hit apis through DPS it
 # is strongly recommended to run https instead. Note that only
 # keyStorePath and keyStorePassword are mandatory properties. Values
 # for other properties are defaults
@@ -31,7 +30,7 @@ server:
   #applicationConnectors:
   #  - type: https
   #    port: 8585
-  #    keyStorePath: ./conf/keystore.jks 
+  #    keyStorePath: ./conf/keystore.jks
   #    keyStorePassword: changeit
   #    keyStoreType: JKS
   #    keyStoreProvider:
@@ -55,12 +54,12 @@ server:
   #    supportedCipherSuites: TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA256
   #    allowRenegotiation: true
   #    endpointIdentificationAlgorithm: (none)
- 
+
   #adminConnectors:
   #  - type: https
   #    port: 8586
-  #    keyStorePath: ./conf/keystore.jks 
-  #    keyStorePassword: changeit 
+  #    keyStorePath: ./conf/keystore.jks
+  #    keyStorePassword: changeit
   #    keyStoreType: JKS
   #    keyStoreProvider:
   #    trustStorePath: /path/to/file
@@ -120,8 +119,7 @@ database:
   user: root
   password: root
   # the JDBC URL; the database is called openmetadata_db
-  # url: jdbc:${DB_SCHEME:-mysql}://${MYSQL_HOST:-localhost}:${MYSQL_PORT:-3306}/${MYSQL_DATABASE:-openmetadata_db}?allowPublicKeyRetrieval=true&useSSL=${DB_USE_SSL:-false}&serverTimezone=UTC
-  url: jdbc:mysql://192.168.120.17:3307/guinsoolab?useUnicode=true&characterEncoding=utf-8&serverTimezone=Asia/Shanghai
+  url: jdbc:mysql://192.168.120.15:3306/guinsoolab?useUnicode=true&characterEncoding=utf-8&serverTimezone=Asia/Shanghai
 
 migrationConfiguration:
   path: "./bootstrap/sql"
@@ -150,7 +148,7 @@ jwtTokenConfiguration:
   rsapublicKeyFilePath: ${RSA_PUBLIC_KEY_FILE_PATH:-""}
   rsaprivateKeyFilePath: ${RSA_PRIVATE_KEY_FILE_PATH:-""}
   jwtissuer: ${JWT_ISSUER:-"open-metadata.org"}
-  keyId: ${JWT_KEY_ID:-"Gb389a-9f76-gdjs-a92j-0242bk94356"}
+  keyId: Gb389a-9f76-gdjs-a92j-0242bk94356
 
 elasticsearch:
   host: 192.168.120.13
@@ -162,17 +160,17 @@ eventHandlerConfiguration:
     - "org.openmetadata.catalog.events.ChangeEventHandler"
 
 airflowConfiguration:
-  apiEndpoint: ${AIRFLOW_HOST:-http://localhost:8080}
-  username: ${AIRFLOW_USERNAME:-admin}
-  password: ${AIRFLOW_PASSWORD:-admin}
-  metadataApiEndpoint: ${SERVER_HOST_API_URL:-http://localhost:8585/api}
+  apiEndpoint: http://localhost:8080
+  username: admin
+  password: mZNQ7YCMZSPWNu3v
+  metadataApiEndpoint: http://localhost:8585/api
   authProvider: ${AIRFLOW_AUTH_PROVIDER:-"no-auth"} # Possible values are "no-auth", "azure", "google", "okta", "auth0", "custom-oidc", "openmetadata"
   authConfig:
     azure:
       clientSecret: ${OM_AUTH_AIRFLOW_AZURE_CLIENT_SECRET:-""}
       authority: ${OM_AUTH_AIRFLOW_AZURE_AUTHORITY_URL:-""}
       scopes: ${OM_AUTH_AIRFLOW_AZURE_SCOPES:-[]}
-      clientId:  ${OM_AUTH_AIRFLOW_AZURE_CLIENT_ID:-""}
+      clientId: ${OM_AUTH_AIRFLOW_AZURE_CLIENT_ID:-""}
     google:
       secretKey: ${OM_AUTH_AIRFLOW_GOOGLE_SECRET_KEY_PATH:- ""}
       audience: ${OM_AUTH_AIRFLOW_GOOGLE_AUDIENCE:-"https://www.googleapis.com/oauth2/v4/token"}

@@ -72,9 +72,9 @@ const TableProfilerGraph = ({
         />
         <Area
           dataKey="value"
-          fill="#7147E8"
+          fill="#1e61f0"
           fillOpacity="0.4"
-          stroke="#7147E8"
+          stroke="#1e61f0"
           type="monotone"
         />
       </AreaChart>

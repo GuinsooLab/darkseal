@@ -14,7 +14,7 @@
 import { COOKIE_VERSION } from '../components/Modals/WhatsNewModal/whatsNewData';
 import { FQN_SEPARATOR_CHAR } from './char.constants';
 
-export const PRIMERY_COLOR = '#7147E8';
+export const PRIMERY_COLOR = '#1e61f0';
 export const LITE_GRAY_COLOR = '#DBE0EB';
 export const TEXT_BODY_COLOR = '#37352F';
 
@@ -84,7 +84,7 @@ export const pagingObject = { after: '', before: '', total: 0 };
 export const ONLY_NUMBER_REGEX = /^[0-9\b]+$/;
 
 export const CUSTOM_AIRFLOW_DOCS =
-  'https://docs.open-metadata.org/integrations/airflow/custom-airflow-installation';
+  'https://ciusji.gitbook.io/darkseal/deployment/airflow';
 
 /* eslint-disable @typescript-eslint/camelcase */
 export const tiers = [

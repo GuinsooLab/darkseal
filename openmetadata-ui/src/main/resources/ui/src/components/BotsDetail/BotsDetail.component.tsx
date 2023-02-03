@@ -273,9 +273,9 @@ const BotsDetail: FC<BotsDetailProp> = ({
             <h6 className="tw-mb-2 tw-text-lg">Token Security</h6>
             <p className="tw-mb-2">
               Anyone who has your JWT Token will be able to send REST API
-              requests to the OpenMetadata Server. Do not expose the JWT Token
-              in your application code. Do not share it on GitHub or anywhere
-              else online.
+              requests to the Darkseal Server. Do not expose the JWT Token in
+              your application code. Do not share it on GitHub or anywhere else
+              online.
             </p>
           </div>
         </div>
@@ -428,8 +428,7 @@ const BotsDetail: FC<BotsDetailProp> = ({
         </div>
         <hr className="tw-mt-2" />
         <p className="tw-mt-4">
-          Token you have generated that can be used to access the OpenMetadata
-          API.
+          Token you have generated that can be used to access the Darkseal API.
         </p>
         {centerLayout()}
       </div>

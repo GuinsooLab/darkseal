@@ -161,7 +161,7 @@ const ConfigureIngestion = ({
               </div>
               <p className="tw-text-grey-muted tw-mt-3">
                 Any deleted tables in the data source will be soft deleted in
-                OpenMetadata
+                Darkseal
               </p>
               {getSeparator('')}
             </Field>

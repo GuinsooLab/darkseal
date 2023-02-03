@@ -69,7 +69,7 @@ export const FirstTimeUserModal: FunctionComponent<Props> = ({
               <SVGIcons alt="Welcome" icon={Icons.WELCOME_POPPER} width="60" />
             ) : (
               <SVGIcons
-                alt="OpenMetadata Logo"
+                alt="Darkseal Logo"
                 icon={Icons.LOGO_SMALL}
                 width="50"
               />
@@ -145,7 +145,7 @@ export const FirstTimeUserModal: FunctionComponent<Props> = ({
                 theme="primary"
                 variant="contained"
                 onClick={onSave}>
-                Explore OpenMetadata
+                Explore Darkseal
               </Button>
             </span>
           ) : (

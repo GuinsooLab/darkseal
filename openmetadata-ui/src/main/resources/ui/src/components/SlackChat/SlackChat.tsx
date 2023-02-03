@@ -59,7 +59,7 @@ const SlackChat: FC<Props> = ({ slackConfig }) => {
         helpText="Need Help?"
         hooks={customHooks}
         singleUserMode={false}
-        themeColor="#7147E8"
+        themeColor="#1e61f0"
         userImage={UserIcon}
       />
     </div>

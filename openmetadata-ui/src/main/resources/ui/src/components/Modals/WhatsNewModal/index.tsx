@@ -108,7 +108,7 @@ export const WhatsNewModal: FunctionComponent<Props> = ({
                       <path
                         clipRule="evenodd"
                         d={iconString}
-                        fill={activeData.id === d.id ? '#7147E8' : '#6B7280'}
+                        fill={activeData.id === d.id ? '#1e61f0' : '#6B7280'}
                         fillRule="evenodd"
                       />
                     </svg>

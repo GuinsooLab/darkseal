@@ -23,15 +23,11 @@ const TourEndModal = ({ onSave }: TourEndModalProps) => {
       <div className="tw-modal-backdrop" />
       <div className="tw-modal-container tw-overflow-y-auto tw-max-h-screen tw-w-120">
         <div className="tw-modal-body tw-min-h-32 tw-flex tw-flex-col tw-justify-center tw-items-center">
-          <SVGIcons
-            alt="OpenMetadata Logo"
-            icon={Icons.LOGO_SMALL}
-            width="70"
-          />
+          <SVGIcons alt="Darkseal Logo" icon={Icons.LOGO_SMALL} width="70" />
           <p className="tw-text-base tw-text-center tw-mt-5">
             You’ve successfully completed the tour.
             <br />
-            Get started with OpenMetadata.
+            Get started with Darkseal.
           </p>
         </div>
         <div className="tw-modal-footer" data-testid="cta-container">

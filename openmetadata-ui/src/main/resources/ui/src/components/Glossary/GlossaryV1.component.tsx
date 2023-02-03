@@ -205,7 +205,7 @@ const GlossaryV1 = ({
           <p className="tw-text-grey-muted tw-text-xs">
             Deleting this Glossary{' '}
             {(selectedData as GlossaryTerm)?.glossary && 'Term'} will
-            permanently remove its metadata from OpenMetadata.
+            permanently remove its metadata from Darkseal.
           </p>
         </div>
       </div>

@@ -29,7 +29,7 @@
   z-index: 1;
 }
 .ingestion-rounder.active {
-  border-color: #7147e8;
+  border-color: #1e61f0;
 }
 .ingestion-rounder.completed {
   background-color: #d9ceee;
@@ -40,7 +40,7 @@
   display: block;
   margin-top: -4px;
   font-weight: 900;
-  color: #7147e8;
+  color: #1e61f0;
 }
 
 .ingestion-line {
