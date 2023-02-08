@@ -91,11 +91,6 @@ const NavBar = ({
               {/*  }}>*/}
               {/*  Explore*/}
               {/* </NavLink>*/}
-              <DropDown
-                dropDownList={settingDropdown}
-                label="Settings"
-                type="link"
-              />
             </div>
           </div>
           <div
@@ -148,6 +143,11 @@ const NavBar = ({
               ))}
           </div>
           <div className="tw-flex tw-ml-auto tw-pl-36">
+            <DropDown
+              dropDownList={settingDropdown}
+              label="Settings"
+              type="link"
+            />
             <button className="tw-nav focus:tw-no-underline hover:tw-underline tw-flex-shrink-0 tw-relative tw-inline-block tw-flex tw-items-center">
               <Link
                 to={`${getUserPath(
@@ -162,17 +162,6 @@ const NavBar = ({
                 {hasNotification ? <span className="tw-bell-badge" /> : null}
               </Link>
             </button>
-            {/* <button*/}
-            {/*  className="tw-nav focus:tw-no-underline hover:tw-underline tw-flex-shrink-0"*/}
-            {/*  data-testid="whatsnew-modal"*/}
-            {/*  onClick={() => handleFeatureModal(true)}>*/}
-            {/*  <SVGIcons*/}
-            {/*    alt="Doc icon"*/}
-            {/*    className="tw-align-middle tw-mr-1"*/}
-            {/*    icon={Icons.WHATS_NEW}*/}
-            {/*    width="20"*/}
-            {/*  />*/}
-            {/* </button>*/}
             <button
               className="tw-nav focus:tw-no-underline hover:tw-underline tw-flex-shrink-0"
               data-testid="tour">
@@ -221,7 +210,7 @@ const NavBar = ({
                         />
                       </div>
                     ) : (
-                      <Avatar name={username} width="30" />
+                      <Avatar name={username} type="circle" width="30" />
                     )}
                   </PopOver>
                 </>

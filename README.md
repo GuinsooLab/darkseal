@@ -5,7 +5,7 @@
 <div align="center">
     <img src="https://raw.githubusercontent.com/GuinsooLab/darkseal/master/openmetadata-ui/src/main/resources/ui/public/darkseal.svg" alt="logo" width="120" />
     <br />
-    <small>A Single place to Discover, Collaborate, and Get your data right</small>
+    <a href="https://git.io/typing-svg"><img src="https://readme-typing-svg.demolab.com?font=Fira+Code&size=14&pause=1000&color=3DEA8D&center=true&width=700&lines=A+Single+place+to+Discover%2C+Collaborate%2C+and+Get+your+data+right" alt="Typing SVG" /></a>
 </div>
 
 # Darkseal

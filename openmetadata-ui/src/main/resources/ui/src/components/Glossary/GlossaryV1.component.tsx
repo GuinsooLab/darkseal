@@ -194,8 +194,9 @@ const GlossaryV1 = ({
         <div>
           <SVGIcons
             alt="Delete"
-            className="tw-w-12"
+            // className="tw-w-2"
             icon={Icons.DELETE_GRADIANT}
+            width="20px"
           />
         </div>
         <div className="tw-text-left" data-testid="delete-button">
