@@ -20,7 +20,7 @@
   <groupId>org.open-metadata</groupId>
   <artifactId>catalog</artifactId>
   <name>OpenMetadata-catalog</name>
-  <description>Openmetadata catalog</description>
+  <description>Metadata Catalog</description>
   <version>0.11.4</version>
   <url>https://github.com/open-metadata/OpenMetadata</url>
   <modules>
@@ -117,9 +117,7 @@
     <!--  upgrade only when we find how to import esnext modules in nodejs  -->
     <antlr.version>4.10.1</antlr.version>
 
-    <!--   sonar   -Dsonar.login=XXX  -->
     <sonar.projectKey>open-metadata_OpenMetadata</sonar.projectKey>
-    <sonar.moduleKey>${project.artifactId}</sonar.moduleKey>
     <sonar.organization>open-metadata</sonar.organization>
     <sonar.host.url>https://sonarcloud.io</sonar.host.url>
     <sonar.working.directory>target/sonar</sonar.working.directory>
@@ -590,8 +588,6 @@
               <configuration>
                 <includeStale>false</includeStale>
                 <style>GOOGLE</style>
-                <formatMain>true</formatMain>
-                <formatTest>true</formatTest>
                 <filterModified>false</filterModified>
                 <skip>false</skip>
                 <fixImports>true</fixImports>
