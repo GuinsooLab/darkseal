@@ -16,48 +16,25 @@ Unlock the value of data assets with an end-to-end metadata platform that includ
 
 ## Quickstart
 
-### Start From Source
-
 ```bash
 # Clone source
 git clone git@github.com:GuinsooLab/darkseal.git
 
 # Package 
+cd darkseal
 mvn clean package -DskipTests
 
 # Prepare database and indexes
-./bootstrap/bootstrap_storage.sh create
+./bootstrap/bootstrap_storage.sh drop-create-all
 
 # Start Server
-java -cp catalog-rest-service org.openmetadata.catalog.CatalogApplication server ./conf/openmetadata.yaml
-
-# Start UI
-cd openmetadata-ui/src/ui
-yarn run start
-```
-
-### Start From Built Package
-```bash
-# Clone source
-git clone git@github.com:GuinsooLab/darkseal.git
-
-# Package 
-mvn clean package -DskipTests
-
-# Change dist dir & un-tar files
-cd openmetadata-dist/target
+cd /openmetadata-dist/target
 tar zxvf openmetadata-xxx.tar.gz
 cd openmetadata-xxx
-
-# Prepare database and indexes
-./bootstrap/bootstrap_storage.sh create
-
-# Start Server
-./bin/openmetadata.sh start
+./bin/openmetadata-server-start.sh ./conf/openmetadata.yaml
 ```
 
 For more information, please referer to [here](https://ciusji.gitbook.io/darkseal/).
-
 
 ## Main Features
 
@@ -81,6 +58,28 @@ Darkseal includes the following:
 - **Metadata APIs** - For producing and consuming metadata built on schemas for User Interfaces and Integration of tools, systems, and services.
 - **Ingestion framework** - A pluggable framework for integrating tools and ingesting metadata to the metadata store. Ingestion framework already supports well know data warehouses - Google BigQuery, Snowflake, Amazon Redshift, and Apache Hive, and databases - MySQL, Postgres, Oracle, MSSQL, and [Guinsoo](https://github.com/ciusji/guinsoo).
 - **Metadata User Interface** - One single place for users to discover, and collaborate on all data.
+
+## Snapshot & Gifs
+
+### Database Service
+
+![database_service](docs/overview/database_service.png)
+
+### Workflow DAG
+
+![workflow_dag](docs/overview/airflow_dag.png)
+
+### Data Tables
+
+![data_tables](docs/overview/data_tables.png)
+
+### Table Columns
+
+![table_columns](docs/overview/table_columns.png)
+
+### Stream Lineage
+
+![stream_lineage](docs/overview/stream_lineage.png)
 
 ## Documentation & Supports
 
