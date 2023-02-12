@@ -58,7 +58,6 @@ cd openmetadata-xxx
 
 For more information, please referer to [here](https://ciusji.gitbook.io/darkseal/).
 
-
 ## Main Features
 
 - Data Trust
