@@ -977,7 +977,7 @@ code {
 }
 
 .page-not-found-container::after {
-  background-color: #f8f9fa;
+  background-color: #fff;
 }
 .page-not-found-container::before {
   background-color: #fff;

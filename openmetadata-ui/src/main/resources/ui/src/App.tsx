@@ -65,17 +65,17 @@ const App: FunctionComponent = () => {
             </a>
           </li>
           <li className="app-nav-li">
-            <a href={ROUTES.EXPLORE}>
-              <SVGIcons alt="explore" icon={Icons.TABLE_GREY_APP} width="18" />
+            <a href={ROUTES.EXPLORE_TABLES}>
+              <SVGIcons alt="explore" icon={Icons.TABLE_GREY_APP} width="17" />
             </a>
           </li>
           <li className="app-nav-li">
-            <a href={ROUTES.EXPLORE}>
+            <a href={ROUTES.EXPLORE_TOPICS}>
               <SVGIcons alt="explore" icon={Icons.TOPIC_GREY_APP} width="18" />
             </a>
           </li>
           <li className="app-nav-li">
-            <a href={ROUTES.EXPLORE}>
+            <a href={ROUTES.EXPLORE_DASHBOARDS}>
               <SVGIcons
                 alt="explore"
                 icon={Icons.DASHBOARD_GREY_APP}
@@ -84,7 +84,7 @@ const App: FunctionComponent = () => {
             </a>
           </li>
           <li className="app-nav-li">
-            <a href={ROUTES.EXPLORE}>
+            <a href={ROUTES.EXPLORE_PIPELINES}>
               <SVGIcons
                 alt="explore"
                 icon={Icons.PIPELINE_GREY_APP}
@@ -93,7 +93,7 @@ const App: FunctionComponent = () => {
             </a>
           </li>
           <li className="app-nav-li">
-            <a href={ROUTES.EXPLORE}>
+            <a href={ROUTES.EXPLORE_MODELS}>
               <SVGIcons
                 alt="explore"
                 icon={Icons.MLMODAL_GREY_APP}
@@ -102,13 +102,8 @@ const App: FunctionComponent = () => {
             </a>
           </li>
           <li className="app-nav-li">
-            <a href={ROUTES.EXPLORE}>
+            <a href={ROUTES.ROLES}>
               <SVGIcons alt="explore" icon={Icons.USERS_GREY_APP} width="18" />
-            </a>
-          </li>
-          <li className="app-nav-li">
-            <a href={ROUTES.EXPLORE}>
-              <SVGIcons alt="explore" icon={Icons.TEAMS_GREY_APP} width="18" />
             </a>
           </li>
           {/* Darkseal help */}
