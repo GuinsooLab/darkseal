@@ -1,37 +1,19 @@
 <div align="right">
-    <img src="https://raw.githubusercontent.com/GuinsooLab/darkseal/master/openmetadata-ui/src/main/resources/ui/public/guinsoolab-badge.png" width="60" alt="badge">
+    <img src="https://raw.githubusercontent.com/GuinsooLab/glab/main/src/images/guinsoolab-badge.png" height="60" alt="badge">
     <br />
 </div>
 <div align="center">
-    <img src="https://raw.githubusercontent.com/GuinsooLab/darkseal/master/openmetadata-ui/src/main/resources/ui/public/darkseal.svg" alt="logo" width="120" />
+    <img src="https://raw.githubusercontent.com/GuinsooLab/glab/main/src/images/guinsoolab-darkseal.png" alt="logo" height="80" />
     <br />
-    <a href="https://git.io/typing-svg"><img src="https://readme-typing-svg.demolab.com?font=Fira+Code&size=14&pause=1000&color=3DEA8D&center=true&width=700&lines=A+Single+place+to+Discover%2C+Collaborate%2C+and+Get+your+data+right" alt="Typing SVG" /></a>
 </div>
-
-# Darkseal
-
-![Intro](./docs/overview/darkseal-ecosystem-v2.jpg)
 
 Unlock the value of data assets with an end-to-end metadata platform that includes data discovery, governance, data quality, observability, and people collaboration.
 
 ## Quickstart
 
 ```bash
-# Clone source
-git clone git@github.com:GuinsooLab/darkseal.git
-
-# Package 
-cd darkseal
-mvn clean package -DskipTests
-
-# Prepare database and indexes
-./bootstrap/bootstrap_storage.sh drop-create-all
-
-# Start Server
-cd /openmetadata-dist/target
-tar zxvf openmetadata-xxx.tar.gz
-cd openmetadata-xxx
-./bin/openmetadata-server-start.sh ./conf/openmetadata.yaml
+wget https://raw.githubusercontent.com/GuinsooLab/darkseal/master/docker-compose.yml
+docker compose up -d
 ```
 
 For more information, please referer to [here](https://ciusji.gitbook.io/darkseal/).
