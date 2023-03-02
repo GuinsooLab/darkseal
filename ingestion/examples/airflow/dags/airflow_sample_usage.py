@@ -87,7 +87,7 @@ def metadata_ingestion_workflow():
 with DAG(
     "sample_usage",
     default_args=default_args,
-    description="An example DAG which runs a OpenMetadata ingestion workflow",
+    description="An example DAG which runs a Darkseal ingestion workflow",
     schedule_interval=timedelta(days=1),
     start_date=days_ago(1),
     is_paused_upon_creation=True,

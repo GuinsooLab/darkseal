@@ -5,7 +5,7 @@ slug: /quick-start/local-deployment
 
 # Local Docker Deployment
 
-This installation doc will help you start a OpenMetadata standalone instance on your local machine.
+This installation doc will help you start a Darkseal standalone instance on your local machine.
 
 If you'd rather see the steps in a guided tutorial, we've got you covered! Otherwise, feel free to read the
 content below 👇

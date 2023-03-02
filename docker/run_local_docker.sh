@@ -59,6 +59,6 @@ curl --location --request PATCH 'localhost:8080/api/v1/dags/sample_lineage' \
       "is_paused": false
       }'
 tput setaf 2
-echo "✔ OpenMetadata is up and running"
+echo "✔ Darkseal is up and running ..."
 
 
