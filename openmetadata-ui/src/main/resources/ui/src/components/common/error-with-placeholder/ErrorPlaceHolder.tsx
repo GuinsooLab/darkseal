@@ -27,7 +27,7 @@ const ErrorPlaceHolder = ({ children }: Props) => (
       <img
         data-testid="no-data-image"
         src={NoDataFoundPlaceHolder}
-        width="200"
+        width="60"
       />
     </div>
     {children && (

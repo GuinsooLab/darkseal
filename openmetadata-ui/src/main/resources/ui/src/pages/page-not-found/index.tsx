@@ -13,8 +13,6 @@
 
 import React from 'react';
 import { Link } from 'react-router-dom';
-import notFoundImage from '../../assets/img/404-image.png';
-import notFoundNumber from '../../assets/svg/404-number.svg';
 import { Button } from '../../components/buttons/Button/Button';
 import { ROUTES } from '../../constants/constants';
 
@@ -23,9 +21,6 @@ const PageNotFound = () => {
     <div
       className="page-not-found-container tw-relative"
       data-testid="no-page-found">
-      <div className="tw-flex-center tw-hw-full tw-absolute tw-inset-0">
-        <img alt="not found" src={notFoundNumber} />
-      </div>
       <div className="tw-flex tw-hw-full tw-absolute tw-inset-0">
         <div className="tw-hw-full tw-flex-center">
           <div className="tw-text-center">
@@ -48,9 +43,6 @@ const PageNotFound = () => {
               </Link>
             </div>
           </div>
-        </div>
-        <div className="tw-hw-full tw-flex-center">
-          <img alt="not found" src={notFoundImage} />
         </div>
       </div>
     </div>
