@@ -3,9 +3,12 @@
     <br />
 </div>
 <div align="center">
-    <img src="https://raw.githubusercontent.com/GuinsooLab/glab/main/src/images/guinsoolab-darkseal.png" alt="logo" height="80" />
+    <img src="https://raw.githubusercontent.com/GuinsooLab/glab/main/src/images/guinsoolab-darkseal.svg" alt="logo" height="100" />
+    <br />
     <br />
 </div>
+
+# Darkseal
 
 Unlock the value of data assets with an end-to-end metadata platform that includes data discovery, governance, data quality, observability, and people collaboration.
 
