@@ -16,7 +16,7 @@ Unlock the value of data assets with an end-to-end metadata platform that includ
 
 ```bash
 wget https://raw.githubusercontent.com/GuinsooLab/darkseal/master/docker-compose.yml
-docker compose up -d
+docker-compose up -d
 ```
 
 For more information, please referer to [here](https://ciusji.gitbook.io/darkseal/).
