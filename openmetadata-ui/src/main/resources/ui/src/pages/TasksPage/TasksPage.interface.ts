@@ -1,5 +1,5 @@
 /*
- *  Copyright 2021 Collate
+ *  Copyright 2022 Collate.
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
@@ -11,12 +11,20 @@
  *  limitations under the License.
  */
 
+import { DatabaseSchema } from 'generated/entity/data/databaseSchema';
 import { Dashboard } from '../../generated/entity/data/dashboard';
+import { Mlmodel } from '../../generated/entity/data/mlmodel';
 import { Pipeline } from '../../generated/entity/data/pipeline';
 import { Table } from '../../generated/entity/data/table';
 import { Topic } from '../../generated/entity/data/topic';
 
-export type EntityData = Table & Topic & Dashboard & Pipeline;
+export type EntityData =
+  | Table
+  | Topic
+  | Dashboard
+  | Pipeline
+  | Mlmodel
+  | DatabaseSchema;
 
 export interface Option {
   label: string;
@@ -36,4 +44,10 @@ export interface TaskAction {
 export enum TaskActionMode {
   VIEW = 'view',
   EDIT = 'edit',
+}
+
+export enum TaskTabs {
+  CURRENT = 'current',
+  DIFF = 'diff',
+  NEW = 'new',
 }

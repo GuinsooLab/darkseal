@@ -1,5 +1,5 @@
 /*
- *  Copyright 2021 Collate
+ *  Copyright 2022 Collate.
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
@@ -19,6 +19,7 @@ const CopyWebpackPlugin = require('copy-webpack-plugin');
 const WebpackBar = require('webpackbar');
 const webpack = require('webpack');
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
+const TsconfigPathsPlugin = require('tsconfig-paths-webpack-plugin');
 
 const outputPath = path.join(__dirname, 'build');
 
@@ -27,14 +28,7 @@ module.exports = {
   mode: 'development',
 
   // Input configuration
-  entry: [
-    '@babel/polyfill',
-    // Runtime code for hot module replacement
-    'webpack/hot/dev-server.js',
-    // Dev server client for web socket transport, hot and live reload logic
-    'webpack-dev-server/client/index.js?hot=true&live-reload=true',
-    path.join(__dirname, 'src/index.js'),
-  ],
+  entry: ['@babel/polyfill', path.join(__dirname, 'src/index.tsx')],
 
   // Output configuration
   output: {
@@ -72,6 +66,7 @@ module.exports = {
         test: /\.(ts|tsx)$/,
         loader: 'ts-loader',
         options: {
+          configFile: 'tsconfig.json',
           transpileOnly: true, // Speed up compilation in development mode
         },
         include: path.resolve(__dirname, 'src'), // Just the source code
@@ -95,12 +90,11 @@ module.exports = {
         include: [
           path.resolve(__dirname, 'src'),
           path.resolve(__dirname, 'node_modules/tailwindcss'),
-          path.resolve(__dirname, 'node_modules/react-tippy'),
-          path.resolve(__dirname, 'node_modules/react-draft-wysiwyg'),
+          path.resolve(__dirname, 'node_modules/reactflow'),
           path.resolve(__dirname, 'node_modules/codemirror'),
-          path.resolve(__dirname, 'node_modules/rc-tree'),
           path.resolve(__dirname, 'node_modules/react-toastify'),
           path.resolve(__dirname, 'node_modules/quill-emoji'),
+          path.resolve(__dirname, 'node_modules/react-awesome-query-builder'),
         ],
         // May need to handle files outside the source code
         // (from node_modules)
@@ -178,7 +172,9 @@ module.exports = {
       https: require.resolve('https-browserify'),
       path: require.resolve('path-browserify'),
       fs: false,
+      url: require.resolve('url/'),
     },
+    plugins: [new TsconfigPathsPlugin()],
   },
 
   plugins: [
@@ -189,9 +185,8 @@ module.exports = {
     // In development mode, fork TypeScript checking to run in another thread and not block main
     // transpilation
     new ForkTsCheckerWebpackPlugin({
-      eslint: {
-        files: './src/**/*.{ts,tsx,js,jsx}',
-        // required - same as command `eslint ./src/**/*.{ts,tsx,js,jsx} --ext .ts,.tsx,.js,.jsx`
+      typescript: {
+        configFile: 'tsconfig.json',
       },
     }),
     // Generate index.html from template
@@ -223,6 +218,10 @@ module.exports = {
           from: path.join(__dirname, 'public/robots.txt'),
           to: outputPath,
         },
+        {
+          from: path.join(__dirname, 'public/locales'),
+          to: outputPath,
+        },
       ],
     }),
     // Build progress bar
@@ -238,13 +237,17 @@ module.exports = {
       process: 'process/browser',
       Buffer: ['buffer', 'Buffer'],
     }),
-    // Plugin for hot module replacement
-    new webpack.HotModuleReplacementPlugin(),
   ],
 
   // webpack-dev-server
   devServer: {
-    contentBase: outputPath,
+    // Disable webpack browser window overlay
+    client: {
+      overlay: false,
+    },
+    static: {
+      directory: outputPath,
+    },
     compress: true,
     hot: true,
     port: 3000,
@@ -264,5 +267,5 @@ module.exports = {
   },
 
   // Source map
-  devtool: 'eval-cheap-source-map',
+  devtool: 'eval-cheap-module-source-map',
 };

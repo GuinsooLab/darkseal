@@ -1,5 +1,5 @@
 /*
- *  Copyright 2021 Collate
+ *  Copyright 2022 Collate.
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
@@ -12,726 +12,345 @@
  */
 
 import {
-  faSortAmountDownAlt,
-  faSortAmountUpAlt,
-} from '@fortawesome/free-solid-svg-icons';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { Card } from 'antd';
-import classNames from 'classnames';
-import { cloneDeep, isEmpty, isUndefined, lowerCase } from 'lodash';
+  SortAscendingOutlined,
+  SortDescendingOutlined,
+} from '@ant-design/icons';
+import { Button, Card, Col, Row, Space, Tabs } from 'antd';
+import FacetFilter from 'components/common/facetfilter/FacetFilter';
+import SearchedData from 'components/searched-data/SearchedData';
+import { SORT_ORDER } from 'enums/common.enum';
+import unique from 'fork-ts-checker-webpack-plugin/lib/utils/array/unique';
 import {
-  AggregationType,
-  Bucket,
-  FilterObject,
-  FormattedTableData,
-  SearchResponse,
-} from 'Models';
-import React, {
-  Fragment,
-  useCallback,
-  useEffect,
-  useRef,
-  useState,
-} from 'react';
-import { useHistory, useLocation } from 'react-router-dom';
-import { Button } from '../../components/buttons/Button/Button';
-import ErrorPlaceHolderES from '../../components/common/error-with-placeholder/ErrorPlaceHolderES';
-import FacetFilter from '../../components/common/facetfilter/FacetFilter';
-import SearchedData from '../../components/searched-data/SearchedData';
-import {
-  getExplorePathWithSearch,
-  PAGE_SIZE,
-  ROUTES,
-  visibleFilters,
-} from '../../constants/constants';
-import {
-  emptyValue,
-  getAggrWithDefaultValue,
-  getCurrentIndex,
-  getCurrentTab,
-  INITIAL_FILTERS,
-  INITIAL_SORT_FIELD,
-  INITIAL_SORT_ORDER,
-  tableSortingFields,
-  tabsInfo,
-  UPDATABLE_AGGREGATION,
-  ZERO_SIZE,
-} from '../../constants/explore.constants';
+  isEmpty,
+  isNil,
+  isNumber,
+  isUndefined,
+  lowerCase,
+  noop,
+  omit,
+  toUpper,
+} from 'lodash';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
+import { useParams } from 'react-router-dom';
+import { ENTITY_PATH } from '../../constants/constants';
+import { tabsInfo } from '../../constants/explore.constants';
 import { SearchIndex } from '../../enums/search.enum';
-import { usePrevious } from '../../hooks/usePrevious';
-import {
-  getAggregationList,
-  getAggregationListFromQS,
-} from '../../utils/AggregationUtils';
-import { formatDataResponse } from '../../utils/APIUtils';
+import { getDropDownItems } from '../../utils/AdvancedSearchUtils';
 import { getCountBadge } from '../../utils/CommonUtils';
-import { getFilterCount, getFilterString } from '../../utils/FilterUtils';
-import AdvancedFields from '../AdvancedSearch/AdvancedFields';
-import AdvancedSearchDropDown from '../AdvancedSearch/AdvancedSearchDropDown';
-import PageLayout, { leftPanelAntCardStyle } from '../containers/PageLayout';
-import { AdvanceField, ExploreProps } from './explore.interface';
+import { FacetFilterProps } from '../common/facetfilter/facetFilter.interface';
+import PageLayoutV1 from '../containers/PageLayoutV1';
+import Loader from '../Loader/Loader';
+import ExploreSkeleton from '../Skeleton/Explore/ExploreLeftPanelSkeleton.component';
+import { useAdvanceSearch } from './AdvanceSearchProvider/AdvanceSearchProvider.component';
+import AppliedFilterText from './AppliedFilterText/AppliedFilterText';
+import EntitySummaryPanel from './EntitySummaryPanel/EntitySummaryPanel.component';
+import {
+  EntityDetailsObjectInterface,
+  EntityUnion,
+  ExploreProps,
+  ExploreQuickFilterField,
+  ExploreSearchIndex,
+  ExploreSearchIndexKey,
+} from './explore.interface';
+import './Explore.style.less';
+import ExploreQuickFilters from './ExploreQuickFilters';
 import SortingDropDown from './SortingDropDown';
 
 const Explore: React.FC<ExploreProps> = ({
+  searchResults,
   tabCounts,
-  searchText,
-  initialFilter,
-  searchFilter,
-  tab,
-  searchQuery,
-  searchResult,
+  onChangeAdvancedSearchQueryFilter,
+  postFilter,
+  onChangePostFilter,
+  searchIndex,
+  onChangeSearchIndex,
+  sortOrder,
+  onChangeSortOder,
   sortValue,
-  error,
-  fetchCount,
-  handleFilterChange,
-  handlePathChange,
-  handleSearchText,
-  fetchData,
+  onChangeSortValue,
+  onChangeShowDeleted,
   showDeleted,
-  onShowDeleted,
-  updateTableCount,
-  updateTopicCount,
-  updateDashboardCount,
-  updatePipelineCount,
-  isFilterSelected,
-  updateMlModelCount,
-}: ExploreProps) => {
-  const location = useLocation();
-  const history = useHistory();
-  const filterObject: FilterObject = {
-    ...INITIAL_FILTERS,
-    ...initialFilter,
+  page = 1,
+  onChangePage = noop,
+  loading,
+}) => {
+  const { t } = useTranslation();
+  const { tab } = useParams<{ tab: string }>();
+
+  const [selectedQuickFilters, setSelectedQuickFilters] = useState<
+    ExploreQuickFilterField[]
+  >([] as ExploreQuickFilterField[]);
+  const [showSummaryPanel, setShowSummaryPanel] = useState(false);
+  const [entityDetails, setEntityDetails] =
+    useState<{ details: EntityUnion; entityType: string }>();
+
+  const { toggleModal, sqlQuery } = useAdvanceSearch();
+
+  const handleClosePanel = () => {
+    setShowSummaryPanel(false);
   };
-  const [data, setData] = useState<Array<FormattedTableData>>([]);
-  const [filters, setFilters] = useState<FilterObject>({
-    ...filterObject,
-    ...searchFilter,
-  });
 
-  const [currentPage, setCurrentPage] = useState<number>(1);
-  const [totalNumberOfValue, setTotalNumberOfValues] = useState<number>(0);
-  const [aggregations, setAggregations] = useState<Array<AggregationType>>([]);
-  const [searchTag, setSearchTag] = useState<string>(location.search);
-  const [sortField, setSortField] = useState<string>(sortValue);
-  const [sortOrder, setSortOrder] = useState<string>(INITIAL_SORT_ORDER);
-  const [searchIndex, setSearchIndex] = useState<string>(getCurrentIndex(tab));
-  const [currentTab, setCurrentTab] = useState<number>(getCurrentTab(tab));
-
-  const [isEntityLoading, setIsEntityLoading] = useState(true);
-  const [isFilterSet, setIsFilterSet] = useState<boolean>(
-    !isEmpty(initialFilter)
+  const isAscSortOrder = useMemo(
+    () => sortOrder === SORT_ORDER.ASC,
+    [sortOrder]
   );
-  const [connectionError] = useState(error.includes('Connection refused'));
-  const isMounting = useRef(true);
-  const forceSetAgg = useRef(false);
-  const previsouIndex = usePrevious(searchIndex);
-  const [fieldList, setFieldList] =
-    useState<Array<{ name: string; value: string }>>(tableSortingFields);
+  const sortProps = useMemo(
+    () => ({
+      className: 'text-base text-primary',
+      'data-testid': 'last-updated',
+    }),
+    []
+  );
 
-  const [selectedAdvancedFields, setSelectedAdvancedField] = useState<
-    Array<AdvanceField>
-  >([]);
+  const tabItems = useMemo(
+    () =>
+      Object.entries(tabsInfo).map(([tabSearchIndex, tabDetail]) => ({
+        key: tabSearchIndex,
+        label: (
+          <div data-testid={`${lowerCase(tabDetail.label)}-tab`}>
+            {tabDetail.label}
+            <span className="p-l-xs ">
+              {!isNil(tabCounts)
+                ? getCountBadge(
+                    tabCounts[tabSearchIndex as ExploreSearchIndex],
+                    '',
+                    tabSearchIndex === searchIndex
+                  )
+                : getCountBadge()}
+            </span>
+          </div>
+        ),
+      })),
+    [tabsInfo, tabCounts]
+  );
 
-  const onAdvancedFieldSelect = (value: string) => {
-    const flag = selectedAdvancedFields.some((field) => field.key === value);
-    if (!flag) {
-      setSelectedAdvancedField((pre) => [
-        ...pre,
-        { key: value, value: undefined },
-      ]);
+  // get entity active tab by URL params
+  const defaultActiveTab = useMemo(() => {
+    const entityName = toUpper(ENTITY_PATH[tab] ?? 'table');
+
+    return SearchIndex[entityName as ExploreSearchIndexKey];
+  }, [tab]);
+
+  const handleFacetFilterChange: FacetFilterProps['onSelectHandler'] = (
+    checked,
+    value,
+    key
+  ) => {
+    const currKeyFilters =
+      isNil(postFilter) || !(key in postFilter)
+        ? ([] as string[])
+        : postFilter[key];
+    if (checked) {
+      onChangePostFilter({
+        ...postFilter,
+        [key]: unique([...currKeyFilters, value]),
+      });
+    } else {
+      const filteredKeyFilters = currKeyFilters.filter((v) => v !== value);
+      if (filteredKeyFilters.length) {
+        onChangePostFilter({
+          ...postFilter,
+          [key]: filteredKeyFilters,
+        });
+      } else {
+        onChangePostFilter(omit(postFilter, key));
+      }
     }
   };
-  const onAdvancedFieldRemove = (value: string) => {
-    setSelectedAdvancedField((pre) =>
-      pre.filter((field) => field.key !== value)
+
+  const handleSummaryPanelDisplay = useCallback(
+    (details: EntityUnion, entityType: string) => {
+      setShowSummaryPanel(true);
+      setEntityDetails({ details, entityType });
+    },
+    []
+  );
+
+  const handleAdvanceSearchFilter = (data: ExploreQuickFilterField[]) => {
+    const terms = [] as Array<Record<string, unknown>>;
+
+    data.forEach((filter) => {
+      filter.value?.map((val) => {
+        if (filter.key) {
+          terms.push({ term: { [filter.key]: val.key } });
+        }
+      });
+    });
+
+    onChangeAdvancedSearchQueryFilter(
+      isEmpty(terms)
+        ? undefined
+        : {
+            query: { bool: { should: terms } },
+          }
     );
   };
 
-  const onAdvancedFieldClear = () => {
-    setSelectedAdvancedField([]);
-  };
-
-  const onAdvancedFieldValueSelect = (field: AdvanceField) => {
-    setSelectedAdvancedField((pre) => {
-      return pre.map((preField) => {
+  const handleAdvanceFieldValueSelect = (field: ExploreQuickFilterField) => {
+    setSelectedQuickFilters((pre) => {
+      const data = pre.map((preField) => {
         if (preField.key === field.key) {
           return field;
         } else {
           return preField;
         }
       });
+
+      handleAdvanceSearchFilter(data);
+
+      return data;
     });
   };
 
-  const handleSelectedFilter = (
-    checked: boolean,
-    selectedFilter: string,
-    type: keyof typeof filterObject
-  ) => {
-    let filterData;
-    if (checked) {
-      const filterType = filters[type];
-      if (filterType.includes(selectedFilter)) {
-        filterData = { ...filters };
-      } else {
-        setIsFilterSet(true);
-
-        filterData = {
-          ...filters,
-          [type]: [...filters[type], selectedFilter],
-        };
+  useEffect(() => {
+    const escapeKeyHandler = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        handleClosePanel();
       }
-    } else {
-      if (searchTag.includes(selectedFilter)) {
-        setSearchTag('');
-      }
-      const filter = filters[type];
-      const index = filter.indexOf(selectedFilter);
-      filter.splice(index, 1);
-      const selectedFilterCount = getFilterCount(filters);
-      setIsFilterSet(selectedFilterCount >= 1);
+    };
+    document.addEventListener('keydown', escapeKeyHandler);
 
-      filterData = { ...filters, [type]: filter };
-    }
-
-    handleFilterChange(filterData);
-  };
-
-  const handleFieldDropDown = (value: string) => {
-    setSortField(value);
-  };
-
-  const handleShowDeleted = (checked: boolean) => {
-    onShowDeleted(checked);
-  };
-
-  const onClearFilterHandler = (type: string[], isForceClear = false) => {
-    setSelectedAdvancedField([]);
-    const updatedFilter = type.reduce((filterObj, type) => {
-      return { ...filterObj, [type]: [] };
-    }, {});
-    const queryParamFilters = initialFilter;
-    setIsFilterSet(false);
-
-    handleFilterChange({
-      ...updatedFilter,
-      ...(isForceClear ? {} : queryParamFilters),
-    });
-  };
-
-  const paginate = (pageNumber: string | number) => {
-    setCurrentPage(pageNumber as number);
-  };
-
-  const updateAggregationCount = useCallback(
-    (newAggregations: Array<AggregationType>) => {
-      const oldAggs = cloneDeep(aggregations);
-      for (const newAgg of newAggregations) {
-        for (const oldAgg of oldAggs) {
-          if (newAgg.title === oldAgg.title) {
-            if (UPDATABLE_AGGREGATION.includes(newAgg.title)) {
-              const buckets = cloneDeep(oldAgg.buckets)
-                .map((item) => {
-                  // eslint-disable-next-line @typescript-eslint/camelcase
-                  return { ...item, doc_count: 0 };
-                })
-                .concat(newAgg.buckets);
-              const bucketHashmap = buckets.reduce((obj, item) => {
-                obj[item.key]
-                  ? // eslint-disable-next-line @typescript-eslint/camelcase
-                    (obj[item.key].doc_count += item.doc_count)
-                  : (obj[item.key] = { ...item });
-
-                return obj;
-              }, {} as { [key: string]: Bucket });
-              oldAgg.buckets = Object.values(bucketHashmap);
-            } else {
-              oldAgg.buckets = newAgg.buckets;
-            }
-          }
-        }
-      }
-      setAggregations(oldAggs);
-    },
-    [aggregations, filters]
-  );
-
-  const updateSearchResults = (res: SearchResponse) => {
-    const hits = res.data.hits.hits;
-    if (hits.length > 0) {
-      setTotalNumberOfValues(res.data.hits.total.value);
-      setData(formatDataResponse(hits));
-    } else {
-      setData([]);
-      setTotalNumberOfValues(0);
-    }
-  };
-
-  const setCount = (count = 0, index = searchIndex) => {
-    switch (index) {
-      case SearchIndex.TABLE:
-        updateTableCount(count);
-
-        break;
-      case SearchIndex.DASHBOARD:
-        updateDashboardCount(count);
-
-        break;
-      case SearchIndex.TOPIC:
-        updateTopicCount(count);
-
-        break;
-      case SearchIndex.PIPELINE:
-        updatePipelineCount(count);
-
-        break;
-      case SearchIndex.MLMODEL:
-        updateMlModelCount(count);
-
-        break;
-      default:
-        break;
-    }
-  };
-
-  const fetchTableData = () => {
-    setIsEntityLoading(true);
-    const fetchParams = [
-      {
-        queryString: searchText,
-        from: currentPage,
-        size: PAGE_SIZE,
-        filters: getFilterString(filters),
-        sortField: sortField,
-        sortOrder: sortOrder,
-        searchIndex: searchIndex,
-      },
-      {
-        queryString: searchText,
-        from: currentPage,
-        size: ZERO_SIZE,
-        filters: getFilterString(filters, ['service']),
-        sortField: sortField,
-        sortOrder: sortOrder,
-        searchIndex: searchIndex,
-      },
-      {
-        queryString: searchText,
-        from: currentPage,
-        size: ZERO_SIZE,
-        filters: getFilterString(filters, ['tier']),
-        sortField: sortField,
-        sortOrder: sortOrder,
-        searchIndex: searchIndex,
-      },
-      {
-        queryString: searchText,
-        from: currentPage,
-        size: ZERO_SIZE,
-        filters: getFilterString(filters, ['tags']),
-        sortField: sortField,
-        sortOrder: sortOrder,
-        searchIndex: searchIndex,
-      },
-      {
-        queryString: searchText,
-        from: currentPage,
-        size: ZERO_SIZE,
-        filters: getFilterString(filters, ['database']),
-        sortField: sortField,
-        sortOrder: sortOrder,
-        searchIndex: searchIndex,
-      },
-      {
-        queryString: searchText,
-        from: currentPage,
-        size: ZERO_SIZE,
-        filters: getFilterString(filters, ['databaseschema']),
-        sortField: sortField,
-        sortOrder: sortOrder,
-        searchIndex: searchIndex,
-      },
-      {
-        queryString: searchText,
-        from: currentPage,
-        size: ZERO_SIZE,
-        filters: getFilterString(filters, ['servicename']),
-        sortField: sortField,
-        sortOrder: sortOrder,
-        searchIndex: searchIndex,
-      },
-    ];
-
-    fetchData(fetchParams);
-  };
-
-  const getFacetedFilter = () => {
-    const facetFilters: FilterObject = cloneDeep(filterObject);
-    for (const key in filters) {
-      if (visibleFilters.includes(key)) {
-        facetFilters[key as keyof typeof filterObject] =
-          filters[key as keyof typeof filterObject];
-      }
-    }
-
-    return facetFilters;
-  };
-
-  const handleOrder = (value: string) => {
-    setSortOrder(value);
-  };
-
-  const getSortingElements = () => {
-    return (
-      <div className="tw-flex">
-        <AdvancedSearchDropDown
-          index={searchIndex}
-          selectedItems={selectedAdvancedFields}
-          onSelect={onAdvancedFieldSelect}
-        />
-
-        <SortingDropDown
-          fieldList={fieldList}
-          handleFieldDropDown={handleFieldDropDown}
-          sortField={sortField}
-        />
-
-        <div className="tw-flex">
-          {sortOrder === 'asc' ? (
-            <button className="tw-mt-2" onClick={() => handleOrder('desc')}>
-              <FontAwesomeIcon
-                className="tw-text-base tw-text-primary"
-                data-testid="last-updated"
-                icon={faSortAmountDownAlt}
-              />
-            </button>
-          ) : (
-            <button className="tw-mt-2" onClick={() => handleOrder('asc')}>
-              <FontAwesomeIcon
-                className="tw-text-base tw-text-primary"
-                data-testid="last-updated"
-                icon={faSortAmountUpAlt}
-              />
-            </button>
-          )}
-        </div>
-      </div>
-    );
-  };
-
-  const getActiveTabClass = (selectedTab: number) => {
-    return selectedTab === currentTab ? 'active' : '';
-  };
-
-  const resetFilters = (isForceReset = false) => {
-    onClearFilterHandler(visibleFilters, isForceReset);
-  };
-
-  const getTabCount = (index: string, isActive: boolean, className = '') => {
-    switch (index) {
-      case SearchIndex.TABLE:
-        return getCountBadge(tabCounts.table, className, isActive);
-      case SearchIndex.TOPIC:
-        return getCountBadge(tabCounts.topic, className, isActive);
-      case SearchIndex.DASHBOARD:
-        return getCountBadge(tabCounts.dashboard, className, isActive);
-      case SearchIndex.PIPELINE:
-        return getCountBadge(tabCounts.pipeline, className, isActive);
-      case SearchIndex.MLMODEL:
-        return getCountBadge(tabCounts.mlModel, className, isActive);
-      default:
-        return getCountBadge();
-    }
-  };
-  const onTabChange = (selectedTab: number) => {
-    if (tabsInfo[selectedTab - 1].path !== tab) {
-      setIsEntityLoading(true);
-      setData([]);
-      handlePathChange(tabsInfo[selectedTab - 1].path);
-      resetFilters();
-      history.push({
-        pathname: getExplorePathWithSearch(
-          searchQuery,
-          tabsInfo[selectedTab - 1].path
-        ),
-        search: location.search,
-      });
-    }
-  };
-  const getTabs = () => {
-    return (
-      <div className="tw-mb-5 centered-layout">
-        <nav
-          className={classNames(
-            'tw-flex tw-flex-row tw-justify-between tw-gh-tabs-container'
-          )}>
-          <div className="tw-flex">
-            {/* <div className="tw-w-64 tw-mr-5 tw-flex-shrink-0">
-              <Button
-                className={classNames('tw-underline tw-mt-5', {
-                  'tw-invisible': !getFilterCount(filters),
-                })}
-                size="custom"
-                theme="primary"
-                variant="link"
-                onClick={() => resetFilters(true)}>
-                Clear All
-              </Button>
-            </div> */}
-            <div>
-              {tabsInfo.map((tabDetail, index) => (
-                <button
-                  className={`tw-pb-2 tw-px-4 tw-gh-tabs ${getActiveTabClass(
-                    tabDetail.tab
-                  )}`}
-                  data-testid={`${lowerCase(tabDetail.label)}-tab`}
-                  key={index}
-                  onClick={() => {
-                    onTabChange(tabDetail.tab);
-                  }}>
-                  {tabDetail.label}
-                  <span className="tw-pl-1">
-                    {getTabCount(tabDetail.index, tabDetail.tab === currentTab)}
-                  </span>
-                </button>
-              ))}
-            </div>
-          </div>
-          {getSortingElements()}
-        </nav>
-      </div>
-    );
-  };
-
-  const getData = () => {
-    if (!isMounting.current && previsouIndex === getCurrentIndex(tab)) {
-      forceSetAgg.current = !isFilterSet;
-      fetchTableData();
-    }
-  };
-
-  const handleAdvancedSearch = (advancedFields: AdvanceField[]) => {
-    const advancedFilterObject: FilterObject = {};
-    advancedFields.forEach((field) => {
-      if (field.value) {
-        advancedFilterObject[field.key] = [field.value];
-      }
-    });
-
-    handleFilterChange(advancedFilterObject);
-  };
-
-  useEffect(() => {
-    handleSearchText(searchQuery || emptyValue);
-    setCurrentPage(1);
-  }, [searchQuery]);
-
-  useEffect(() => {
-    setFieldList(tabsInfo[getCurrentTab(tab) - 1].sortingFields);
-    // if search text is there then set sortfield as ''(Relevance)
-    setSortField(searchText ? '' : tabsInfo[getCurrentTab(tab) - 1].sortField);
-    setSortOrder(INITIAL_SORT_ORDER);
-    setCurrentTab(getCurrentTab(tab));
-    setSearchIndex(getCurrentIndex(tab));
-    setCurrentPage(1);
-    if (!isMounting.current) {
-      fetchCount();
-      handleFilterChange(filterObject);
-    }
-  }, [tab]);
-
-  useEffect(() => {
-    setFilters({
-      ...filterObject,
-      ...initialFilter,
-      ...searchFilter,
-    });
-  }, [initialFilter, searchFilter]);
-
-  useEffect(() => {
-    if (getFilterString(filters)) {
-      setCurrentPage(1);
-    }
-  }, [searchText, filters]);
-
-  useEffect(() => {
-    forceSetAgg.current = true;
-    if (!isMounting.current) {
-      fetchTableData();
-    }
-  }, [searchText, searchIndex, showDeleted]);
-
-  useEffect(() => {
-    if (searchResult) {
-      updateSearchResults(searchResult.resSearchResults);
-      setCount(searchResult.resSearchResults.data.hits.total.value);
-      if (forceSetAgg.current || !isUndefined(initialFilter)) {
-        setAggregations(
-          searchResult.resSearchResults.data.hits.hits.length > 0
-            ? getAggregationList(
-                searchResult.resSearchResults.data.aggregations
-              )
-            : getAggregationListFromQS(location.search)
-        );
-      } else {
-        const aggServiceType = getAggregationList(
-          searchResult.resAggServiceType.data.aggregations,
-          'service'
-        );
-        const aggTier = getAggregationList(
-          searchResult.resAggTier.data.aggregations,
-          'tier'
-        );
-        const aggTag = getAggregationList(
-          searchResult.resAggTag.data.aggregations,
-          'tags'
-        );
-        const aggDatabase = getAggregationList(
-          searchResult.resAggDatabase.data.aggregations,
-          'database'
-        );
-        const aggDatabaseSchema = getAggregationList(
-          searchResult.resAggDatabaseSchema.data.aggregations,
-          'databaseschema'
-        );
-        const aggServiceName = getAggregationList(
-          searchResult.resAggServiceName.data.aggregations,
-          'servicename'
-        );
-
-        updateAggregationCount([
-          ...aggServiceType,
-          ...aggTier,
-          ...aggTag,
-          ...aggDatabase,
-          ...aggDatabaseSchema,
-          ...aggServiceName,
-        ]);
-      }
-      setIsEntityLoading(false);
-    }
-  }, [searchResult]);
-
-  useEffect(() => {
-    getData();
-  }, [currentPage, sortField, sortOrder]);
-
-  useEffect(() => {
-    if (currentPage === 1) {
-      getData();
-    } else {
-      setCurrentPage(1);
-    }
-  }, [filters]);
-
-  /**
-   * on index change clear the filters
-   */
-  useEffect(() => {
-    if (!isMounting.current) {
-      setSelectedAdvancedField([]);
-    }
-  }, [searchIndex]);
-
-  /**
-   * if search query is there then make sortfield as empty (Relevance)
-   * otherwise change it to INITIAL_SORT_FIELD (last_updated)
-   */
-  useEffect(() => {
-    if (searchText) {
-      setSortField('');
-    } else {
-      setSortField(INITIAL_SORT_FIELD);
-    }
-  }, [searchText]);
-
-  /**
-   * on advance field change call handleAdvancedSearch methdod
-   */
-  useEffect(() => {
-    if (!isMounting.current) {
-      handleAdvancedSearch(selectedAdvancedFields);
-    }
-  }, [selectedAdvancedFields]);
-
-  // alwyas Keep this useEffect at the end...
-  useEffect(() => {
-    isMounting.current = false;
+    return () => {
+      document.removeEventListener('keydown', escapeKeyHandler);
+    };
   }, []);
 
-  const fetchLeftPanel = () => {
-    return (
-      <div className="tw-h-full">
-        <Card
-          data-testid="data-summary-container"
-          style={{ ...leftPanelAntCardStyle, marginTop: '16px' }}>
-          <Fragment>
-            <div className="tw-w-64 tw-mr-5 tw-flex-shrink-0">
-              <Button
-                className={classNames('tw-underline tw-pb-4')}
-                disabled={!getFilterCount(filters)}
-                size="custom"
-                theme="primary"
-                variant="link"
-                onClick={() => resetFilters(true)}>
-                Clear All
-              </Button>
-            </div>
-            <div className="tw-filter-seperator" />
-            {!error && (
-              <FacetFilter
-                aggregations={getAggrWithDefaultValue(
-                  aggregations,
-                  visibleFilters
-                )}
-                filters={getFacetedFilter()}
-                showDeletedOnly={showDeleted}
-                onSelectDeleted={handleShowDeleted}
-                onSelectHandler={handleSelectedFilter}
-              />
-            )}
-          </Fragment>
-        </Card>
-      </div>
-    );
-  };
+  useEffect(() => {
+    const dropdownItems = getDropDownItems(searchIndex);
 
-  const advanceFieldCheck =
-    !connectionError && Boolean(selectedAdvancedFields.length);
+    setSelectedQuickFilters(
+      dropdownItems.map((item) => ({ ...item, value: [] }))
+    );
+  }, [searchIndex]);
+
+  useEffect(() => {
+    if (
+      !isUndefined(searchResults) &&
+      searchResults?.hits?.hits[0] &&
+      searchResults?.hits?.hits[0]._index === searchIndex
+    ) {
+      handleSummaryPanelDisplay(
+        searchResults?.hits?.hits[0]._source as EntityUnion,
+        tab
+      );
+    } else {
+      setShowSummaryPanel(false);
+      setEntityDetails(undefined);
+    }
+  }, [tab, searchResults]);
 
   return (
-    <Fragment>
-      <PageLayout leftPanel={Boolean(!error) && fetchLeftPanel()}>
-        {error ? (
-          <ErrorPlaceHolderES errorMessage={error} type="error" />
-        ) : (
-          <>
-            {!connectionError && getTabs()}
-            {advanceFieldCheck && (
-              <AdvancedFields
-                fields={selectedAdvancedFields}
-                index={searchIndex}
-                onClear={onAdvancedFieldClear}
-                onFieldRemove={onAdvancedFieldRemove}
-                onFieldValueSelect={onAdvancedFieldValueSelect}
-              />
-            )}
-            <SearchedData
-              showResultCount
-              currentPage={currentPage}
-              data={data}
-              isFilterSelected={isFilterSelected}
-              isLoading={
-                !location.pathname.includes(ROUTES.TOUR) && isEntityLoading
-              }
-              paginate={paginate}
-              searchText={searchText}
-              totalValue={totalNumberOfValue}
+    <PageLayoutV1
+      className="explore-page-container"
+      leftPanel={
+        <Card
+          className="page-layout-v1-left-panel page-layout-v1-vertical-scroll"
+          data-testid="data-summary-container">
+          <ExploreSkeleton loading={Boolean(loading)}>
+            <FacetFilter
+              aggregations={omit(searchResults?.aggregations, 'entityType')}
+              filters={postFilter}
+              showDeleted={showDeleted}
+              onChangeShowDeleted={onChangeShowDeleted}
+              onClearFilter={onChangePostFilter}
+              onSelectHandler={handleFacetFilterChange}
             />
-          </>
+          </ExploreSkeleton>
+        </Card>
+      }
+      pageTitle={t('label.explore')}>
+      <Tabs
+        defaultActiveKey={defaultActiveTab}
+        items={tabItems}
+        size="small"
+        tabBarExtraContent={
+          <Space align="center" size={4}>
+            <SortingDropDown
+              fieldList={tabsInfo[searchIndex].sortingFields}
+              handleFieldDropDown={onChangeSortValue}
+              sortField={sortValue}
+            />
+            <Button
+              className="p-0"
+              size="small"
+              type="text"
+              onClick={() =>
+                onChangeSortOder(
+                  isAscSortOrder ? SORT_ORDER.DESC : SORT_ORDER.ASC
+                )
+              }>
+              {isAscSortOrder ? (
+                <SortAscendingOutlined {...sortProps} />
+              ) : (
+                <SortDescendingOutlined {...sortProps} />
+              )}
+            </Button>
+          </Space>
+        }
+        onChange={(tab) => {
+          tab && onChangeSearchIndex(tab as ExploreSearchIndex);
+          setShowSummaryPanel(false);
+        }}
+      />
+
+      <Row gutter={[8, 0]} wrap={false}>
+        <Col className="searched-data-container" flex="auto">
+          <Row gutter={[16, 16]}>
+            <Col span={24}>
+              <ExploreQuickFilters
+                fields={selectedQuickFilters}
+                index={searchIndex}
+                onAdvanceSearch={() => toggleModal(true)}
+                onFieldValueSelect={handleAdvanceFieldValueSelect}
+              />
+            </Col>
+            {sqlQuery && (
+              <Col span={24}>
+                <AppliedFilterText
+                  filterText={sqlQuery}
+                  onEdit={() => toggleModal(true)}
+                />
+              </Col>
+            )}
+
+            <Col span={24}>
+              {!loading ? (
+                <SearchedData
+                  isFilterSelected
+                  showResultCount
+                  currentPage={page}
+                  data={searchResults?.hits.hits ?? []}
+                  handleSummaryPanelDisplay={handleSummaryPanelDisplay}
+                  isSummaryPanelVisible={showSummaryPanel}
+                  paginate={(value) => {
+                    if (isNumber(value)) {
+                      onChangePage(value);
+                    } else if (!isNaN(Number.parseInt(value))) {
+                      onChangePage(Number.parseInt(value));
+                    }
+                  }}
+                  selectedEntityId={entityDetails?.details.id || ''}
+                  totalValue={searchResults?.hits.total.value ?? 0}
+                />
+              ) : (
+                <Loader />
+              )}
+            </Col>
+          </Row>
+        </Col>
+        {showSummaryPanel && (
+          <Col flex="400px">
+            <EntitySummaryPanel
+              entityDetails={
+                entityDetails || ({} as EntityDetailsObjectInterface)
+              }
+              handleClosePanel={handleClosePanel}
+            />
+          </Col>
         )}
-      </PageLayout>
-    </Fragment>
+      </Row>
+    </PageLayoutV1>
   );
 };
 

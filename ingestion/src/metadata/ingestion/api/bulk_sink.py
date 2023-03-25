@@ -8,7 +8,9 @@
 #  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
-
+"""
+Abstract BulkSink definition to build a Workflow
+"""
 from abc import ABCMeta, abstractmethod
 from dataclasses import dataclass, field
 from typing import Any, List
@@ -35,18 +37,26 @@ class BulkSinkStatus(Status):
 
 @dataclass  # type: ignore[misc]
 class BulkSink(Closeable, metaclass=ABCMeta):
+    """
+    BulkSink class
+    """
+
+    status: BulkSinkStatus
+
+    def __init__(self):
+        self.status = BulkSinkStatus()
+
     @classmethod
     @abstractmethod
-    def create(cls, config_dict: dict, metadata_config_dict: dict) -> "BulkSink":
+    def create(cls, config_dict: dict, metadata_config: dict) -> "BulkSink":
         pass
 
     @abstractmethod
     def write_records(self) -> None:
         pass
 
-    @abstractmethod
     def get_status(self) -> BulkSinkStatus:
-        pass
+        return self.status
 
     @abstractmethod
     def close(self) -> None:

@@ -1,5 +1,5 @@
 /*
- *  Copyright 2021 Collate
+ *  Copyright 2022 Collate.
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
@@ -11,18 +11,22 @@
  *  limitations under the License.
  */
 
-import { Dropdown, Menu } from 'antd';
-import React, { FC } from 'react';
-import { normalLink } from '../../utils/styleconstant';
-import { dropdownIcon as DropDownIcon } from '../../utils/svgconstant';
+import { Dropdown, Space, Typography } from 'antd';
+import React from 'react';
+import { ReactComponent as DropDownIcon } from '../../assets/svg/bottom-arrow.svg';
 
-interface Props {
+export interface SortingField {
+  name: string;
+  value: string;
+}
+
+export interface SortingDropdownProps {
   sortField: string;
-  fieldList: Array<{ name: string; value: string }>;
+  fieldList: SortingField[];
   handleFieldDropDown: (value: string) => void;
 }
 
-const SortingDropDown: FC<Props> = ({
+const SortingDropDown: React.FC<SortingDropdownProps> = ({
   fieldList,
   handleFieldDropDown,
   sortField,
@@ -34,20 +38,20 @@ const SortingDropDown: FC<Props> = ({
     'data-testid': 'dropdown-menu-item',
   }));
 
-  const menu = <Menu data-testid="dropdown-menu" items={items} />;
-
   const label = fieldList.find((field) => field.value === sortField)?.name;
 
   return (
     <Dropdown
-      className="tw-self-end tw-mb-2 tw-mr-2 tw-cursor-pointer"
+      className="self-end m-r-xs cursor-pointer"
       data-testid="dropdown"
-      overlay={menu}
+      menu={{
+        items,
+      }}
       trigger={['click']}>
-      <div className="tw-text-primary" data-testid="dropdown-label">
-        <span className="tw-mr-2">{label}</span>
-        <DropDownIcon style={{ color: normalLink, margin: '0px' }} />
-      </div>
+      <Space align="center" data-testid="dropdown-label" size={4}>
+        <Typography.Text className="text-primary">{label}</Typography.Text>
+        <DropDownIcon className="text-primary" height={16} width={16} />
+      </Space>
     </Dropdown>
   );
 };

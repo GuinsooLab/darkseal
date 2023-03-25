@@ -1,5 +1,5 @@
 /*
- *  Copyright 2021 Collate
+ *  Copyright 2022 Collate.
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
@@ -12,13 +12,15 @@
  */
 
 import classNames from 'classnames';
+import PageContainer from 'components/containers/PageContainer';
 import { isUndefined } from 'lodash';
 import { ExtraInfo } from 'Models';
 import React, { FC, useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { FQN_SEPARATOR_CHAR } from '../../constants/char.constants';
-import { EntityField } from '../../constants/feed.constants';
+import { EntityField } from '../../constants/Feeds.constants';
 import { OwnerType } from '../../enums/user.enum';
-import { ChangeDescription } from '../../generated/entity/data/topic';
+import { ChangeDescription, Topic } from '../../generated/entity/data/topic';
 import { TagLabel } from '../../generated/type/tagLabel';
 import {
   getDescriptionDiff,
@@ -31,7 +33,6 @@ import { bytesToSize } from '../../utils/StringsUtils';
 import Description from '../common/description/Description';
 import EntityPageInfo from '../common/entityPageInfo/EntityPageInfo';
 import TabsPane from '../common/TabsPane/TabsPane';
-import PageContainer from '../containers/PageContainer';
 import EntityVersionTimeLine from '../EntityVersionTimeLine/EntityVersionTimeLine';
 import Loader from '../Loader/Loader';
 import SchemaEditor from '../schema-editor/SchemaEditor';
@@ -49,12 +50,13 @@ const TopicVersion: FC<TopicVersionProp> = ({
   backHandler,
   versionHandler,
 }: TopicVersionProp) => {
+  const { t } = useTranslation();
   const [changeDescription, setChangeDescription] = useState<ChangeDescription>(
     currentVersionData.changeDescription as ChangeDescription
   );
   const tabs = [
     {
-      name: 'Schema',
+      name: t('label.schema'),
       icon: {
         alt: 'schema',
         name: 'icon-schema',
@@ -70,31 +72,33 @@ const TopicVersion: FC<TopicVersionProp> = ({
     return [
       {
         key: 'Partitions',
-        value: `${currentVersionData.partitions ?? '--'} partitions`,
+        value: `${(currentVersionData as Topic).partitions ?? '--'} ${t(
+          'label.partition-lowercase-plural'
+        )}`,
       },
       {
         key: 'Replication Factor',
-        value: `${
-          currentVersionData.replicationFactor ?? '--'
-        } replication factor`,
+        value: `${(currentVersionData as Topic).replicationFactor ?? '--'} ${t(
+          'label.replication-factor'
+        )}`,
       },
       {
         key: 'Retention Size',
         value: `${bytesToSize(
-          currentVersionData.retentionSize ?? 0
-        )} retention size`,
+          (currentVersionData as Topic).retentionSize ?? 0
+        )} ${t('label.retention-size-lowercase')}`,
       },
       {
         key: 'Clean-up Policies',
-        value: `${currentVersionData?.cleanupPolicies?.join(
+        value: `${(currentVersionData as Topic)?.cleanupPolicies?.join(
           ', '
-        )} clean-up policies`,
+        )} ${t('label.clean-up-policy-plural-lowercase')}`,
       },
       {
         key: 'Max Message Size',
         value: `${bytesToSize(
-          currentVersionData.maximumMessageSize ?? 0
-        )} maximum size`,
+          (currentVersionData as Topic).maximumMessageSize ?? 0
+        )} ${t('label.maximum-size-lowercase')}`,
       },
     ];
   };
@@ -211,10 +215,10 @@ const TopicVersion: FC<TopicVersionProp> = ({
     [
       ...(getTagsDiff(oldTags, newTags) ?? []),
       ...(currentVersionData.tags ?? []),
-    ].forEach((elem: TagLabelWithStatus) => {
+    ].forEach((elem) => {
       if (!flag[elem.tagFQN as string]) {
         flag[elem.tagFQN as string] = true;
-        uniqueTags.push(elem);
+        uniqueTags.push(elem as TagLabelWithStatus);
       }
     });
 
@@ -289,13 +293,18 @@ const TopicVersion: FC<TopicVersionProp> = ({
                   <div className="tw-col-span-full">
                     {getInfoBadge([
                       {
-                        key: 'Schema',
-                        value: currentVersionData.schemaType ?? '',
+                        key: t('label.schema'),
+                        value:
+                          (currentVersionData as Topic).messageSchema
+                            ?.schemaType ?? '',
                       },
                     ])}
                     <div className="tw-my-4 tw-border tw-border-main tw-rounded-md tw-py-4">
                       <SchemaEditor
-                        value={currentVersionData.schemaText ?? '{}'}
+                        value={
+                          (currentVersionData as Topic).messageSchema
+                            ?.schemaText ?? '{}'
+                        }
                       />
                     </div>
                   </div>

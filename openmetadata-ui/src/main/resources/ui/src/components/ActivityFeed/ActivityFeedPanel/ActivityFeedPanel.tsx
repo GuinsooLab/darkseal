@@ -1,5 +1,5 @@
 /*
- *  Copyright 2021 Collate
+ *  Copyright 2022 Collate.
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
@@ -11,14 +11,14 @@
  *  limitations under the License.
  */
 
-import { AxiosError, AxiosResponse } from 'axios';
+import { AxiosError } from 'axios';
 import classNames from 'classnames';
 import React, { FC, useEffect, useState } from 'react';
-import { getFeedById } from '../../../axiosAPIs/feedsAPI';
-import { confirmStateInitialValue } from '../../../constants/feed.constants';
+import { getFeedById } from 'rest/feedsAPI';
+import { confirmStateInitialValue } from '../../../constants/Feeds.constants';
 import { Thread } from '../../../generated/entity/feed/thread';
 import jsonData from '../../../jsons/en';
-import { getEntityField } from '../../../utils/FeedUtils';
+import { getEntityField, getEntityFQN } from '../../../utils/FeedUtils';
 import { showErrorToast } from '../../../utils/ToastUtils';
 import { ConfirmState } from '../ActivityFeedCard/ActivityFeedCard.interface';
 import ActivityFeedEditor from '../ActivityFeedEditor/ActivityFeedEditor';
@@ -40,6 +40,7 @@ const ActivityFeedPanel: FC<ActivityFeedPanelProp> = ({
   const [threadData, setThreadData] = useState<Thread>(selectedThread);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const entityField = getEntityField(selectedThread.about);
+  const entityFQN = getEntityFQN(selectedThread.about);
 
   const [confirmationState, setConfirmationState] = useState<ConfirmState>(
     confirmStateInitialValue
@@ -51,7 +52,11 @@ const ActivityFeedPanel: FC<ActivityFeedPanelProp> = ({
 
   const onPostDelete = () => {
     if (confirmationState.postId && confirmationState.threadId) {
-      deletePostHandler?.(confirmationState.threadId, confirmationState.postId);
+      deletePostHandler?.(
+        confirmationState.threadId,
+        confirmationState.postId,
+        confirmationState.isThread
+      );
     }
     onDiscard();
   };
@@ -62,7 +67,7 @@ const ActivityFeedPanel: FC<ActivityFeedPanelProp> = ({
 
   useEffect(() => {
     getFeedById(selectedThread.id)
-      .then((res: AxiosResponse) => {
+      .then((res) => {
         setThreadData(res.data);
       })
       .catch((err: AxiosError) => {
@@ -74,12 +79,12 @@ const ActivityFeedPanel: FC<ActivityFeedPanelProp> = ({
   return (
     <div className={classNames('tw-h-full', className)}>
       <FeedPanelOverlay
-        className="tw-z-9997 tw-fixed tw-inset-0 tw-top-16 tw-h-full tw-w-3/5 tw-bg-black tw-opacity-40"
+        className="tw-fixed tw-inset-0 tw-top-16 tw-h-full tw-w-3/5 tw-bg-black tw-opacity-40 z-10"
         onCancel={onCancel}
       />
       <div
         className={classNames(
-          'tw-top-16 tw-right-0 tw-bottom-0 tw-w-2/5 tw-bg-white tw-fixed tw-shadow-md tw-transform tw-ease-in-out tw-duration-1000 tw-overflow-y-auto tw-z-9997',
+          'tw-top-16 tw-right-0 tw-bottom-0 tw-w-2/5 tw-bg-white tw-fixed tw-shadow-md tw-transform tw-ease-in-out tw-duration-1000 tw-overflow-y-auto z-10',
           {
             'tw-translate-x-0': open,
             'tw-translate-x-full': !open,
@@ -88,7 +93,9 @@ const ActivityFeedPanel: FC<ActivityFeedPanelProp> = ({
         id="feed-panel">
         <FeedPanelHeader
           className="tw-px-4 tw-shadow-sm"
+          entityFQN={entityFQN}
           entityField={entityField as string}
+          threadType={selectedThread.type}
           onCancel={onCancel}
         />
 
@@ -106,12 +113,11 @@ const ActivityFeedPanel: FC<ActivityFeedPanelProp> = ({
           onSave={postFeed}
         />
       </div>
-      {confirmationState.state && (
-        <DeleteConfirmationModal
-          onDelete={onPostDelete}
-          onDiscard={onDiscard}
-        />
-      )}
+      <DeleteConfirmationModal
+        visible={confirmationState.state}
+        onDelete={onPostDelete}
+        onDiscard={onDiscard}
+      />
     </div>
   );
 };

@@ -1,5 +1,5 @@
 /*
- *  Copyright 2021 Collate
+ *  Copyright 2022 Collate.
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
@@ -12,9 +12,11 @@
  */
 
 import { cloneDeep } from 'lodash';
-import { COMMON_UI_SCHEMA } from '../constants/services.const';
+import { COMMON_UI_SCHEMA } from '../constants/Services.constant';
 import { MlModelServiceType } from '../generated/entity/services/mlmodelService';
+import customMlModelConnection from '../jsons/connectionSchemas/connections/mlmodel/customMlModelConnection.json';
 import mlflowConnection from '../jsons/connectionSchemas/connections/mlmodel/mlflowConnection.json';
+import segamakerConnection from '../jsons/connectionSchemas/connections/mlmodel/sageMakerConnection.json';
 import sklearnConnection from '../jsons/connectionSchemas/connections/mlmodel/sklearnConnection.json';
 
 export const getMlmodelConfig = (type: MlModelServiceType) => {
@@ -28,6 +30,16 @@ export const getMlmodelConfig = (type: MlModelServiceType) => {
     }
     case MlModelServiceType.Sklearn: {
       schema = sklearnConnection;
+
+      break;
+    }
+    case MlModelServiceType.CustomMlModel: {
+      schema = customMlModelConnection;
+
+      break;
+    }
+    case MlModelServiceType.SageMaker: {
+      schema = segamakerConnection;
 
       break;
     }

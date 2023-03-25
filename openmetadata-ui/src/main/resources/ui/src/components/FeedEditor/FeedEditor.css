@@ -1,3 +1,16 @@
+/*
+ *  Copyright 2022 Collate.
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
+ *  http://www.apache.org/licenses/LICENSE-2.0
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ */
+
 .ql-container {
   box-sizing: border-box;
   font-family: Helvetica, Arial, sans-serif;
@@ -432,7 +445,7 @@
 .ql-snow .ql-toolbar .ql-picker-item:hover,
 .ql-snow.ql-toolbar .ql-picker-item.ql-selected,
 .ql-snow .ql-toolbar .ql-picker-item.ql-selected {
-  color: #1e61f0;
+  color: #004AB3FF;
 }
 .ql-snow.ql-toolbar button:hover .ql-fill,
 .ql-snow .ql-toolbar button:hover .ql-fill,
@@ -462,7 +475,7 @@
 .ql-snow .ql-toolbar .ql-picker-item:hover .ql-stroke.ql-fill,
 .ql-snow.ql-toolbar .ql-picker-item.ql-selected .ql-stroke.ql-fill,
 .ql-snow .ql-toolbar .ql-picker-item.ql-selected .ql-stroke.ql-fill {
-  fill: #1e61f0;
+  fill: #004AB3FF;
 }
 .ql-snow.ql-toolbar button:hover .ql-stroke,
 .ql-snow .ql-toolbar button:hover .ql-stroke,
@@ -492,7 +505,7 @@
 .ql-snow .ql-toolbar .ql-picker-item:hover .ql-stroke-miter,
 .ql-snow.ql-toolbar .ql-picker-item.ql-selected .ql-stroke-miter,
 .ql-snow .ql-toolbar .ql-picker-item.ql-selected .ql-stroke-miter {
-  stroke: #1e61f0;
+  stroke: #004AB3FF;
 }
 @media (pointer: coarse) {
   .ql-snow.ql-toolbar button:hover:not(.ql-active),
@@ -915,7 +928,7 @@
   content: 'Edit';
   padding-right: 8px;
   color: #ffffff;
-  background: #1e61f0;
+  background: #004AB3FF;
   padding-top: 4px;
   padding-bottom: 4px;
   padding-left: 8px;
@@ -926,7 +939,7 @@
   content: 'Remove';
   margin-left: 8px;
   color: #ffffff;
-  background: #1e61f0;
+  background: #004AB3FF;
   padding-top: 4px;
   padding-bottom: 4px;
   padding-left: 8px;
@@ -935,11 +948,11 @@
 }
 .ql-snow .ql-tooltip a {
   line-height: 26px;
-  color: #1e61f0;
+  color: #004AB3FF;
 }
 
 .ql-snow .ql-tooltip a:hover {
-  color: #1e61f0;
+  color: #004AB3FF;
 }
 .ql-snow .ql-tooltip.ql-editing a.ql-preview,
 .ql-snow .ql-tooltip.ql-editing a.ql-remove {
@@ -950,7 +963,7 @@
 }
 .ql-snow .ql-tooltip.ql-editing input[type='text']:hover,
 .ql-snow .ql-tooltip.ql-editing input[type='text']:focus {
-  border: 1px solid #1e61f0;
+  border: 1px solid #004AB3FF;
   outline: none;
 }
 .ql-snow .ql-tooltip.ql-editing a.ql-action {
@@ -963,7 +976,7 @@
   padding-right: 0px;
   margin: 0px;
   color: #ffffff;
-  background: #1e61f0;
+  background: #004AB3FF;
   padding-top: 4px;
   padding-bottom: 4px;
   padding-left: 8px;
@@ -991,6 +1004,9 @@
   margin: 8px 16px;
   border-radius: 6px;
   background: white;
+}
+.is_edit_post.editor-container {
+  margin: 6px;
 }
 .ql-toolbar.ql-snow {
   border-color: rgb(221, 227, 234);
@@ -1059,7 +1075,15 @@
 button.ql-emoji {
   vertical-align: bottom;
 }
-#tab-panel {
+#emoji-palette > #tab-panel {
   gap: 4px;
-  margin-top: 8px;
+  padding-top: 8px;
+}
+
+#emoji-palette {
+  z-index: 9999;
+}
+
+.ap {
+  text-indent: 0px;
 }

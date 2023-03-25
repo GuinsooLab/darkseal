@@ -1,5 +1,5 @@
 /*
- *  Copyright 2021 Collate
+ *  Copyright 2022 Collate.
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
@@ -18,11 +18,11 @@ import ReactFlow, {
   MarkerType,
   useEdgesState,
   useNodesState,
-} from 'react-flow-renderer';
+} from 'reactflow';
+import { getEntityName } from 'utils/EntityUtils';
 import { EntityLineageNodeType } from '../../enums/entity.enum';
 import { PipelineStatus, Task } from '../../generated/entity/data/pipeline';
-import { EntityReference } from '../../generated/type/entityReference';
-import { getEntityName, replaceSpaceWith_ } from '../../utils/CommonUtils';
+import { replaceSpaceWith_ } from '../../utils/CommonUtils';
 import { getLayoutedElements, onLoad } from '../../utils/EntityLineageUtils';
 import { getTaskExecStatus } from '../../utils/PipelineDetailsUtils';
 import TaskNode from './TaskNode';
@@ -76,7 +76,7 @@ const TasksDAGView = ({ tasks, selectedExec }: Props) => {
         id: replaceSpaceWith_(task.name),
         type: getNodeType(task),
         data: {
-          label: getEntityName(task as EntityReference),
+          label: getEntityName(task),
         },
         position: { x: 0, y: 0 },
         isConnectable: false,
@@ -123,7 +123,7 @@ const TasksDAGView = ({ tasks, selectedExec }: Props) => {
       zoomOnScroll={false}
       onEdgesChange={onEdgesChange}
       onInit={(reactFlowInstance) => {
-        onLoad(reactFlowInstance, nodesData.length, true);
+        onLoad(reactFlowInstance);
       }}
       onNodesChange={onNodesChange}
     />

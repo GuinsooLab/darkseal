@@ -1,5 +1,5 @@
 /*
- *  Copyright 2021 Collate
+ *  Copyright 2022 Collate.
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
@@ -35,7 +35,7 @@ const Tour = ({ steps }: { steps: TourSteps[] }) => {
           disableKeyboardNavigation
           showCloseButton
           showNumber
-          accentColor="#1e61f0"
+          accentColor="#004AB3FF"
           inViewThreshold={200}
           lastStepNextButton={
             <button
@@ -62,7 +62,7 @@ const Tour = ({ steps }: { steps: TourSteps[] }) => {
         />
       ) : null}
 
-      {showTourEndModal && <TourEndModal onSave={handleModalSubmit} />}
+      <TourEndModal visible={showTourEndModal} onSave={handleModalSubmit} />
     </div>
   );
 };

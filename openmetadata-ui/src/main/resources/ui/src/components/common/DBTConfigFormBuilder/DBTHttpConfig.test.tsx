@@ -1,5 +1,5 @@
 /*
- *  Copyright 2021 Collate
+ *  Copyright 2022 Collate.
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
@@ -19,16 +19,31 @@ const mockCancel = jest.fn();
 const mockSubmit = jest.fn();
 const mockCatalogChange = jest.fn();
 const mockManifestChange = jest.fn();
+const mockRunResultsHttpPathChange = jest.fn();
+const mockUpdateDescriptions = jest.fn();
+const mockUpdateDBTClassification = jest.fn();
+const mockHandleEnableDebugLogCheck = jest.fn();
+
+jest.mock('./DBTCommonFields.component', () =>
+  jest.fn().mockImplementation(() => <div>DBT Common Fields</div>)
+);
 
 const mockProps = {
   dbtCatalogHttpPath: '',
   dbtManifestHttpPath: '',
+  dbtRunResultsHttpPath: '',
+  dbtUpdateDescriptions: false,
   okText: 'Next',
   cancelText: 'Back',
   onCancel: mockCancel,
   onSubmit: mockSubmit,
   handleCatalogHttpPathChange: mockCatalogChange,
   handleManifestHttpPathChange: mockManifestChange,
+  handleRunResultsHttpPathChange: mockRunResultsHttpPathChange,
+  handleUpdateDescriptions: mockUpdateDescriptions,
+  handleUpdateDBTClassification: mockUpdateDBTClassification,
+  enableDebugLog: false,
+  handleEnableDebugLogCheck: mockHandleEnableDebugLogCheck,
 };
 
 describe('Test DBT Http Config Form', () => {
@@ -69,7 +84,7 @@ describe('Test DBT Http Config Form', () => {
       },
     });
 
-    expect(mockCatalogChange).toBeCalled();
+    expect(mockCatalogChange).toHaveBeenCalled();
   });
 
   it('manifest should change', async () => {
@@ -82,7 +97,7 @@ describe('Test DBT Http Config Form', () => {
       },
     });
 
-    expect(mockManifestChange).toBeCalled();
+    expect(mockManifestChange).toHaveBeenCalled();
   });
 
   it('should show errors on submit', async () => {
@@ -91,7 +106,7 @@ describe('Test DBT Http Config Form', () => {
 
     fireEvent.click(submitBtn);
 
-    expect(mockSubmit).not.toBeCalled();
+    expect(mockSubmit).not.toHaveBeenCalled();
   });
 
   it('should submit', async () => {
@@ -106,7 +121,7 @@ describe('Test DBT Http Config Form', () => {
 
     fireEvent.click(submitBtn);
 
-    expect(mockSubmit).toBeCalled();
+    expect(mockSubmit).toHaveBeenCalled();
   });
 
   it('should cancel', async () => {
@@ -115,6 +130,6 @@ describe('Test DBT Http Config Form', () => {
 
     fireEvent.click(backBtn);
 
-    expect(mockCancel).toBeCalled();
+    expect(mockCancel).toHaveBeenCalled();
   });
 });

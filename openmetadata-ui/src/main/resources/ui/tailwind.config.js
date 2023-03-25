@@ -1,5 +1,5 @@
 /*
- *  Copyright 2021 Collate
+ *  Copyright 2022 Collate.
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
@@ -104,6 +104,7 @@ module.exports = {
         'grey-muted-lite': textMutedLite,
         'grey-dark': textDark,
         'grey-backdrop': backdropBG,
+        'primary-lite': primaryBG,
         primary: primary,
         'primary-II': primaryII,
         'primary-hover': primaryHover,

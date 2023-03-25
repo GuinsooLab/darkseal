@@ -1,5 +1,5 @@
 /*
- *  Copyright 2021 Collate
+ *  Copyright 2022 Collate.
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
@@ -12,29 +12,31 @@
  */
 
 import { Viewer } from '@toast-ui/react-editor';
+import { Button } from 'antd';
 import classNames from 'classnames';
 import { uniqueId } from 'lodash';
 import React, { useEffect, useState } from 'react';
-import { BlurLayout } from './BlurLayout';
+import { useTranslation } from 'react-i18next';
+import { DESCRIPTION_MAX_PREVIEW_CHARACTERS } from '../../../constants/constants';
+import { getTrimmedContent } from '../../../utils/CommonUtils';
 import { PreviewerProp } from './RichTextEditor.interface';
 import './RichTextEditorPreviewer.less';
-
-export const MAX_LENGTH = 300;
 
 const RichTextEditorPreviewer = ({
   markdown = '',
   className = '',
-  blurClasses = 'see-more-blur',
-  maxHtClass = 'tw-h-24',
-  maxLen = MAX_LENGTH,
   enableSeeMoreVariant = true,
   textVariant = 'black',
+  maxLength = DESCRIPTION_MAX_PREVIEW_CHARACTERS,
 }: PreviewerProp) => {
+  const { t } = useTranslation();
   const [content, setContent] = useState<string>('');
-  const [displayMoreText, setDisplayMoreText] = useState<boolean>(false);
+  const [hideReadMoreText, setHideReadMoreText] = useState<boolean>(
+    markdown.length <= maxLength
+  );
 
   const displayMoreHandler = () => {
-    setDisplayMoreText((pre) => !pre);
+    setHideReadMoreText((pre) => !pre);
   };
 
   useEffect(() => {
@@ -43,30 +45,37 @@ const RichTextEditorPreviewer = ({
 
   return (
     <div
-      className={classNames(
-        'content-container tw-relative',
-        className,
-        enableSeeMoreVariant && markdown.length > maxLen && !displayMoreText
-          ? `${maxHtClass} tw-overflow-hidden`
-          : null,
-        {
-          'tw-mb-5': displayMoreText,
-        }
-      )}
+      className={classNames('rich-text-editor-container', className)}
       data-testid="viewer-container">
       <div
         className={classNames('markdown-parser', textVariant)}
         data-testid="markdown-parser">
-        <Viewer extendedAutolinks initialValue={content} key={uniqueId()} />
+        <Viewer
+          extendedAutolinks
+          initialValue={
+            hideReadMoreText
+              ? content
+              : `${getTrimmedContent(content, maxLength)}...`
+          }
+          key={uniqueId()}
+          linkAttributes={{ target: '_blank' }}
+        />
       </div>
-
-      <BlurLayout
-        blurClasses={blurClasses}
-        displayMoreHandler={displayMoreHandler}
-        displayMoreText={displayMoreText}
-        enableSeeMoreVariant={enableSeeMoreVariant}
-        markdown={content}
-      />
+      {enableSeeMoreVariant && markdown.length > maxLength && (
+        <Button
+          className="leading-0"
+          data-testid="read-more-button"
+          type="link"
+          onClick={displayMoreHandler}>
+          {hideReadMoreText
+            ? t('label.read-type-lowercase', {
+                type: t('label.less-lowercase'),
+              })
+            : t('label.read-type-lowercase', {
+                type: t('label.more-lowercase'),
+              })}
+        </Button>
+      )}
     </div>
   );
 };

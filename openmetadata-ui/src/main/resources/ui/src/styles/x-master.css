@@ -1,5 +1,5 @@
 /*
- *  Copyright 2021 Collate
+ *  Copyright 2022 Collate.
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
@@ -16,6 +16,7 @@
 body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  background: #f8f9fa;
 }
 a {
   color: #2eaadc;
@@ -52,9 +53,6 @@ pre {
 .table th {
   padding: 0.75em;
 }
-.text-primary {
-  color: #2eaadc !important;
-}
 .text-success {
   color: #28a745 !important;
 }
@@ -71,10 +69,6 @@ pre {
   color: #c45296 !important;
 }
 
-.bg-primary {
-  color: #ffffff;
-  background-color: #2eaadc !important;
-}
 .bg-success {
   color: #ffffff;
   background-color: #28a745 !important;
@@ -177,33 +171,11 @@ pre {
   box-shadow: none;
 }
 .search-grey {
-  width: 600px;
+  width: calc(100vw - 800px);
   background: #f8f9fa;
 }
 .search-grey::placeholder {
   color: #6b7280;
-}
-
-.search-grey.has-search {
-  padding: 18px 20px;
-  padding-left: 12px;
-}
-.search-grey.has-search .form-control.search {
-  padding-left: 2.375rem;
-  background: #f3f3f3;
-  border-radius: 20px;
-  border: none;
-}
-.search-grey.has-search .search-icon {
-  position: absolute;
-  z-index: 2;
-  display: block;
-  width: 2.375rem;
-  height: 1.95rem;
-  line-height: 1.95rem;
-  text-align: center;
-  pointer-events: none;
-  color: #aaa;
 }
 
 /* Breadcrumb */
@@ -288,7 +260,7 @@ pre {
   background: #f5f8fa;
 }
 .content-wrapper {
-  position: relative;
+  /*position: relative;*/
   flex-shrink: 1;
   width: 100%;
 }
@@ -758,12 +730,6 @@ body .profiler-graph .recharts-active-dot circle {
   pointer-events: all;
   cursor: pointer;
 }
-.react-flow__node-default .react-flow__handle,
-.react-flow__node-group .react-flow__handle,
-.react-flow__node-input .react-flow__handle,
-.react-flow__node-output .react-flow__handle {
-  background-color: #1e61f0 !important;
-}
 
 .react-flow__edge.selected .react-flow__edge-path {
   stroke: #1e61f0;
@@ -804,11 +770,12 @@ body .profiler-graph .recharts-active-dot circle {
   height: calc(100vh - 110px);
 }
 
+/* 64 header + ( 16 + 16 )spacing Y = 96*/
 #left-panel {
   position: fixed;
   overflow-y: scroll;
   width: 304px;
-  height: calc(100vh - 90px);
+  height: calc(100vh - 96px);
 }
 
 #right-panel {
@@ -1083,21 +1050,13 @@ code {
   background-color: #dbd1f9;
 }
 
-.ant-select-single:not(.ant-select-customize-input) .ant-select-selector {
-  padding: 0px 4px;
-}
-
-.ant-select-single .ant-select-selector .ant-select-selection-search {
-  left: 4px;
-}
-
 @media only screen and (max-width: 1440px) {
   #left-panel {
-    width: 256px;
+    width: 284px;
   }
 
   .page-layout-container.l3-col {
-    grid-template-columns: 256px auto 256px;
+    grid-template-columns: 284px auto 284px;
   }
 }
 
@@ -1182,7 +1141,7 @@ code {
 }
 /* Antd custom button CSS */
 
-.ant-select-assignee {
+.ant-select-custom {
   width: 100%;
   margin: 8px 0px;
   outline: none;
@@ -1351,7 +1310,38 @@ div.ant-typography-ellipsis-custom {
 }
 
 /* Feed text pre tag CSS */
+.activity-feed-card-text {
+  padding-top: 6px;
+}
+
 .activity-feed-card-text pre {
   white-space: pre-wrap; /* Since CSS 2.1 */
 }
 /* Feed text pre tag CSS */
+
+.ant-switch-checked {
+  background: rgb(244, 240, 253);
+}
+
+/* 64 header + ( 16 + 16 )spacing Y = 96*/
+.left-panel-container {
+  height: calc(100vh - 96px);
+  border: 1px solid rgb(229, 231, 235);
+  border-radius: 4px;
+  box-shadow: 1px 1px 8px rgba(0, 0, 0, 0.06);
+  overflow-y: scroll;
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.left-panel-container::-webkit-scrollbar {
+  display: none;
+}
+
+/**
+* This is to override tailwind default behavior for svg alignment
+* It was causing issue to antD styling hence resetting it to default
+*/
+svg {
+  vertical-align: baseline;
+}

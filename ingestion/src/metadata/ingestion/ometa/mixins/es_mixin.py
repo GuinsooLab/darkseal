@@ -13,13 +13,15 @@ Mixin class containing Lineage specific methods
 
 To be used by OpenMetadata class
 """
+import functools
+import traceback
 from typing import Generic, List, Optional, Type, TypeVar
 
 from pydantic import BaseModel
 
 from metadata.ingestion.ometa.client import REST
-from metadata.ingestion.ometa.utils import ometa_logger
 from metadata.utils.elasticsearch import ES_INDEX_MAP
+from metadata.utils.logger import ometa_logger
 
 logger = ometa_logger()
 
@@ -37,8 +39,12 @@ class ESMixin(Generic[T]):
 
     fqdn_search = "/search/query?q=fullyQualifiedName:{fqn}&from={from_}&size={size}&index={index}"
 
+    @functools.lru_cache(maxsize=512)
     def _search_es_entity(
-        self, entity_type: Type[T], query_string: str
+        self,
+        entity_type: Type[T],
+        query_string: str,
+        fields: Optional[List[str]] = None,
     ) -> Optional[List[T]]:
         """
         Run the ES query and return a list of entities that match
@@ -46,13 +52,14 @@ class ESMixin(Generic[T]):
         :param query_string: Query to run
         :return: List of Entities or None
         """
-
         response = self.client.get(query_string)
 
         if response:
             return [
                 self.get_by_name(
-                    entity=entity_type, fqn=hit["_source"]["fullyQualifiedName"]
+                    entity=entity_type,
+                    fqn=hit["_source"]["fullyQualifiedName"],
+                    fields=fields,
                 )
                 for hit in response["hits"]["hits"]
             ] or None
@@ -65,6 +72,7 @@ class ESMixin(Generic[T]):
         fqn_search_string: str,
         from_count: int = 0,
         size: int = 10,
+        fields: Optional[List[str]] = None,
     ) -> Optional[List[T]]:
         """
         Given a service_name and some filters, search for entities using ES
@@ -83,18 +91,18 @@ class ESMixin(Generic[T]):
         )
 
         try:
-            entity_list = self._search_es_entity(
-                entity_type=entity_type, query_string=query_string
+            response = self._search_es_entity(
+                entity_type=entity_type, query_string=query_string, fields=fields
             )
-            if entity_list:
-                return entity_list
-
-        except KeyError:
+            return response
+        except KeyError as err:
+            logger.debug(traceback.format_exc())
             logger.warning(
-                f"Cannot find the index in ES_INDEX_MAP for {entity_type.__name__}"
+                f"Cannot find the index in ES_INDEX_MAP for {entity_type.__name__}: {err}"
             )
-        except Exception as err:
+        except Exception as exc:
+            logger.debug(traceback.format_exc())
             logger.warning(
-                f"Elasticsearch search failed for query: {query_string} - {err}"
+                f"Elasticsearch search failed for query [{query_string}]: {exc}"
             )
         return None

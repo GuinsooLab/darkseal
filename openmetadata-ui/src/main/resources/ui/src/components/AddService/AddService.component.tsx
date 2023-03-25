@@ -1,5 +1,5 @@
 /*
- *  Copyright 2021 Collate
+ *  Copyright 2022 Collate.
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
@@ -11,23 +11,26 @@
  *  limitations under the License.
  */
 
+import { t } from 'i18next';
 import { capitalize, isUndefined } from 'lodash';
 import { LoadingState } from 'Models';
 import React, { useState } from 'react';
 import { useHistory } from 'react-router-dom';
-import { getServiceDetailsPath, ROUTES } from '../../constants/constants';
+import { getServiceDetailsPath } from '../../constants/constants';
+import { GlobalSettingsMenuCategory } from '../../constants/GlobalSettings.constants';
+import { STEPS_FOR_ADD_SERVICE } from '../../constants/Ingestions.constant';
 import { delimiterRegex, nameWithSpace } from '../../constants/regex.constants';
-import { STEPS_FOR_ADD_SERVICE } from '../../constants/services.const';
 import { FormSubmitType } from '../../enums/form.enum';
 import { PageLayoutType } from '../../enums/layout.enum';
 import { ServiceCategory } from '../../enums/service.enum';
 import { PipelineType } from '../../generated/entity/services/ingestionPipelines/ingestionPipeline';
 import { ConfigData, DataObj } from '../../interface/service.interface';
 import { getCurrentUserId, isUrlFriendlyName } from '../../utils/CommonUtils';
-import { getAddServicePath } from '../../utils/RouterUtils';
+import { getAddServicePath, getSettingPath } from '../../utils/RouterUtils';
 import {
   getServiceCreatedLabel,
   getServiceIngestionStepGuide,
+  getServiceRouteFromServiceType,
 } from '../../utils/ServiceUtils';
 import AddIngestion from '../AddIngestion/AddIngestion.component';
 import SuccessScreen from '../common/success-screen/SuccessScreen';
@@ -94,7 +97,12 @@ const AddService = ({
   };
 
   const handleSelectServiceCancel = () => {
-    history.push(ROUTES.SERVICES);
+    history.push(
+      getSettingPath(
+        GlobalSettingsMenuCategory.SERVICES,
+        getServiceRouteFromServiceType(serviceCategory)
+      )
+    );
   };
 
   const handleSelectServiceNextClick = () => {
@@ -124,12 +132,6 @@ const AddService = ({
       setShowErrorMessage({
         ...showErrorMessage,
         delimit: true,
-        isError: true,
-      });
-    } else if (nameWithSpace.test(serviceName)) {
-      setShowErrorMessage({
-        ...showErrorMessage,
-        nameWithSpace: true,
         isError: true,
       });
     } else if (!isUrlFriendlyName(serviceName.trim())) {
@@ -208,7 +210,7 @@ const AddService = ({
   const handleValidation = (
     event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
   ) => {
-    const value = event.target.value.trim();
+    const value = event.target.value;
     setServiceName(value);
     if (value) {
       setShowErrorMessage({
@@ -226,11 +228,10 @@ const AddService = ({
     return (
       <div data-testid="add-new-service-container">
         <h6 className="tw-heading tw-text-base" data-testid="header">
-          Add New Service
+          {t('label.add-new-entity', { entity: t('label.service') })}
         </h6>
         <IngestionStepper
           activeStep={activeServiceStep}
-          stepperLineClassName="add-service-line"
           steps={STEPS_FOR_ADD_SERVICE}
         />
         <div className="tw-pt-5">
@@ -267,7 +268,7 @@ const AddService = ({
 
           {activeServiceStep === 3 && (
             <ConnectionConfigForm
-              cancelText="Back"
+              cancelText={t('label.back')}
               serviceCategory={serviceCategory}
               serviceType={selectServiceType}
               status={saveServiceState}
@@ -283,11 +284,9 @@ const AddService = ({
               showIngestionButton
               handleIngestionClick={() => handleAddIngestion(true)}
               handleViewServiceClick={handleViewServiceClick}
-              isAirflowSetup={isAirflowRunning}
               name={serviceName}
               state={FormSubmitType.ADD}
               suffix={getServiceCreatedLabel(serviceCategory)}
-              onCheckAirflowStatus={onAirflowStatusCheck}
             />
           )}
         </div>
@@ -321,15 +320,17 @@ const AddService = ({
         classes="tw-max-w-full-hd tw-h-full tw-pt-4"
         header={<TitleBreadcrumb titleLinks={slashedBreadcrumb} />}
         layout={PageLayoutType['2ColRTL']}
+        pageTitle={t('label.add-entity', { entity: t('label.service') })}
         rightPanel={fetchRightPanel()}>
         <div className="tw-form-container">
           {addIngestion ? (
             <AddIngestion
-              isAirflowSetup
               activeIngestionStep={activeIngestionStep}
               handleCancelClick={() => handleAddIngestion(false)}
               handleViewServiceClick={handleViewServiceClick}
-              heading={`Add ${capitalize(PipelineType.Metadata)} Ingestion`}
+              heading={`${t('label.add-workflow-ingestion', {
+                workflow: capitalize(PipelineType.Metadata),
+              })}`}
               ingestionAction={ingestionAction}
               ingestionProgress={ingestionProgress}
               isIngestionCreated={isIngestionCreated}
@@ -341,7 +342,6 @@ const AddService = ({
               showDeployButton={showDeployButton}
               status={FormSubmitType.ADD}
               onAddIngestionSave={onAddIngestionSave}
-              onAirflowStatusCheck={onAirflowStatusCheck}
               onIngestionDeploy={onIngestionDeploy}
             />
           ) : (

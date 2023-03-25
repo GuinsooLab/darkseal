@@ -1,5 +1,5 @@
 /*
- *  Copyright 2021 Collate
+ *  Copyright 2022 Collate.
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
@@ -105,7 +105,7 @@ jest.mock('../../utils/TableUtils', () => ({
   getConstraintIcon: jest.fn(),
 }));
 
-jest.mock('react-flow-renderer', () => ({
+jest.mock('reactflow', () => ({
   Handle: jest.fn().mockReturnValue(<span>Handle</span>),
   Position: {
     Left: 'left',

@@ -1,5 +1,5 @@
 /*
- *  Copyright 2021 Collate
+ *  Copyright 2022 Collate.
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
@@ -12,17 +12,17 @@
  */
 
 import classNames from 'classnames';
-import { isUndefined } from 'lodash';
+import { Query } from 'generated/entity/data/query';
+// import { isUndefined } from 'lodash';
 import React, { FC, HTMLAttributes, useState } from 'react';
-import { Link } from 'react-router-dom';
-import { getUserPath } from '../../constants/constants';
+// import { Link } from 'react-router-dom';
+// import { getUserPath } from '../../constants/constants';
 import { CSMode } from '../../enums/codemirror.enum';
-import { SQLQuery } from '../../generated/entity/data/table';
 import SVGIcons, { Icons } from '../../utils/SvgUtils';
 import CopyToClipboardButton from '../buttons/CopyToClipboardButton/CopyToClipboardButton';
 import SchemaEditor from '../schema-editor/SchemaEditor';
 interface QueryCardProp extends HTMLAttributes<HTMLDivElement> {
-  query: SQLQuery;
+  query: Query;
 }
 const QueryCard: FC<QueryCardProp> = ({ className, query }) => {
   const [expanded, setExpanded] = useState<boolean>(false);
@@ -34,7 +34,7 @@ const QueryCard: FC<QueryCardProp> = ({ className, query }) => {
         className
       )}
       onClick={() => setExpanded((pre) => !pre)}>
-      {!isUndefined(query.user) && !isUndefined(query.duration) ? (
+      {/* {!isUndefined(query.user) && !isUndefined(query.duration) ? (
         <div data-testid="query-header">
           <p>
             Last run by{' '}
@@ -49,7 +49,7 @@ const QueryCard: FC<QueryCardProp> = ({ className, query }) => {
             <span className="tw-font-medium">{query.duration} seconds</span>
           </p>
         </div>
-      ) : null}
+      ) : null} */}
       <div className="tw-border tw-border-main tw-rounded-md tw-p-px">
         <div
           className={classNames('tw-overflow-hidden tw-relative', {

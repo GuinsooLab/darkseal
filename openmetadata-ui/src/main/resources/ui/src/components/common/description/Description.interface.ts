@@ -1,5 +1,5 @@
 /*
- *  Copyright 2021 Collate
+ *  Copyright 2022 Collate.
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
@@ -11,15 +11,15 @@
  *  limitations under the License.
  */
 
-import { EntityFieldThreads } from 'Models';
 import { Table } from '../../../generated/entity/data/table';
 import { ThreadType } from '../../../generated/entity/feed/thread';
+import { EntityFieldThreads } from '../../../interface/feed.interface';
 
 export interface DescriptionProps {
+  className?: string;
   entityName?: string;
   owner?: Table['owner'];
   hasEditAccess?: boolean;
-  blurWithBodyBG?: boolean;
   removeBlur?: boolean;
   description?: string;
   isEdit?: boolean;
@@ -31,7 +31,6 @@ export interface DescriptionProps {
   onThreadLinkSelect?: (value: string, threadType?: ThreadType) => void;
   onDescriptionEdit?: () => void;
   onCancel?: () => void;
-  onDescriptionUpdate?: (value: string) => void;
+  onDescriptionUpdate?: (value: string) => Promise<void>;
   onSuggest?: (value: string) => void;
-  onEntityFieldSelect?: (value: string) => void;
 }

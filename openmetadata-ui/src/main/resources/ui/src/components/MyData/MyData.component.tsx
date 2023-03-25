@@ -1,5 +1,5 @@
 /*
- *  Copyright 2021 Collate
+ *  Copyright 2022 Collate.
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
@@ -12,15 +12,17 @@
  */
 
 import { Card } from 'antd';
+import { ELASTICSEARCH_ERROR_PLACEHOLDER_TYPE } from 'enums/common.enum';
 import { observer } from 'mobx-react';
 import React, {
-  Fragment,
   RefObject,
   useCallback,
   useEffect,
+  useMemo,
   useRef,
   useState,
 } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 import AppState from '../../AppState';
 import { getUserPath } from '../../constants/constants';
@@ -32,7 +34,7 @@ import { useInfiniteScroll } from '../../hooks/useInfiniteScroll';
 import SVGIcons, { Icons } from '../../utils/SvgUtils';
 import ActivityFeedList from '../ActivityFeed/ActivityFeedList/ActivityFeedList';
 import ErrorPlaceHolderES from '../common/error-with-placeholder/ErrorPlaceHolderES';
-import PageLayout, { leftPanelAntCardStyle } from '../containers/PageLayout';
+import PageLayoutV1 from '../containers/PageLayoutV1';
 import { EntityListWithAntd } from '../EntityList/EntityList';
 import Loader from '../Loader/Loader';
 import MyAssetStats from '../MyAssetStats/MyAssetStats.component';
@@ -45,16 +47,9 @@ const MyData: React.FC<MyDataProps> = ({
   activityFeeds,
   onRefreshFeeds,
   error,
-  countDashboards,
-  countPipelines,
-  countServices,
-  countTables,
-  countTopics,
-  countTeams,
-  countUsers,
+  data,
   ownedData,
   pendingTaskCount,
-  countMlModal,
   followedData,
   feedData,
   ownedDataCount,
@@ -65,30 +60,23 @@ const MyData: React.FC<MyDataProps> = ({
   fetchFeedHandler,
   paging,
   updateThreadHandler,
+  isLoadingOwnedData,
 }: MyDataProps): React.ReactElement => {
+  const { t } = useTranslation();
   const isMounted = useRef(false);
   const [elementRef, isInView] = useInfiniteScroll(observerOptions);
-  const [feedFilter, setFeedFilter] = useState(FeedFilter.ALL);
+  const [feedFilter, setFeedFilter] = useState(FeedFilter.OWNER);
   const [threadType, setThreadType] = useState<ThreadType>();
 
   const getLeftPanel = () => {
     return (
-      <div className="tw-mt-4">
-        <MyAssetStats
-          countDashboards={countDashboards}
-          countMlModal={countMlModal}
-          countPipelines={countPipelines}
-          countServices={countServices}
-          countTables={countTables}
-          countTeams={countTeams}
-          countTopics={countTopics}
-          countUsers={countUsers}
-        />
+      <>
+        <MyAssetStats entityState={data} />
         <div className="tw-mb-5" />
         <RecentlyViewed />
         <div className="tw-mb-5" />
         <RecentSearchedTermsAntd />
-      </div>
+      </>
     );
   };
 
@@ -96,12 +84,13 @@ const MyData: React.FC<MyDataProps> = ({
     const currentUserDetails = AppState.getCurrentUserDetails();
 
     return (
-      <div className="tw-mt-4">
+      <>
         {/* Pending task count card */}
         {pendingTaskCount ? (
           <div className="tw-mb-5" data-testid="my-tasks-container ">
             <Card
               bodyStyle={{ padding: 0 }}
+              className="panel-shadow-color"
               extra={
                 <>
                   <Link
@@ -111,22 +100,24 @@ const MyData: React.FC<MyDataProps> = ({
                       'tasks?feedFilter=ASSIGNED_TO'
                     )}>
                     <span className="tw-text-info tw-font-normal tw-text-xs">
-                      View All
+                      {t('label.view-all')}
                     </span>
                   </Link>
                 </>
               }
-              style={leftPanelAntCardStyle}
               title={
                 <div className="tw-flex tw-item-center ">
                   <SVGIcons
                     alt="Pending tasks"
                     className="tw-mr-2.5"
                     icon={Icons.TASK}
-                    title="Tasks"
+                    title={t('label.task-plural')}
                     width="16px"
                   />
-                  {pendingTaskCount} Pending tasks
+                  {pendingTaskCount}{' '}
+                  {pendingTaskCount > 1
+                    ? t('label.pending-task-plural')
+                    : t('label.pending-task')}
                 </div>
               }
             />
@@ -142,17 +133,18 @@ const MyData: React.FC<MyDataProps> = ({
                     data-testid="my-data"
                     to={getUserPath(currentUserDetails?.name || '', 'mydata')}>
                     <span className="tw-text-info tw-font-normal tw-text-xs">
-                      View All{' '}
+                      {t('label.view-all')}{' '}
                       <span data-testid="my-data-total-count">
-                        ({ownedDataCount})
+                        {`(${ownedDataCount})`}
                       </span>
                     </span>
                   </Link>
                 ) : null}
               </>
             }
-            headerTextLabel="My Data"
-            noDataPlaceholder={<>You have not owned anything yet.</>}
+            headerTextLabel={t('label.my-data')}
+            loading={isLoadingOwnedData}
+            noDataPlaceholder={t('server.no-owned-entities')}
             testIDText="My data"
           />
         </div>
@@ -170,47 +162,43 @@ const MyData: React.FC<MyDataProps> = ({
                       'following'
                     )}>
                     <span className="tw-text-info tw-font-normal tw-text-xs">
-                      View All{' '}
+                      {t('label.view-all')}{' '}
                       <span data-testid="following-data-total-count">
-                        ({followedDataCount})
+                        {`(${followedDataCount})`}
                       </span>
                     </span>
                   </Link>
                 ) : null}
               </>
             }
-            headerTextLabel="Following"
-            noDataPlaceholder={<>You have not followed anything yet.</>}
+            headerTextLabel={t('label.following')}
+            loading={isLoadingOwnedData}
+            noDataPlaceholder={t('message.not-followed-anything')}
             testIDText="Following data"
           />
         </div>
         <div className="tw-mt-5" />
-      </div>
+      </>
     );
-  }, [ownedData, followedData, pendingTaskCount]);
+  }, [ownedData, followedData, pendingTaskCount, isLoadingOwnedData]);
 
-  const getLoader = () => {
-    return isFeedLoading ? <Loader /> : null;
-  };
-
-  const fetchMoreFeed = (
-    isElementInView: boolean,
-    pagingObj: Paging,
-    isLoading: boolean
-  ) => {
-    if (
-      isElementInView &&
-      pagingObj?.after &&
-      !isLoading &&
-      isMounted.current
-    ) {
-      fetchFeedHandler(feedFilter, pagingObj.after, threadType);
-    }
-  };
+  const fetchMoreFeed = useCallback(
+    (isElementInView: boolean, pagingObj: Paging) => {
+      if (
+        isElementInView &&
+        pagingObj?.after &&
+        !isFeedLoading &&
+        isMounted.current
+      ) {
+        fetchFeedHandler(feedFilter, pagingObj.after, threadType);
+      }
+    },
+    [isFeedLoading, threadType, fetchFeedHandler, isMounted.current]
+  );
 
   useEffect(() => {
-    fetchMoreFeed(isInView as boolean, paging, isFeedLoading);
-  }, [isInView, paging, isFeedLoading]);
+    fetchMoreFeed(Boolean(isInView), paging);
+  }, [isInView, paging]);
 
   useEffect(() => {
     isMounted.current = true;
@@ -227,40 +215,66 @@ const MyData: React.FC<MyDataProps> = ({
 
   const newFeedsLength = activityFeeds && activityFeeds.length;
 
+  // Check if feedFilter or ThreadType filter is applied or not
+  const filtersApplied = useMemo(
+    () => feedFilter === FeedFilter.ALL && !threadType,
+    [feedFilter, threadType]
+  );
+
+  const showActivityFeedList = useMemo(
+    () =>
+      feedData?.length > 0 ||
+      !filtersApplied ||
+      newFeedsLength ||
+      isFeedLoading,
+    [feedData, filtersApplied, newFeedsLength, isFeedLoading]
+  );
+
   return (
-    <PageLayout leftPanel={getLeftPanel()} rightPanel={getRightPanel()}>
+    <PageLayoutV1
+      leftPanel={getLeftPanel()}
+      pageTitle={t('label.my-data')}
+      rightPanel={getRightPanel()}>
       {error ? (
-        <ErrorPlaceHolderES errorMessage={error} type="error" />
+        <ErrorPlaceHolderES
+          errorMessage={error}
+          type={ELASTICSEARCH_ERROR_PLACEHOLDER_TYPE.ERROR}
+        />
       ) : (
-        <Fragment>
-          {feedData?.length > 0 ||
-          feedFilter !== FeedFilter.ALL ||
-          threadType ? (
-            <ActivityFeedList
-              withSidePanel
-              className=""
-              deletePostHandler={deletePostHandler}
-              feedList={feedData}
-              postFeedHandler={postFeedHandler}
-              refreshFeedCount={newFeedsLength}
-              updateThreadHandler={updateThreadHandler}
-              onFeedFiltersUpdate={handleFeedFilterChange}
-              onRefreshFeeds={onRefreshFeeds}
-            />
+        <>
+          {showActivityFeedList ? (
+            <>
+              <ActivityFeedList
+                stickyFilter
+                withSidePanel
+                appliedFeedFilter={feedFilter}
+                deletePostHandler={deletePostHandler}
+                feedList={feedData}
+                isFeedLoading={isFeedLoading}
+                postFeedHandler={postFeedHandler}
+                refreshFeedCount={newFeedsLength}
+                updateThreadHandler={updateThreadHandler}
+                onFeedFiltersUpdate={handleFeedFilterChange}
+                onRefreshFeeds={onRefreshFeeds}
+              />
+              {filtersApplied && feedData?.length <= 0 && !isFeedLoading ? (
+                <Onboarding />
+              ) : null}
+            </>
           ) : (
             !isFeedLoading && <Onboarding />
           )}
+          {isFeedLoading ? <Loader /> : null}
           <div
             data-testid="observer-element"
             id="observer-element"
-            ref={elementRef as RefObject<HTMLDivElement>}>
-            {getLoader()}
-          </div>
+            ref={elementRef as RefObject<HTMLDivElement>}
+          />
           {/* Add spacer to work infinite scroll smoothly */}
           <div className="tw-p-4" />
-        </Fragment>
+        </>
       )}
-    </PageLayout>
+    </PageLayoutV1>
   );
 };
 

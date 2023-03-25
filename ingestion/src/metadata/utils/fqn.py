@@ -14,6 +14,7 @@ Filter information has been taken from the
 ES indexes definitions
 """
 import re
+from collections import namedtuple
 from typing import Dict, List, Optional, Type, TypeVar, Union
 
 from antlr4.CommonTokenStream import CommonTokenStream
@@ -22,16 +23,22 @@ from antlr4.InputStream import InputStream
 from antlr4.tree.Tree import ParseTreeWalker
 from pydantic import BaseModel
 
-from metadata.antlr.split_listener import SplitListener
+from metadata.antlr.split_listener import FqnSplitListener
 from metadata.generated.antlr.FqnLexer import FqnLexer
 from metadata.generated.antlr.FqnParser import FqnParser
+from metadata.generated.schema.entity.classification.tag import Tag
 from metadata.generated.schema.entity.data.chart import Chart
 from metadata.generated.schema.entity.data.dashboard import Dashboard
 from metadata.generated.schema.entity.data.database import Database
 from metadata.generated.schema.entity.data.databaseSchema import DatabaseSchema
+from metadata.generated.schema.entity.data.location import Location
+from metadata.generated.schema.entity.data.mlmodel import MlModel
 from metadata.generated.schema.entity.data.pipeline import Pipeline
 from metadata.generated.schema.entity.data.table import Column, DataModel, Table
-from metadata.generated.schema.entity.tags.tagCategory import Tag
+from metadata.generated.schema.entity.data.topic import Topic
+from metadata.generated.schema.entity.teams.team import Team
+from metadata.generated.schema.entity.teams.user import User
+from metadata.generated.schema.tests.testCase import TestCase
 from metadata.ingestion.ometa.ometa_api import OpenMetadata
 from metadata.utils.dispatch import class_register
 from metadata.utils.elasticsearch import get_entity_from_es_result
@@ -48,17 +55,17 @@ class FQNBuildingException(Exception):
     """
 
 
-def split(s: str) -> List[str]:
+def split(s: str) -> List[str]:  # pylint: disable=invalid-name
     """
     Equivalent of Java's FullyQualifiedName#split
     """
     lexer = FqnLexer(InputStream(s))
     stream = CommonTokenStream(lexer)
     parser = FqnParser(stream)
-    parser._errHandler = BailErrorStrategy()
+    parser._errHandler = BailErrorStrategy()  # pylint: disable=protected-access
     tree = parser.fqn()
     walker = ParseTreeWalker()
-    splitter = SplitListener()
+    splitter = FqnSplitListener()
     walker.walk(splitter, tree)
     return splitter.split()
 
@@ -108,12 +115,12 @@ def build(metadata: OpenMetadata, entity_type: Type[T], **kwargs) -> Optional[st
     :param kwargs: required to build the FQN
     :return: FQN as a string
     """
-    fn = fqn_build_registry.registry.get(entity_type.__name__)
-    if not fn:
+    func = fqn_build_registry.registry.get(entity_type.__name__)
+    if not func:
         raise FQNBuildingException(
             f"Invalid Entity Type {entity_type.__name__}. FQN builder not implemented."
         )
-    return fn(metadata, **kwargs)
+    return func(metadata, **kwargs)
 
 
 @fqn_build_registry.add(Table)
@@ -125,6 +132,7 @@ def _(
     schema_name: Optional[str],
     table_name: str,
     fetch_multiple_entities: bool = False,
+    skip_es_search: bool = False,
 ) -> Union[Optional[str], Optional[List[str]]]:
     """
     Building logic for tables
@@ -135,31 +143,28 @@ def _(
     :param table_name: Table name
     :return:
     """
-    if not service_name or not table_name:
-        raise FQNBuildingException(
-            f"Service Name and Table Name should be informed, but got service=`{service_name}`, table=`{table_name}`"
+
+    entity: Optional[Union[Table, List[Table]]] = None
+
+    if not skip_es_search:
+        entity = search_table_from_es(
+            metadata=metadata,
+            database_name=database_name,
+            schema_name=schema_name,
+            table_name=table_name,
+            fetch_multiple_entities=fetch_multiple_entities,
+            service_name=service_name,
         )
 
-    if not database_name or not schema_name:
-
-        fqn_search_string = _build(
-            service_name, database_name or "*", schema_name or "*", table_name
-        )
-
-        es_result = metadata.es_search_from_fqn(
-            entity_type=Table,
-            fqn_search_string=fqn_search_string,
-        )
-        entity: Optional[Union[Table, List[Table]]] = get_entity_from_es_result(
-            entity_list=es_result, fetch_multiple_entities=fetch_multiple_entities
-        )
-        if not entity:
-            return None
-        if fetch_multiple_entities:
-            return [str(table.fullyQualifiedName.__root__) for table in entity]
+    # if entity not found in ES proceed to build FQN with database_name and schema_name
+    if not entity and database_name and schema_name:
+        fqn = _build(service_name, database_name, schema_name, table_name)
+        return [fqn] if fetch_multiple_entities else fqn
+    if entity and fetch_multiple_entities:
+        return [str(table.fullyQualifiedName.__root__) for table in entity]
+    if entity:
         return str(entity.fullyQualifiedName.__root__)
-    fqn = _build(service_name, database_name, schema_name, table_name)
-    return [fqn] if fetch_multiple_entities else fqn
+    return None
 
 
 @fqn_build_registry.add(DatabaseSchema)
@@ -219,18 +224,46 @@ def _(
     return _build(service_name, chart_name)
 
 
+@fqn_build_registry.add(MlModel)
+def _(
+    _: OpenMetadata,  # ES Index not necessary for MlModel FQN building
+    *,
+    service_name: str,
+    mlmodel_name: str,
+) -> str:
+    if not service_name or not mlmodel_name:
+        raise FQNBuildingException(
+            f"Args should be informed, but got service=`{service_name}`, mlmodel=`{mlmodel_name}``"
+        )
+    return _build(service_name, mlmodel_name)
+
+
+@fqn_build_registry.add(Topic)
+def _(
+    _: OpenMetadata,  # ES Index not necessary for Topic FQN building
+    *,
+    service_name: str,
+    topic_name: str,
+) -> str:
+    if not service_name or not topic_name:
+        raise FQNBuildingException(
+            f"Args should be informed, but got service=`{service_name}`, topic=`{topic_name}``"
+        )
+    return _build(service_name, topic_name)
+
+
 @fqn_build_registry.add(Tag)
 def _(
     _: OpenMetadata,  # ES Index not necessary for Tag FQN building
     *,
-    tag_category_name: str,
+    classification_name: str,
     tag_name: str,
 ) -> str:
-    if not tag_category_name or not tag_name:
+    if not classification_name or not tag_name:
         raise FQNBuildingException(
-            f"Args should be informed, but got category=`{tag_category_name}`, tag=`{tag_name}``"
+            f"Args should be informed, but got category=`{classification_name}`, tag=`{tag_name}``"
         )
-    return _build(tag_category_name, tag_name)
+    return _build(classification_name, tag_name)
 
 
 @fqn_build_registry.add(DataModel)
@@ -256,6 +289,16 @@ def _(
     return _build(service_name, pipeline_name)
 
 
+@fqn_build_registry.add(Location)
+def _(
+    _: OpenMetadata,
+    *,
+    service_name: str,
+    location_name: str,
+) -> str:
+    return _build(service_name, location_name)
+
+
 @fqn_build_registry.add(Column)
 def _(
     _: OpenMetadata,  # ES Search not enabled for Columns
@@ -269,6 +312,95 @@ def _(
     return _build(service_name, database_name, schema_name, table_name, column_name)
 
 
+@fqn_build_registry.add(User)
+def _(
+    metadata: OpenMetadata,
+    *,
+    user_name: str,
+    fetch_multiple_entities: bool = False,
+) -> Union[Optional[str], Optional[List[str]]]:
+    """
+    Building logic for User
+    :param metadata: OMeta client
+    :param user_name: User name
+    :return:
+    """
+
+    fqn_search_string = _build(user_name)
+
+    es_result = metadata.es_search_from_fqn(
+        entity_type=User,
+        fqn_search_string=fqn_search_string,
+    )
+    entity: Optional[Union[User, List[User]]] = get_entity_from_es_result(
+        entity_list=es_result, fetch_multiple_entities=fetch_multiple_entities
+    )
+    if not entity:
+        return None
+    if fetch_multiple_entities:
+        return [str(user.fullyQualifiedName.__root__) for user in entity]
+    return str(entity.fullyQualifiedName.__root__)
+
+
+@fqn_build_registry.add(Team)
+def _(
+    metadata: OpenMetadata,
+    *,
+    team_name: str,
+    fetch_multiple_entities: bool = False,
+) -> Union[Optional[str], Optional[List[str]]]:
+    """
+    Building logic for Team
+    :param metadata: OMeta client
+    :param team_name: Team name
+    :return:
+    """
+
+    fqn_search_string = _build(team_name)
+
+    es_result = metadata.es_search_from_fqn(
+        entity_type=Team,
+        fqn_search_string=fqn_search_string,
+    )
+    entity: Optional[Union[Team, List[Team]]] = get_entity_from_es_result(
+        entity_list=es_result, fetch_multiple_entities=fetch_multiple_entities
+    )
+    if not entity:
+        return None
+    if fetch_multiple_entities:
+        return [str(user.fullyQualifiedName.__root__) for user in entity]
+    return str(entity.fullyQualifiedName.__root__)
+
+
+@fqn_build_registry.add(TestCase)
+def _(
+    _: OpenMetadata,  # ES Search not enabled for TestCase
+    *,
+    service_name: str,
+    database_name: str,
+    schema_name: str,
+    table_name: str,
+    column_name: str,
+    test_case_name: str,
+) -> str:
+    if column_name:
+        return _build(
+            service_name,
+            database_name,
+            schema_name,
+            table_name,
+            column_name,
+            test_case_name,
+        )
+    return _build(
+        service_name,
+        database_name,
+        schema_name,
+        table_name,
+        test_case_name,
+    )
+
+
 def split_table_name(table_name: str) -> Dict[str, Optional[str]]:
     """
     Given a table name, try to extract database, schema and
@@ -276,10 +408,90 @@ def split_table_name(table_name: str) -> Dict[str, Optional[str]]:
     :param table_name: raw table name
     :return: dict with data
     """
-
-    details: List[str] = split(table_name)
+    # Revisit: Check the antlr grammer for issue when string has double quotes
+    # Issue Link: https://github.com/open-metadata/OpenMetadata/issues/8874
+    details: List[str] = split(table_name.replace('"', ""))
     # Pad None to the left until size of list is 3
     full_details: List[Optional[str]] = ([None] * (3 - len(details))) + details
 
     database, database_schema, table = full_details
     return {"database": database, "database_schema": database_schema, "table": table}
+
+
+def split_test_case_fqn(test_case_fqn: str) -> Dict[str, Optional[str]]:
+    """given a test case fqn split each element
+
+    Args:
+        test_case_fqn (str): test case fqn
+
+    Returns:
+        Dict[str, Optional[str]]:
+    """
+    SplitTestCaseFqn = namedtuple(
+        "SplitTestCaseFqn", "service database schema table column test_case"
+    )
+    details = split(test_case_fqn)
+    if len(details) < 5:
+        raise ValueError(
+            f"{test_case_fqn} does not appear to be a valid test_case fqn "
+        )
+    if len(details) != 6:
+        details.insert(4, None)
+
+    (  # pylint: disable=unbalanced-tuple-unpacking
+        service,
+        database,
+        schema,
+        table,
+        column,
+        test_case,
+    ) = details
+
+    return SplitTestCaseFqn(service, database, schema, table, column, test_case)
+
+
+def build_es_fqn_search_string(
+    database_name: str, schema_name, service_name, table_name
+) -> str:
+    """
+    Builds FQN search string for ElasticSearch
+
+    Args:
+        service_name: service name to filter
+        database_name: DB name or None
+        schema_name: schema name or None
+        table_name: table name
+
+    Returns:
+        FQN search string
+    """
+    if not service_name or not table_name:
+        raise FQNBuildingException(
+            f"Service Name and Table Name should be informed, but got service=`{service_name}`, table=`{table_name}`"
+        )
+    fqn_search_string = _build(
+        service_name, database_name or "*", schema_name or "*", table_name
+    )
+    return fqn_search_string
+
+
+def search_table_from_es(
+    metadata: OpenMetadata,
+    database_name: str,
+    schema_name: str,
+    service_name: str,
+    table_name: str,
+    fetch_multiple_entities: bool = False,
+):
+    fqn_search_string = build_es_fqn_search_string(
+        database_name, schema_name, service_name, table_name
+    )
+
+    es_result = metadata.es_search_from_fqn(
+        entity_type=Table,
+        fqn_search_string=fqn_search_string,
+    )
+
+    return get_entity_from_es_result(
+        entity_list=es_result, fetch_multiple_entities=fetch_multiple_entities
+    )

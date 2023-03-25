@@ -1,5 +1,5 @@
 /*
- *  Copyright 2021 Collate
+ *  Copyright 2022 Collate.
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
@@ -11,9 +11,10 @@
  *  limitations under the License.
  */
 
-import { Popover } from 'antd';
+import { Button, Popover, Space } from 'antd';
 import { isNil, isUndefined, uniqueId } from 'lodash';
 import React, { FC, useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import AppState from '../../../AppState';
 import { REACTION_LIST } from '../../../constants/reactions.constant';
 import { ReactionOperation } from '../../../enums/reactions.enum';
@@ -25,6 +26,7 @@ import { ConfirmState } from './ActivityFeedCard.interface';
 
 interface Props {
   isAuthor: boolean;
+  isAnnouncement?: boolean;
   isThread?: boolean;
   threadId?: string;
   postId?: string;
@@ -36,6 +38,7 @@ interface Props {
   onPopoverHide: () => void;
   onConfirmation?: (data: ConfirmState) => void;
   onReply?: () => void;
+  onEdit?: () => void;
 }
 
 const PopoverContent: FC<Props> = ({
@@ -48,7 +51,15 @@ const PopoverContent: FC<Props> = ({
   reactions = [],
   onReactionSelect,
   onPopoverHide,
+  onEdit,
 }) => {
+  const { t } = useTranslation();
+  // get current user details
+  const currentUser = useMemo(
+    () => AppState.getCurrentUserDetails(),
+    [AppState.userDetails, AppState.nonSecureUserDetails]
+  );
+
   const [visible, setVisible] = useState<boolean>(false);
 
   const hide = () => {
@@ -59,15 +70,31 @@ const PopoverContent: FC<Props> = ({
     setVisible(newVisible);
   };
 
-  const deleteButtonCheck =
-    threadId && postId && onConfirmation && isAuthor && !isThread;
+  const deleteButtonCheck = useMemo(() => {
+    const baseCheck = Boolean(threadId && postId && onConfirmation);
 
-  const handleDelete = () => {
-    onConfirmation && onConfirmation({ state: true, postId: postId, threadId });
+    return Boolean(baseCheck && (isAuthor || currentUser?.isAdmin));
+  }, [threadId, postId, onConfirmation, isAuthor, currentUser]);
+
+  const editCheck = useMemo(
+    () => isAuthor || currentUser?.isAdmin,
+    [isAuthor, currentUser]
+  );
+
+  const handleDelete = (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.stopPropagation();
+    onConfirmation &&
+      onConfirmation({
+        state: true,
+        postId: postId,
+        threadId,
+        isThread: Boolean(isThread),
+      });
     onPopoverHide();
   };
 
-  const handleReply = () => {
+  const handleReply = (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.stopPropagation();
     onReply && onReply();
     onPopoverHide();
 
@@ -94,12 +121,6 @@ const PopoverContent: FC<Props> = ({
       }
     }
   };
-
-  // get current user details
-  const currentUser = useMemo(
-    () => AppState.getCurrentUserDetails(),
-    [AppState.userDetails, AppState.nonSecureUserDetails]
-  );
 
   /**
    *
@@ -130,50 +151,88 @@ const PopoverContent: FC<Props> = ({
     );
   });
 
+  const handleEdit = (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.stopPropagation();
+    onEdit && onEdit();
+  };
+
   return (
-    <div className="tw-flex tw-gap-x-2">
+    <Space>
       <Popover
         destroyTooltipOnHide
         align={{ targetOffset: [0, -10] }}
         content={reactionList}
+        id="reaction-popover"
+        open={visible}
         overlayClassName="ant-popover-feed-reactions"
         placement="topLeft"
         trigger="click"
-        visible={visible}
         zIndex={9999}
-        onVisibleChange={handleVisibleChange}>
-        <button>
+        onOpenChange={handleVisibleChange}>
+        <Button
+          className="tw-p-0"
+          data-testid="add-reactions"
+          size="small"
+          type="text"
+          onClick={(e) => e.stopPropagation()}>
           <SVGIcons
             alt="add-reaction"
             icon={Icons.REACTION}
-            title="Add reactions"
+            title={t('label.add-entity', {
+              entity: t('label.reaction-lowercase-plural'),
+            })}
             width="20px"
           />
-        </button>
+        </Button>
       </Popover>
 
       {(onReply || isThread) && (
-        <button onClick={handleReply}>
+        <Button
+          className="tw-p-0"
+          data-testid="add-reply"
+          size="small"
+          type="text"
+          onClick={handleReply}>
           <SVGIcons
             alt="add-reply"
             icon={Icons.ADD_REPLY}
-            title="Reply"
+            title={t('label.reply')}
             width="20px"
           />
-        </button>
+        </Button>
+      )}
+
+      {editCheck && (
+        <Button
+          className="tw-p-0"
+          data-testid="edit-message"
+          size="small"
+          type="text"
+          onClick={handleEdit}>
+          <SVGIcons
+            alt="edit"
+            icon={Icons.EDIT}
+            title={t('label.edit')}
+            width="18px"
+          />
+        </Button>
       )}
 
       {deleteButtonCheck ? (
-        <button onClick={handleDelete}>
+        <Button
+          className="tw-p-0"
+          data-testid="delete-message"
+          type="text"
+          onClick={handleDelete}>
           <SVGIcons
             alt="delete-reply"
             icon={Icons.FEED_DELETE}
-            title="Delete"
+            title={t('label.delete')}
             width="20px"
           />
-        </button>
+        </Button>
       ) : null}
-    </div>
+    </Space>
   );
 };
 

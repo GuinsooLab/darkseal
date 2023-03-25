@@ -1,5 +1,5 @@
 /*
- *  Copyright 2021 Collate
+ *  Copyright 2022 Collate.
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
@@ -11,43 +11,55 @@
  *  limitations under the License.
  */
 
-import { faAngleRight } from '@fortawesome/free-solid-svg-icons';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { AxiosError, AxiosResponse } from 'axios';
+import { AxiosError } from 'axios';
 import { Operation } from 'fast-json-patch';
+import i18next from 'i18next';
 import { isEqual } from 'lodash';
 import {
-  EntityFieldThreadCount,
-  EntityFieldThreads,
-  EntityThreadField,
-} from 'Models';
-import React from 'react';
-import TurndownService from 'turndown';
-import {
   deletePostById,
+  deleteThread,
   getFeedById,
   updatePost,
   updateThread,
-} from '../axiosAPIs/feedsAPI';
+} from 'rest/feedsAPI';
 import {
-  getInitialEntity,
+  getSearchedUsers,
   getSuggestions,
   getUserSuggestions,
-} from '../axiosAPIs/miscAPI';
+  searchData,
+} from 'rest/miscAPI';
+
+import { RightOutlined } from '@ant-design/icons';
+import React from 'react';
+import Showdown from 'showdown';
+import TurndownService from 'turndown';
+import { FQN_SEPARATOR_CHAR } from '../constants/char.constants';
 import {
   entityLinkRegEx,
-  entityRegex,
   EntityRegEx,
+  entityRegex,
   entityUrlMap,
   hashtagRegEx,
   linkRegEx,
   mentionRegEx,
-} from '../constants/feed.constants';
+  teamsLinkRegEx,
+} from '../constants/Feeds.constants';
+import { EntityType, FqnPart, TabSpecificField } from '../enums/entity.enum';
 import { SearchIndex } from '../enums/search.enum';
-import { Post, Thread, ThreadType } from '../generated/entity/feed/thread';
-import { getEntityPlaceHolder } from './CommonUtils';
+import { Thread, ThreadType } from '../generated/entity/feed/thread';
+import {
+  EntityFieldThreadCount,
+  EntityFieldThreads,
+  EntityThreadField,
+} from '../interface/feed.interface';
+import {
+  getEntityPlaceHolder,
+  getPartialNameFromFQN,
+  getPartialNameFromTableFQN,
+} from './CommonUtils';
 import { ENTITY_LINK_SEPARATOR } from './EntityUtils';
 import { getEncodedFqn } from './StringsUtils';
+import { getEntityLink } from './TableUtils';
 import { getRelativeDateByTimeStamp } from './TimeUtils';
 import { showErrorToast } from './ToastUtils';
 
@@ -100,10 +112,18 @@ export const getReplyText = (
   singular?: string,
   plural?: string
 ) => {
-  if (count === 0) return 'Reply in conversation';
-  if (count === 1) return `${count} ${singular ? singular : 'older reply'}`;
+  if (count === 0) {
+    return i18next.t('label.reply-in-conversation');
+  }
+  if (count === 1) {
+    return `${count} ${
+      singular ? singular : i18next.t('label.older-reply-lowercase')
+    }`;
+  }
 
-  return `${count} ${plural ? plural : 'older replies'}`;
+  return `${count} ${
+    plural ? plural : i18next.t('label.older-reply-plural-lowercase')
+  }`;
 };
 
 export const getEntityFieldThreadCounts = (
@@ -158,16 +178,16 @@ export async function suggestions(searchTerm: string, mentionChar: string) {
   if (mentionChar === '@') {
     let atValues = [];
     if (!searchTerm) {
-      const data = await getInitialEntity(SearchIndex.USER);
+      const data = await getSearchedUsers('*', 0, 5);
       const hits = data.data.hits.hits;
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      atValues = hits.map((hit: any) => {
+
+      atValues = hits.map((hit) => {
         const entityType = hit._source.entityType;
 
         return {
           id: hit._id,
           value: getEntityPlaceHolder(
-            `@${hit._source.name ?? hit._source.display_name}`,
+            `@${hit._source.name ?? hit._source.displayName}`,
             hit._source.deleted
           ),
           link: buildMentionLink(
@@ -177,7 +197,8 @@ export async function suggestions(searchTerm: string, mentionChar: string) {
         };
       });
     } else {
-      const data = await getUserSuggestions(searchTerm);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const data: any = await getUserSuggestions(searchTerm);
       const hits = data.data.suggest['metadata-suggest'][0]['options'];
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       atValues = hits.map((hit: any) => {
@@ -201,10 +222,10 @@ export async function suggestions(searchTerm: string, mentionChar: string) {
   } else {
     let hashValues = [];
     if (!searchTerm) {
-      const data = await getInitialEntity(SearchIndex.TABLE);
+      const data = await searchData('*', 0, 5, '', '', '', SearchIndex.TABLE);
       const hits = data.data.hits.hits;
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      hashValues = hits.map((hit: any) => {
+
+      hashValues = hits.map((hit) => {
         const entityType = hit._source.entityType;
 
         return {
@@ -212,15 +233,15 @@ export async function suggestions(searchTerm: string, mentionChar: string) {
           value: `#${entityType}/${hit._source.name}`,
           link: buildMentionLink(
             entityType,
-            getEncodedFqn(hit._source.fullyQualifiedName)
+            getEncodedFqn(hit._source.fullyQualifiedName ?? '')
           ),
         };
       });
     } else {
       const data = await getSuggestions(searchTerm);
       const hits = data.data.suggest['metadata-suggest'][0]['options'];
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      hashValues = hits.map((hit: any) => {
+
+      hashValues = hits.map((hit) => {
         const entityType = hit._source.entityType;
 
         return {
@@ -228,7 +249,7 @@ export async function suggestions(searchTerm: string, mentionChar: string) {
           value: `#${entityType}/${hit._source.name}`,
           link: buildMentionLink(
             entityType,
-            getEncodedFqn(hit._source.fullyQualifiedName)
+            getEncodedFqn(hit._source.fullyQualifiedName ?? '')
           ),
         };
       });
@@ -240,7 +261,7 @@ export async function suggestions(searchTerm: string, mentionChar: string) {
 
 export async function matcher(
   searchTerm: string,
-  renderList: Function,
+  renderList: (matches: string[], search: string) => void,
   mentionChar: string
 ) {
   const matches = await suggestions(searchTerm, mentionChar);
@@ -256,6 +277,10 @@ const getHashTagList = (message: string) => {
 };
 
 const getEntityDetail = (item: string) => {
+  if (item.includes('teams')) {
+    return item.match(teamsLinkRegEx);
+  }
+
   return item.match(linkRegEx);
 };
 
@@ -304,26 +329,10 @@ export const getFrontEndFormat = (message: string) => {
   return updatedMessage;
 };
 
-export const deletePost = (threadId: string, postId: string) => {
-  return new Promise<Post>((resolve, reject) => {
-    deletePostById(threadId, postId)
-      .then((res: AxiosResponse) => {
-        if (res.status === 200) {
-          resolve(res.data);
-        } else {
-          reject(res.data);
-        }
-      })
-      .catch((error: AxiosError) => {
-        reject(error);
-      });
-  });
-};
-
 export const getUpdatedThread = (id: string) => {
   return new Promise<Thread>((resolve, reject) => {
     getFeedById(id)
-      .then((res: AxiosResponse) => {
+      .then((res) => {
         if (res.status === 200) {
           resolve(res.data);
         } else {
@@ -337,6 +346,58 @@ export const getUpdatedThread = (id: string) => {
 };
 
 /**
+ *
+ * @param threadId thread to be deleted
+ * @param postId post to be deleted
+ * @param isThread boolean, if true delete the thread else post
+ * @param callback optional callback function to get the updated threads
+ */
+export const deletePost = async (
+  threadId: string,
+  postId: string,
+  isThread: boolean,
+  callback?: (value: React.SetStateAction<Thread[]>) => void
+) => {
+  /**
+   * Delete the thread if isThread is true
+   */
+  if (isThread) {
+    try {
+      const data = await deleteThread(threadId);
+      callback &&
+        callback((prev) => prev.filter((thread) => thread.id !== data.id));
+    } catch (error) {
+      showErrorToast(error as AxiosError);
+    }
+  } else {
+    try {
+      const deletResponse = await deletePostById(threadId, postId);
+      // get updated thread only if delete response and callback is present
+      if (deletResponse && callback) {
+        const data = await getUpdatedThread(threadId);
+        callback((pre) => {
+          return pre.map((thread) => {
+            if (thread.id === data.id) {
+              return {
+                ...thread,
+                posts: data.posts && data.posts.slice(-3),
+                postsCount: data.postsCount,
+              };
+            } else {
+              return thread;
+            }
+          });
+        });
+      } else {
+        throw i18next.t('server.fetch-updated-conversation-error');
+      }
+    } catch (error) {
+      showErrorToast(error as AxiosError);
+    }
+  }
+};
+
+/**
  * if entity field is columns::name::description
  * return columns > name > description
  */
@@ -345,10 +406,7 @@ export const getEntityFieldDisplay = (entityField: string) => {
     const entityFields = entityField.split(ENTITY_LINK_SEPARATOR);
     const separator = (
       <span className="tw-px-1">
-        <FontAwesomeIcon
-          className="tw-text-xs tw-cursor-default tw-text-gray-400 tw-align-middle"
-          icon={faAngleRight}
-        />
+        <RightOutlined className="tw-text-xs tw-cursor-default tw-text-gray-400 tw-align-middle" />
       </span>
     );
 
@@ -374,11 +432,16 @@ export const updateThreadData = (
 ) => {
   if (isThread) {
     updateThread(threadId, data)
-      .then((res: AxiosResponse) => {
+      .then((res) => {
         callback((prevData) => {
           return prevData.map((thread) => {
             if (isEqual(threadId, thread.id)) {
-              return { ...thread, reactions: res.data.reactions };
+              return {
+                ...thread,
+                reactions: res.reactions,
+                message: res.message,
+                announcement: res?.announcement,
+              };
             } else {
               return thread;
             }
@@ -390,13 +453,17 @@ export const updateThreadData = (
       });
   } else {
     updatePost(threadId, postId, data)
-      .then((res: AxiosResponse) => {
+      .then((res) => {
         callback((prevData) => {
           return prevData.map((thread) => {
             if (isEqual(threadId, thread.id)) {
               const updatedPosts = (thread.posts || []).map((post) => {
                 if (isEqual(postId, post.id)) {
-                  return { ...post, reactions: res.data.reactions };
+                  return {
+                    ...post,
+                    reactions: res.reactions,
+                    message: res.message,
+                  };
                 } else {
                   return post;
                 }
@@ -417,8 +484,83 @@ export const updateThreadData = (
 
 export const getFeedAction = (type: ThreadType) => {
   if (type === ThreadType.Task) {
-    return 'created a task';
+    return i18next.t('label.created-a-task-lowercase');
   }
 
-  return 'posted on';
+  return i18next.t('label.posted-on-lowercase');
+};
+
+export const prepareFeedLink = (entityType: string, entityFQN: string) => {
+  const withoutFeedEntities = [
+    EntityType.WEBHOOK,
+    EntityType.GLOSSARY,
+    EntityType.GLOSSARY_TERM,
+    EntityType.TYPE,
+    EntityType.MLMODEL,
+  ];
+
+  const entityLink = getEntityLink(entityType, entityFQN);
+
+  if (!withoutFeedEntities.includes(entityType as EntityType)) {
+    return `${entityLink}/${TabSpecificField.ACTIVITY_FEED}`;
+  } else {
+    return entityLink;
+  }
+};
+
+export const entityDisplayName = (entityType: string, entityFQN: string) => {
+  let displayName;
+  if (entityType === EntityType.TABLE) {
+    displayName = getPartialNameFromTableFQN(
+      entityFQN,
+      [FqnPart.Database, FqnPart.Schema, FqnPart.Table],
+      '.'
+    );
+  } else if (entityType === EntityType.DATABASE_SCHEMA) {
+    displayName = getPartialNameFromTableFQN(entityFQN, [FqnPart.Schema]);
+  } else if (
+    [
+      EntityType.DATABASE_SERVICE,
+      EntityType.DASHBOARD_SERVICE,
+      EntityType.MESSAGING_SERVICE,
+      EntityType.PIPELINE_SERVICE,
+      EntityType.TYPE,
+      EntityType.MLMODEL,
+    ].includes(entityType as EntityType)
+  ) {
+    displayName = getPartialNameFromFQN(entityFQN, ['service']);
+  } else if (
+    [EntityType.GLOSSARY, EntityType.GLOSSARY_TERM].includes(
+      entityType as EntityType
+    )
+  ) {
+    displayName = entityFQN.split(FQN_SEPARATOR_CHAR).pop();
+  } else {
+    displayName = getPartialNameFromFQN(entityFQN, ['database']);
+  }
+
+  // Remove quotes if the name is wrapped in quotes
+  if (displayName) {
+    displayName = displayName.replace(/(?:^"+)|(?:"+$)/g, '');
+  }
+
+  return displayName;
+};
+
+export const MarkdownToHTMLConverter = new Showdown.Converter({
+  strikethrough: true,
+});
+
+export const getFeedPanelHeaderText = (
+  threadType: ThreadType = ThreadType.Conversation
+) => {
+  switch (threadType) {
+    case ThreadType.Announcement:
+      return i18next.t('label.announcement');
+    case ThreadType.Task:
+      return i18next.t('label.task');
+    case ThreadType.Conversation:
+    default:
+      return i18next.t('label.conversation');
+  }
 };

@@ -1,5 +1,5 @@
 /*
- *  Copyright 2022 Collate
+ *  Copyright 2022 Collate.
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
@@ -11,37 +11,42 @@
  *  limitations under the License.
  */
 
-import { AxiosError, AxiosResponse } from 'axios';
+import { Space, Typography } from 'antd';
+import { AxiosError } from 'axios';
+import ErrorPlaceHolder from 'components/common/error-with-placeholder/ErrorPlaceHolder';
+import TitleBreadcrumb from 'components/common/title-breadcrumb/title-breadcrumb.component';
+import { TitleBreadcrumbProps } from 'components/common/title-breadcrumb/title-breadcrumb.interface';
+import PageContainerV1 from 'components/containers/PageContainerV1';
+import PageLayoutV1 from 'components/containers/PageLayoutV1';
+import Loader from 'components/Loader/Loader';
+import ServiceConfig from 'components/ServiceConfig/ServiceConfig';
 import { startCase } from 'lodash';
-import { ServicesData } from 'Models';
+import { ServicesData, ServicesUpdateRequest, ServiceTypes } from 'Models';
 import React, { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useParams } from 'react-router-dom';
-import { getServiceByFQN, updateService } from '../../axiosAPIs/serviceAPI';
-import ErrorPlaceHolder from '../../components/common/error-with-placeholder/ErrorPlaceHolder';
-import TitleBreadcrumb from '../../components/common/title-breadcrumb/title-breadcrumb.component';
-import { TitleBreadcrumbProps } from '../../components/common/title-breadcrumb/title-breadcrumb.interface';
-import PageContainerV1 from '../../components/containers/PageContainerV1';
-import PageLayout from '../../components/containers/PageLayout';
-import Loader from '../../components/Loader/Loader';
-import ServiceConfig from '../../components/ServiceConfig/ServiceConfig';
+import { getServiceByFQN, updateService } from 'rest/serviceAPI';
+import { getEntityName } from 'utils/EntityUtils';
+import { GlobalSettingsMenuCategory } from '../../constants/GlobalSettings.constants';
 import { addServiceGuide } from '../../constants/service-guide.constant';
-import { PageLayoutType } from '../../enums/layout.enum';
+import { OPENMETADATA } from '../../constants/Services.constant';
 import { ServiceCategory } from '../../enums/service.enum';
-import { ConfigData, ServiceDataObj } from '../../interface/service.interface';
+import { ConfigData, ServicesType } from '../../interface/service.interface';
 import jsonData from '../../jsons/en';
-import { getEntityMissingError, getEntityName } from '../../utils/CommonUtils';
+import { getEntityMissingError } from '../../utils/CommonUtils';
+import { getPathByServiceFQN, getSettingPath } from '../../utils/RouterUtils';
 import {
-  getPathByServiceFQN,
-  getServicesWithTabPath,
-} from '../../utils/RouterUtils';
-import { serviceTypeLogo } from '../../utils/ServiceUtils';
+  getServiceRouteFromServiceType,
+  serviceTypeLogo,
+} from '../../utils/ServiceUtils';
 import { showErrorToast } from '../../utils/ToastUtils';
 
 function EditConnectionFormPage() {
+  const { t } = useTranslation();
   const { serviceFQN, serviceCategory } = useParams() as Record<string, string>;
   const [isLoading, setIsloading] = useState(true);
   const [isError, setIsError] = useState(false);
-  const [serviceDetails, setServiceDetails] = useState<ServiceDataObj>();
+  const [serviceDetails, setServiceDetails] = useState<ServicesType>();
   const [slashedBreadcrumb, setSlashedBreadcrumb] = useState<
     TitleBreadcrumbProps['titleLinks']
   >([]);
@@ -52,8 +57,8 @@ function EditConnectionFormPage() {
     return (
       guide && (
         <>
-          <h6 className="tw-heading tw-text-base">{guide.title}</h6>
-          <div className="tw-mb-5">{guide.description}</div>
+          <Typography.Title level={5}>{guide.title}</Typography.Title>
+          <div className="mb-5">{guide.description}</div>
         </>
       )
     );
@@ -68,15 +73,15 @@ function EditConnectionFormPage() {
       connection: {
         config: updatedData,
       },
-    };
+    } as ServicesUpdateRequest;
 
     return new Promise<void>((resolve, reject) => {
-      updateService(serviceCategory, serviceDetails?.id, configData)
-        .then((res: AxiosResponse) => {
-          if (res.data) {
+      updateService(serviceCategory, serviceDetails?.id ?? '', configData)
+        .then((res) => {
+          if (res) {
             setServiceDetails({
-              ...res.data,
-              owner: res.data?.owner ?? serviceDetails?.owner,
+              ...res,
+              owner: res?.owner ?? serviceDetails?.owner,
             });
           } else {
             showErrorToast(
@@ -99,21 +104,24 @@ function EditConnectionFormPage() {
   useEffect(() => {
     setIsloading(true);
     getServiceByFQN(serviceCategory, serviceFQN, ['owner'])
-      .then((resService: AxiosResponse) => {
-        if (resService.data) {
-          setServiceDetails(resService.data);
+      .then((resService) => {
+        if (resService) {
+          setServiceDetails(resService);
           setSlashedBreadcrumb([
             {
               name: startCase(serviceCategory),
-              url: getServicesWithTabPath(serviceCategory),
+              url: getSettingPath(
+                GlobalSettingsMenuCategory.SERVICES,
+                getServiceRouteFromServiceType(serviceCategory as ServiceTypes)
+              ),
             },
             {
-              name: getEntityName(resService.data),
-              imgSrc: serviceTypeLogo(resService.data.serviceType),
+              name: getEntityName(resService),
+              imgSrc: serviceTypeLogo(resService.serviceType),
               url: getPathByServiceFQN(serviceCategory, serviceFQN),
             },
             {
-              name: 'Edit Connection',
+              name: t('label.edit-entity', { entity: t('label.connection') }),
               url: '',
               activeTitle: true,
             },
@@ -143,30 +151,38 @@ function EditConnectionFormPage() {
         {getEntityMissingError(serviceCategory, serviceFQN)}
       </ErrorPlaceHolder>
     ) : (
-      <PageLayout
-        classes="tw-max-w-full-hd tw-h-full tw-pt-4"
-        header={<TitleBreadcrumb titleLinks={slashedBreadcrumb} />}
-        layout={PageLayoutType['2ColRTL']}
-        rightPanel={fetchRightPanel()}>
-        <div className="tw-form-container">
-          <h6 className="tw-heading tw-text-base">
-            {`Edit ${serviceFQN} Service Connection`}
-          </h6>
-          <ServiceConfig
-            data={serviceDetails as ServicesData}
-            handleUpdate={handleConfigUpdate}
-            serviceCategory={serviceCategory as ServiceCategory}
-            serviceFQN={serviceFQN}
-            serviceType={serviceDetails?.serviceType || ''}
-          />
-        </div>
-      </PageLayout>
+      <PageLayoutV1
+        center
+        pageTitle={t('label.edit-entity', { entity: t('label.connection') })}>
+        <Space direction="vertical" size="middle">
+          <TitleBreadcrumb titleLinks={slashedBreadcrumb} />
+          <div className="form-container">
+            <Typography.Title level={5}>
+              {t('message.edit-service-entity-connection', {
+                entity: serviceFQN,
+              })}
+            </Typography.Title>
+            <ServiceConfig
+              data={serviceDetails as ServicesData}
+              disableTestConnection={
+                ServiceCategory.METADATA_SERVICES === serviceCategory &&
+                OPENMETADATA === serviceFQN
+              }
+              handleUpdate={handleConfigUpdate}
+              serviceCategory={serviceCategory as ServiceCategory}
+              serviceFQN={serviceFQN}
+              serviceType={serviceDetails?.serviceType || ''}
+            />
+          </div>
+        </Space>
+        <div className="m-t-xlg p-x-lg w-800">{fetchRightPanel()}</div>
+      </PageLayoutV1>
     );
   };
 
   return (
     <PageContainerV1>
-      <div className="tw-self-center">
+      <div className="self-center">
         <>{isLoading ? <Loader /> : renderPage()}</>
       </div>
     </PageContainerV1>

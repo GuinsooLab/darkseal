@@ -14,39 +14,31 @@
 package org.openmetadata.client.security;
 
 import feign.RequestTemplate;
-import io.swagger.client.ApiClient;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Date;
-import org.openmetadata.catalog.security.client.Auth0SSOClientConfig;
-import org.openmetadata.catalog.services.connections.metadata.OpenMetadataServerConnection;
+import lombok.extern.slf4j.Slf4j;
+import org.openmetadata.client.ApiClient;
 import org.openmetadata.client.interceptors.Auth0AccessTokenRequestInterceptor;
 import org.openmetadata.client.model.AccessTokenResponse;
 import org.openmetadata.client.security.interfaces.Auth0AccessTokenApi;
 import org.openmetadata.client.security.interfaces.AuthenticationProvider;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.openmetadata.schema.security.client.Auth0SSOClientConfig;
+import org.openmetadata.schema.services.connections.metadata.OpenMetadataConnection;
 
+@Slf4j
 public class Auth0AuthenticationProvider implements AuthenticationProvider {
-
-  private static final Logger LOG = LoggerFactory.getLogger(Auth0AuthenticationProvider.class);
-
-  private OpenMetadataServerConnection serverConfig;
-
-  private final Auth0SSOClientConfig securityConfig;
-
   private String generatedAuthToken;
   private Long expirationTimeMillis;
   private final Auth0AccessTokenApi auth0SSOClient;
 
-  public Auth0AuthenticationProvider(OpenMetadataServerConnection iConfig) {
-    if (!iConfig.getAuthProvider().equals(OpenMetadataServerConnection.AuthProvider.AUTH_0)) {
+  public Auth0AuthenticationProvider(OpenMetadataConnection iConfig) {
+    if (!iConfig.getAuthProvider().equals(OpenMetadataConnection.AuthProvider.AUTH_0)) {
       LOG.error("Required type to invoke is Auth0 for Auth0Authentication Provider");
       throw new RuntimeException("Required type to invoke is Auth0 for Auth0Authentication Provider");
     }
-    serverConfig = iConfig;
 
-    securityConfig = (Auth0SSOClientConfig) iConfig.getSecurityConfig();
+    Auth0SSOClientConfig securityConfig = (Auth0SSOClientConfig) iConfig.getSecurityConfig();
     if (securityConfig == null) {
       LOG.error("Security Config is missing, it is required");
       throw new RuntimeException("Security Config is missing, it is required");
@@ -61,7 +53,7 @@ public class Auth0AuthenticationProvider implements AuthenticationProvider {
   }
 
   @Override
-  public AuthenticationProvider create(OpenMetadataServerConnection iConfig) {
+  public AuthenticationProvider create(OpenMetadataConnection iConfig) {
     return new Auth0AuthenticationProvider(iConfig);
   }
 

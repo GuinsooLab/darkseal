@@ -8,9 +8,11 @@
 #  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
-
+"""
+Abstract Sink definition to build a Workflow
+"""
 from abc import ABCMeta, abstractmethod
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from typing import Any, Generic, List
 
 from pydantic import BaseModel
@@ -23,11 +25,10 @@ from metadata.ingestion.api.common import Entity
 from metadata.ingestion.api.status import Status
 
 
-@dataclass
-class SinkStatus(Status):
-    records: List[str] = field(default_factory=list)
-    warnings: List[Any] = field(default_factory=list)
-    failures: List[Any] = field(default_factory=list)
+class SinkStatus(BaseModel, Status):
+    records: List[str] = []
+    warnings: List[Any] = []
+    failures: List[Any] = []
 
     def records_written(self, record: str) -> None:
         self.records.append(record)
@@ -43,6 +44,11 @@ class SinkStatus(Status):
 class Sink(Closeable, Generic[Entity], metaclass=ABCMeta):
     """All Sinks must inherit this base class."""
 
+    status: SinkStatus
+
+    def __init__(self):
+        self.status = SinkStatus()
+
     @classmethod
     @abstractmethod
     def create(
@@ -55,9 +61,8 @@ class Sink(Closeable, Generic[Entity], metaclass=ABCMeta):
         # must call callback when done.
         pass
 
-    @abstractmethod
     def get_status(self) -> SinkStatus:
-        pass
+        return self.status
 
     @abstractmethod
     def close(self) -> None:

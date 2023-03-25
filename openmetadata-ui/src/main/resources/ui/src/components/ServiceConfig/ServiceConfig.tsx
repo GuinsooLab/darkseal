@@ -1,5 +1,5 @@
 /*
- *  Copyright 2021 Collate
+ *  Copyright 2022 Collate.
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
@@ -33,6 +33,7 @@ interface ServiceConfigProps {
     data: ConfigData,
     serviceCategory: ServiceCategory
   ) => Promise<void>;
+  disableTestConnection: boolean;
 }
 
 export const Field = ({ children }: { children: React.ReactNode }) => {
@@ -45,6 +46,7 @@ const ServiceConfig = ({
   serviceType,
   data,
   handleUpdate,
+  disableTestConnection,
 }: ServiceConfigProps) => {
   const history = useHistory();
   const [status, setStatus] = useState<LoadingState>('initial');
@@ -80,6 +82,7 @@ const ServiceConfig = ({
             | DashboardService
             | PipelineService
         }
+        disableTestConnection={disableTestConnection}
         serviceCategory={serviceCategory}
         serviceType={serviceType}
         status={status}
@@ -90,9 +93,9 @@ const ServiceConfig = ({
   };
 
   return (
-    <div className="tw-bg-white tw-h-full">
+    <div className="bg-white h-full">
       <div
-        className="tw-max-w-xl tw-pb-6"
+        className="w-full p-b-lg"
         data-testid="service-config"
         id="serviceConfig">
         <div className="tw-mx-auto">{getDynamicFields()}</div>

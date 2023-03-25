@@ -1,5 +1,5 @@
 /*
- *  Copyright 2021 Collate
+ *  Copyright 2022 Collate.
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
@@ -17,54 +17,57 @@ import {
   getByText,
   render,
 } from '@testing-library/react';
-import { FormattedTableData } from 'Models';
 import React from 'react';
 import { MemoryRouter } from 'react-router';
+import { SearchIndex } from '../../enums/search.enum';
 import SearchedData from './SearchedData';
+import { SearchedDataProps } from './SearchedData.interface';
 
-const mockData = [
+const mockData: SearchedDataProps['data'] = [
   {
-    id: 'id1',
-    name: 'name1',
-    description: 'description1',
-    fullyQualifiedName: 'fullyQualifiedName1',
-    owner: {
-      deleted: false,
-      displayName: 'Customer_Support',
-      name: 'Customer_Support',
-      description: 'This is Customer_Support description.',
-      id: '32a6706e-8862-48e5-b3f3-ff280045ae32',
-      href: 'http://localhost:8585/api/v1/teams/32a6706e-8862-48e5-b3f3-ff280045ae32',
-      type: 'team',
-      fullyQualifiedName: 'Customer_Support',
+    _index: SearchIndex.TABLE,
+    _source: {
+      id: '1',
+      name: 'name1',
+      description: 'description1',
+      fullyQualifiedName: 'fullyQualifiedName1',
+      owner: {
+        name: 'Customer_Support',
+      },
+      tags: ['tags1', 'tags2', 'tags3'],
+      tier: {
+        tagFQN: 'tier1',
+      },
     },
-    tags: [{ tagFQN: 'tags1' }, { tagFQN: 'tags2' }, { tagFQN: 'tags3' }],
-    tier: { tagFQN: 'tier1' },
-    index: 'index1',
   },
   {
-    id: 'id2',
-    name: 'name2',
-    description: 'description2',
-    fullyQualifiedName: 'fullyQualifiedName2',
-    owner: 'owner2',
-    tags: [{ tagFQN: 'tags1' }, { tagFQN: 'tags2' }, { tagFQN: 'tags3' }],
-    tier: { tagFQN: 'tier2' },
-    index: 'index1',
+    _index: SearchIndex.TABLE,
+    _source: {
+      id: '2',
+      name: 'name2',
+      description: 'description2',
+      fullyQualifiedName: 'fullyQualifiedName2',
+      owner: { name: 'owner2' },
+      tags: ['tags1', 'tags2', 'tags3'],
+      tier: { tagFQN: 'tier2' },
+    },
   },
   {
-    id: 'id3',
-    name: 'name3',
-    description: 'description3',
-    fullyQualifiedName: 'fullyQualifiedName3',
-    owner: 'owner3',
-    tags: [{ tagFQN: 'tags1' }, { tagFQN: 'tags2' }, { tagFQN: 'tags3' }],
-    tier: { tagFQN: 'tier3' },
-    index: 'index1',
+    _index: SearchIndex.TABLE,
+    _source: {
+      id: '3',
+      name: 'name3',
+      description: 'description3',
+      fullyQualifiedName: 'fullyQualifiedName3',
+      owner: { name: 'owner3' },
+      tags: ['tags1', 'tags2', 'tags3'],
+      tier: { tagFQN: 'tier3' },
+    },
   },
-] as FormattedTableData[];
+];
 
 const mockPaginate = jest.fn();
+const mockHandleSummaryPanelDisplay = jest.fn();
 
 jest.mock('../common/table-data-card/TableDataCard', () => {
   return jest
@@ -84,20 +87,22 @@ jest.mock('../common/error-with-placeholder/ErrorPlaceHolderES', () => {
   return jest.fn().mockReturnValue(<p>ErrorPlaceHolderES</p>);
 });
 
+const MOCK_PROPS = {
+  isFilterSelected: false,
+  isSummaryPanelVisible: false,
+  currentPage: 0,
+  data: mockData,
+  handleSummaryPanelDisplay: mockHandleSummaryPanelDisplay,
+  paginate: mockPaginate,
+  selectedEntityId: 'name1',
+  totalValue: 10,
+};
+
 describe('Test SearchedData Component', () => {
   it('Component should render', () => {
-    const { container } = render(
-      <SearchedData
-        isFilterSelected
-        currentPage={0}
-        data={mockData}
-        paginate={mockPaginate}
-        totalValue={10}
-      />,
-      {
-        wrapper: MemoryRouter,
-      }
-    );
+    const { container } = render(<SearchedData {...MOCK_PROPS} />, {
+      wrapper: MemoryRouter,
+    });
 
     const searchedDataContainer = getByTestId(container, 'search-container');
 
@@ -105,32 +110,18 @@ describe('Test SearchedData Component', () => {
   });
 
   it('Should display table card according to data provided in props', () => {
-    const { container } = render(
-      <SearchedData
-        isFilterSelected
-        currentPage={0}
-        data={mockData}
-        paginate={mockPaginate}
-        totalValue={10}
-      />,
-      {
-        wrapper: MemoryRouter,
-      }
-    );
+    const { container } = render(<SearchedData {...MOCK_PROPS} />, {
+      wrapper: MemoryRouter,
+    });
 
     const searchedDataContainer = getAllByTestId(container, 'table-data-card');
 
-    expect(searchedDataContainer.length).toBe(3);
+    expect(searchedDataContainer).toHaveLength(3);
   });
 
   it('If children is provided it should display', () => {
     const { container } = render(
-      <SearchedData
-        isFilterSelected
-        currentPage={0}
-        data={mockData}
-        paginate={mockPaginate}
-        totalValue={10}>
+      <SearchedData {...MOCK_PROPS}>
         <p>hello world</p>
       </SearchedData>,
       {
@@ -143,12 +134,7 @@ describe('Test SearchedData Component', () => {
 
   it('Pagination Should be there if data is more than 10 count', () => {
     const { container } = render(
-      <SearchedData
-        isFilterSelected
-        currentPage={0}
-        data={mockData}
-        paginate={mockPaginate}
-        totalValue={11}>
+      <SearchedData {...MOCK_PROPS} totalValue={11}>
         <p>hello world</p>
       </SearchedData>,
       {
@@ -162,11 +148,9 @@ describe('Test SearchedData Component', () => {
   it('Onboarding component should display if there is showOnboardingTemplate is true', () => {
     const { container } = render(
       <SearchedData
-        isFilterSelected
+        {...MOCK_PROPS}
         showOnboardingTemplate
-        currentPage={0}
         data={[]}
-        paginate={mockPaginate}
         totalValue={0}
       />,
       {
@@ -179,13 +163,7 @@ describe('Test SearchedData Component', () => {
 
   it('ErrorPlaceHolderES component should display if there is no data', () => {
     const { container } = render(
-      <SearchedData
-        isFilterSelected
-        currentPage={0}
-        data={[]}
-        paginate={mockPaginate}
-        totalValue={0}
-      />,
+      <SearchedData {...MOCK_PROPS} data={[]} totalValue={0} />,
       {
         wrapper: MemoryRouter,
       }

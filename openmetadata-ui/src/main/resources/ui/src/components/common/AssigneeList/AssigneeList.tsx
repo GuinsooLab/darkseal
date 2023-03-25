@@ -1,5 +1,5 @@
 /*
- *  Copyright 2021 Collate
+ *  Copyright 2022 Collate.
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
@@ -13,6 +13,8 @@
 
 import { uniqueId } from 'lodash';
 import React, { FC, HTMLAttributes } from 'react';
+import { useHistory } from 'react-router-dom';
+import { getUserPath } from '../../../constants/constants';
 import { EntityReference } from '../../../generated/type/entityReference';
 import UserPopOverCard from '../PopOverCard/UserPopOverCard';
 import ProfilePicture from '../ProfilePicture/ProfilePicture';
@@ -22,6 +24,8 @@ interface Props extends HTMLAttributes<HTMLDivElement> {
 }
 
 const AssigneeList: FC<Props> = ({ assignees, className }) => {
+  const history = useHistory();
+
   return (
     <span className={className}>
       {assignees.map((assignee) => (
@@ -29,7 +33,13 @@ const AssigneeList: FC<Props> = ({ assignees, className }) => {
           key={uniqueId()}
           type={assignee.type}
           userName={assignee.name || ''}>
-          <span className="tw-flex tw-m-1.5 tw-mt-0">
+          <span
+            className="tw-flex tw-m-1.5 tw-mt-0 tw-cursor-pointer"
+            data-testid="assignee"
+            onClick={(e) => {
+              e.stopPropagation();
+              history.push(getUserPath(assignee.name ?? ''));
+            }}>
             <ProfilePicture id="" name={assignee.name || ''} width="20" />
             <span className="tw-ml-1">{assignee.name || ''}</span>
           </span>
