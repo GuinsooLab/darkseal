@@ -1,0 +1,6 @@
+{
+  "name": "Metadata",
+  "displayName": "Metadata Service",
+  "description": "Service Used for creating Metadata Ingestion Pipelines.",
+  "serviceType": "Metadata"
+}
