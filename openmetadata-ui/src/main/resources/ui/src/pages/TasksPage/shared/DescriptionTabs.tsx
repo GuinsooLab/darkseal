@@ -1,5 +1,5 @@
 /*
- *  Copyright 2021 Collate
+ *  Copyright 2022 Collate.
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
@@ -12,12 +12,13 @@
  */
 
 import { Tabs } from 'antd';
+import RichTextEditor from 'components/common/rich-text-editor/RichTextEditor';
+import { EditorContentRef } from 'components/common/rich-text-editor/RichTextEditor.interface';
+import RichTextEditorPreviewer from 'components/common/rich-text-editor/RichTextEditorPreviewer';
 import { Change } from 'diff';
 import { isEqual } from 'lodash';
-import { EditorContentRef } from 'Models';
 import React, { useState } from 'react';
-import RichTextEditor from '../../../components/common/rich-text-editor/RichTextEditor';
-import RichTextEditorPreviewer from '../../../components/common/rich-text-editor/RichTextEditorPreviewer';
+import { useTranslation } from 'react-i18next';
 import { getDescriptionDiff } from '../../../utils/TasksUtils';
 import { DiffView } from './DiffView';
 
@@ -36,6 +37,7 @@ export const DescriptionTabs = ({
   placeHolder,
   onChange,
 }: Props) => {
+  const { t } = useTranslation();
   const { TabPane } = Tabs;
 
   const [diffs, setDiffs] = useState<Change[]>([]);
@@ -57,10 +59,11 @@ export const DescriptionTabs = ({
     <Tabs
       activeKey={activeTab}
       className="ant-tabs-description"
+      data-testid="tabs"
       size="small"
       type="card"
       onChange={onTabChange}>
-      <TabPane key="1" tab="Current">
+      <TabPane data-testid="current-tab" key="1" tab="Current">
         <div className="tw-flex tw-border tw-border-main tw-rounded tw-mb-4 tw-mt-4">
           {description.trim() ? (
             <RichTextEditorPreviewer
@@ -69,22 +72,24 @@ export const DescriptionTabs = ({
               markdown={description}
             />
           ) : (
-            <span className="tw-no-description tw-p-2">No description </span>
+            <span className="tw-no-description tw-p-2">
+              {t('label.no-entity', { entity: t('label.description') })}
+            </span>
           )}
         </div>
       </TabPane>
-      <TabPane key="2" tab="Diff">
+      <TabPane data-testid="diff-tab" key="2" tab="Diff">
         <DiffView
           className="tw-border tw-border-main tw-p-2 tw-rounded tw-my-3"
           diffArr={diffs}
         />
       </TabPane>
-      <TabPane key="3" tab="New">
+      <TabPane data-testid="new-tab" key="3" tab="New">
         <RichTextEditor
           className="tw-my-0"
           height="208px"
           initialValue={suggestion}
-          placeHolder={placeHolder ?? 'Update description'}
+          placeHolder={placeHolder ?? t('label.update-description')}
           ref={markdownRef}
           onTextChange={onChange}
         />

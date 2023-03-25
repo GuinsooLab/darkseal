@@ -1,5 +1,5 @@
 /*
- *  Copyright 2021 Collate
+ *  Copyright 2022 Collate.
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
@@ -11,9 +11,9 @@
  *  limitations under the License.
  */
 
-import { fireEvent, render, screen } from '@testing-library/react';
+import { act, fireEvent, render, screen } from '@testing-library/react';
 import React from 'react';
-import { postkillIngestionPipelineById } from '../../../axiosAPIs/ingestionPipelineAPI';
+import { postKillIngestionPipelineById } from 'rest/ingestionPipelineAPI';
 import KillIngestionModal from './KillIngestionPipelineModal';
 
 const mockHandleClose = jest.fn();
@@ -27,8 +27,8 @@ const mockProps = {
   onIngestionWorkflowsUpdate: mockUpdateWorkflows,
 };
 
-jest.mock('../../../axiosAPIs/ingestionPipelineAPI', () => ({
-  postkillIngestionPipelineById: jest
+jest.mock('rest/ingestionPipelineAPI', () => ({
+  postKillIngestionPipelineById: jest
     .fn()
     .mockImplementation(() => Promise.resolve()),
 }));
@@ -61,20 +61,22 @@ describe('Test Kill Ingestion Modal component', () => {
 
     fireEvent.click(cancelButton);
 
-    expect(mockHandleClose).toBeCalled();
+    expect(mockHandleClose).toHaveBeenCalled();
   });
 
   it('Should call kill api on click of confirm button', async () => {
-    render(<KillIngestionModal {...mockProps} />);
+    await act(async () => {
+      render(<KillIngestionModal {...mockProps} />);
 
-    const confirmButton = await screen.findByText('Confirm');
+      const confirmButton = await screen.findByText('Confirm');
 
-    expect(confirmButton).toBeInTheDocument();
+      expect(confirmButton).toBeInTheDocument();
 
-    fireEvent.click(confirmButton);
+      fireEvent.click(confirmButton);
 
-    expect(postkillIngestionPipelineById).toHaveBeenCalledWith(
-      mockProps.pipelineId
-    );
+      expect(postKillIngestionPipelineById).toHaveBeenCalledWith(
+        mockProps.pipelineId
+      );
+    });
   });
 });

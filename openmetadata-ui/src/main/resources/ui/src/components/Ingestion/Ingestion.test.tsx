@@ -1,5 +1,5 @@
 /*
- *  Copyright 2021 Collate
+ *  Copyright 2022 Collate.
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
@@ -23,22 +23,34 @@ import React from 'react';
 import { MemoryRouter } from 'react-router';
 import { ServiceCategory } from '../../enums/service.enum';
 import { IngestionPipeline } from '../../generated/entity/services/ingestionPipelines/ingestionPipeline';
+import { OperationPermission } from '../PermissionProvider/PermissionProvider.interface';
 import Ingestion from './Ingestion.component';
 import { mockIngestionWorkFlow, mockService } from './Ingestion.mock';
 
-const mockUpdateWorkflows = jest.fn();
+const mockPermissions = {
+  Create: true,
+  Delete: true,
+  EditAll: true,
+  EditCustomFields: true,
+  EditDataProfile: true,
+  EditDescription: true,
+  EditDisplayName: true,
+  EditLineage: true,
+  EditOwner: true,
+  EditQueries: true,
+  EditSampleData: true,
+  EditTags: true,
+  EditTests: true,
+  EditTier: true,
+  ViewAll: true,
+  ViewDataProfile: true,
+  ViewQueries: true,
+  ViewSampleData: true,
+  ViewTests: true,
+  ViewUsage: true,
+} as OperationPermission;
 
-jest.mock('../../authentication/auth-provider/AuthProvider', () => {
-  return {
-    useAuthContext: jest.fn(() => ({
-      isAuthDisabled: true,
-      isAuthenticated: true,
-      isProtectedRoute: jest.fn().mockReturnValue(true),
-      isTourRoute: jest.fn().mockReturnValue(false),
-      onLogoutHandler: jest.fn(),
-    })),
-  };
-});
+const mockUpdateWorkflows = jest.fn();
 
 const mockPaging = {
   after: 'after',
@@ -55,14 +67,6 @@ const mockDeployIngestion = jest
 const mockTriggerIngestion = jest
   .fn()
   .mockImplementation(() => Promise.resolve());
-
-jest.mock('../common/non-admin-action/NonAdminAction', () => {
-  return jest
-    .fn()
-    .mockImplementation(({ children }: { children: React.ReactNode }) => (
-      <div>{children}</div>
-    ));
-});
 
 jest.mock('../containers/PageContainer', () => {
   return jest
@@ -84,10 +88,6 @@ jest.mock('../Modals/EntityDeleteModal/EntityDeleteModal', () => {
   return jest.fn().mockImplementation(() => <div>EntityDeleteModal</div>);
 });
 
-jest.mock('../Modals/IngestionLogsModal/IngestionLogsModal', () => {
-  return jest.fn().mockImplementation(() => <div>IngestionLogsModal</div>);
-});
-
 jest.mock(
   '../Modals/KillIngestionPipelineModal/KillIngestionPipelineModal',
   () => {
@@ -95,13 +95,33 @@ jest.mock(
   }
 );
 
+jest.mock('./IngestionRecentRun/IngestionRecentRuns.component', () => ({
+  IngestionRecentRuns: jest
+    .fn()
+    .mockImplementation(() => <p>IngestionRecentRuns</p>),
+}));
+
+jest.mock('components/PermissionProvider/PermissionProvider', () => ({
+  usePermissionProvider: jest.fn().mockReturnValue({
+    getEntityPermissionByFqn: jest.fn().mockReturnValue({
+      Create: true,
+      Delete: true,
+      ViewAll: true,
+      EditAll: true,
+      EditDescription: true,
+      EditDisplayName: true,
+      EditCustomFields: true,
+    }),
+  }),
+}));
+
 describe('Test Ingestion page', () => {
   it('Page Should render', async () => {
     const { container } = render(
       <Ingestion
         isRequiredDetailsAvailable
         airflowEndpoint=""
-        currrentPage={1}
+        currentPage={1}
         deleteIngestion={mockDeleteIngestion}
         deployIngestion={mockDeployIngestion}
         handleEnableDisableIngestion={handleEnableDisableIngestion}
@@ -110,6 +130,7 @@ describe('Test Ingestion page', () => {
         }
         paging={mockPaging}
         pagingHandler={mockPaginghandler}
+        permissions={mockPermissions}
         serviceCategory={ServiceCategory.DASHBOARD_SERVICES}
         serviceDetails={mockService}
         serviceList={[]}
@@ -140,11 +161,11 @@ describe('Test Ingestion page', () => {
   });
 
   it('Table should render necessary fields', async () => {
-    const { container } = render(
+    const { findByTestId, findAllByRole } = render(
       <Ingestion
         isRequiredDetailsAvailable
         airflowEndpoint=""
-        currrentPage={1}
+        currentPage={1}
         deleteIngestion={mockDeleteIngestion}
         deployIngestion={mockDeployIngestion}
         handleEnableDisableIngestion={handleEnableDisableIngestion}
@@ -153,6 +174,7 @@ describe('Test Ingestion page', () => {
         }
         paging={mockPaging}
         pagingHandler={mockPaginghandler}
+        permissions={mockPermissions}
         serviceCategory={ServiceCategory.DASHBOARD_SERVICES}
         serviceDetails={mockService}
         serviceList={[]}
@@ -165,29 +187,16 @@ describe('Test Ingestion page', () => {
       }
     );
 
-    const ingestionTable = await findByTestId(container, 'ingestion-table');
-    const tableHeaderContainer = await findByTestId(container, 'table-header');
-    const runButton = await findByTestId(container, 'run');
-    const editButton = await findByTestId(container, 'edit');
-    const deleteButton = await findByTestId(container, 'delete');
-    const killButton = await findByTestId(container, 'kill');
-    const logsButton = await findByTestId(container, 'logs');
-    const tableHeaders: string[] = [];
-
-    tableHeaderContainer.childNodes.forEach(
-      (node) => node.textContent && tableHeaders.push(node.textContent)
-    );
+    const ingestionTable = await findByTestId('ingestion-table');
+    const tableHeaderContainer = await findAllByRole('columnheader');
+    const runButton = await findByTestId('run');
+    const editButton = await findByTestId('edit');
+    const deleteButton = await findByTestId('delete');
+    const killButton = await findByTestId('kill');
+    const logsButton = await findByTestId('logs');
 
     expect(ingestionTable).toBeInTheDocument();
-    expect(tableHeaderContainer).toBeInTheDocument();
-    expect(tableHeaders.length).toBe(5);
-    expect(tableHeaders).toStrictEqual([
-      'Name',
-      'Type',
-      'Schedule',
-      'Recent Runs',
-      'Actions',
-    ]);
+    expect(tableHeaderContainer).toHaveLength(5);
     expect(runButton).toBeInTheDocument();
     expect(editButton).toBeInTheDocument();
     expect(deleteButton).toBeInTheDocument();
@@ -205,7 +214,7 @@ describe('Test Ingestion page', () => {
       <Ingestion
         isRequiredDetailsAvailable
         airflowEndpoint=""
-        currrentPage={1}
+        currentPage={1}
         deleteIngestion={mockDeleteIngestion}
         deployIngestion={mockDeployIngestion}
         handleEnableDisableIngestion={handleEnableDisableIngestion}
@@ -214,6 +223,7 @@ describe('Test Ingestion page', () => {
         }
         paging={mockPagingAfter}
         pagingHandler={mockPaginghandler}
+        permissions={mockPermissions}
         serviceCategory={ServiceCategory.DASHBOARD_SERVICES}
         serviceDetails={mockService}
         serviceList={[]}
@@ -242,7 +252,7 @@ describe('Test Ingestion page', () => {
       <Ingestion
         isRequiredDetailsAvailable
         airflowEndpoint=""
-        currrentPage={1}
+        currentPage={1}
         deleteIngestion={mockDeleteIngestion}
         deployIngestion={mockDeployIngestion}
         handleEnableDisableIngestion={handleEnableDisableIngestion}
@@ -251,6 +261,7 @@ describe('Test Ingestion page', () => {
         }
         paging={mockPagingAfter}
         pagingHandler={mockPaginghandler}
+        permissions={mockPermissions}
         serviceCategory={ServiceCategory.DASHBOARD_SERVICES}
         serviceDetails={mockService}
         serviceList={[]}
@@ -281,7 +292,7 @@ describe('Test Ingestion page', () => {
       <Ingestion
         isRequiredDetailsAvailable
         airflowEndpoint=""
-        currrentPage={1}
+        currentPage={1}
         deleteIngestion={mockDeleteIngestion}
         deployIngestion={mockDeployIngestion}
         handleEnableDisableIngestion={handleEnableDisableIngestion}
@@ -290,6 +301,7 @@ describe('Test Ingestion page', () => {
         }
         paging={mockPagingAfter}
         pagingHandler={mockPaginghandler}
+        permissions={mockPermissions}
         serviceCategory={ServiceCategory.DASHBOARD_SERVICES}
         serviceDetails={mockService}
         serviceList={[]}
@@ -308,7 +320,7 @@ describe('Test Ingestion page', () => {
       const runButton = await findByTestId(container, 'run');
       fireEvent.click(runButton);
 
-      expect(mockTriggerIngestion).toBeCalled();
+      expect(mockTriggerIngestion).toHaveBeenCalled();
     });
 
     // on click of delete button
@@ -333,7 +345,7 @@ describe('Test Ingestion page', () => {
       <Ingestion
         isRequiredDetailsAvailable
         airflowEndpoint="http://localhost"
-        currrentPage={1}
+        currentPage={1}
         deleteIngestion={mockDeleteIngestion}
         deployIngestion={mockDeployIngestion}
         handleEnableDisableIngestion={handleEnableDisableIngestion}
@@ -342,6 +354,7 @@ describe('Test Ingestion page', () => {
         }
         paging={mockPaging}
         pagingHandler={mockPaginghandler}
+        permissions={mockPermissions}
         serviceCategory={ServiceCategory.DASHBOARD_SERVICES}
         serviceDetails={mockService}
         serviceList={[]}
@@ -364,7 +377,7 @@ describe('Test Ingestion page', () => {
       <Ingestion
         isRequiredDetailsAvailable
         airflowEndpoint="http://localhost"
-        currrentPage={1}
+        currentPage={1}
         deleteIngestion={mockDeleteIngestion}
         deployIngestion={mockDeployIngestion}
         handleEnableDisableIngestion={handleEnableDisableIngestion}
@@ -373,6 +386,7 @@ describe('Test Ingestion page', () => {
         }
         paging={mockPaging}
         pagingHandler={mockPaginghandler}
+        permissions={mockPermissions}
         serviceCategory={ServiceCategory.DASHBOARD_SERVICES}
         serviceDetails={mockService}
         serviceList={[]}
@@ -391,7 +405,7 @@ describe('Test Ingestion page', () => {
 
     fireEvent.click(pauseButton);
 
-    expect(handleEnableDisableIngestion).toBeCalled();
+    expect(handleEnableDisableIngestion).toHaveBeenCalled();
   });
 
   it('Unpause button should be present if enabled is false', async () => {
@@ -399,7 +413,7 @@ describe('Test Ingestion page', () => {
       <Ingestion
         isRequiredDetailsAvailable
         airflowEndpoint="http://localhost"
-        currrentPage={1}
+        currentPage={1}
         deleteIngestion={mockDeleteIngestion}
         deployIngestion={mockDeployIngestion}
         handleEnableDisableIngestion={handleEnableDisableIngestion}
@@ -410,6 +424,7 @@ describe('Test Ingestion page', () => {
         }
         paging={mockPaging}
         pagingHandler={mockPaginghandler}
+        permissions={mockPermissions}
         serviceCategory={ServiceCategory.DASHBOARD_SERVICES}
         serviceDetails={mockService}
         serviceList={[]}
@@ -430,47 +445,7 @@ describe('Test Ingestion page', () => {
 
     fireEvent.click(unpause);
 
-    expect(handleEnableDisableIngestion).toBeCalled();
-  });
-
-  it('Should render logs modal on click of logs button', async () => {
-    const mockPagingAfter = {
-      after: 'afterKey',
-      before: 'beforeKey',
-      total: 0,
-    };
-
-    const { container } = render(
-      <Ingestion
-        isRequiredDetailsAvailable
-        airflowEndpoint=""
-        currrentPage={1}
-        deleteIngestion={mockDeleteIngestion}
-        deployIngestion={mockDeployIngestion}
-        handleEnableDisableIngestion={handleEnableDisableIngestion}
-        ingestionList={
-          mockIngestionWorkFlow.data.data as unknown as IngestionPipeline[]
-        }
-        paging={mockPagingAfter}
-        pagingHandler={mockPaginghandler}
-        serviceCategory={ServiceCategory.DASHBOARD_SERVICES}
-        serviceDetails={mockService}
-        serviceList={[]}
-        serviceName=""
-        triggerIngestion={mockTriggerIngestion}
-        onIngestionWorkflowsUpdate={mockUpdateWorkflows}
-      />,
-      {
-        wrapper: MemoryRouter,
-      }
-    );
-
-    const logsButton = await findByTestId(container, 'logs');
-    fireEvent.click(logsButton);
-
-    expect(
-      await findByText(container, /IngestionLogsModal/i)
-    ).toBeInTheDocument();
+    expect(handleEnableDisableIngestion).toHaveBeenCalled();
   });
 
   it('Should render kill modal on click of kill button', async () => {
@@ -484,7 +459,7 @@ describe('Test Ingestion page', () => {
       <Ingestion
         isRequiredDetailsAvailable
         airflowEndpoint=""
-        currrentPage={1}
+        currentPage={1}
         deleteIngestion={mockDeleteIngestion}
         deployIngestion={mockDeployIngestion}
         handleEnableDisableIngestion={handleEnableDisableIngestion}
@@ -493,6 +468,7 @@ describe('Test Ingestion page', () => {
         }
         paging={mockPagingAfter}
         pagingHandler={mockPaginghandler}
+        permissions={mockPermissions}
         serviceCategory={ServiceCategory.DASHBOARD_SERVICES}
         serviceDetails={mockService}
         serviceList={[]}

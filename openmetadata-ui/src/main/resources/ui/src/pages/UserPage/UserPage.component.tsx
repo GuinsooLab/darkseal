@@ -1,5 +1,5 @@
 /*
- *  Copyright 2021 Collate
+ *  Copyright 2022 Collate.
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
@@ -11,27 +11,37 @@
  *  limitations under the License.
  */
 
-import { AxiosError, AxiosResponse } from 'axios';
+import { AxiosError } from 'axios';
+import { useAuthContext } from 'components/authentication/auth-provider/AuthProvider';
+import PageContainerV1 from 'components/containers/PageContainerV1';
+import Loader from 'components/Loader/Loader';
+import Users from 'components/Users/Users.component';
+import { UserDetails } from 'components/Users/Users.interface';
 import { compare, Operation } from 'fast-json-patch';
 import { isEmpty, isEqual } from 'lodash';
 import { observer } from 'mobx-react';
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import { AssetsDataType, FormattedTableData } from 'Models';
+import React, {
+  Dispatch,
+  SetStateAction,
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+} from 'react';
+import { useTranslation } from 'react-i18next';
 import { useLocation, useParams } from 'react-router-dom';
+import { getFeedsWithFilter, postFeedById } from 'rest/feedsAPI';
+import { searchData } from 'rest/miscAPI';
+import { getUserByName, updateUserDetail } from 'rest/userAPI';
 import AppState from '../../AppState';
-import { useAuthContext } from '../../authentication/auth-provider/AuthProvider';
-import { getFeedsWithFilter, postFeedById } from '../../axiosAPIs/feedsAPI';
-import { getUserByName, updateUserDetail } from '../../axiosAPIs/userAPI';
-import PageContainerV1 from '../../components/containers/PageContainerV1';
-import Loader from '../../components/Loader/Loader';
-import Users from '../../components/Users/Users.component';
-import { UserDetails } from '../../components/Users/Users.interface';
-import {
-  onErrorText,
-  onUpdatedConversastionError,
-} from '../../constants/feed.constants';
+import { PAGE_SIZE } from '../../constants/constants';
+import { myDataSearchIndex } from '../../constants/Mydata.constants';
 import { getUserCurrentTab } from '../../constants/usersprofile.constants';
 import { FeedFilter } from '../../enums/mydata.enum';
+import { UserProfileTab } from '../../enums/user.enum';
 import {
+  Post,
   Thread,
   ThreadTaskStatus,
   ThreadType,
@@ -39,16 +49,14 @@ import {
 import { User } from '../../generated/entity/teams/user';
 import { Paging } from '../../generated/type/paging';
 import { useAuth } from '../../hooks/authHooks';
-import jsonData from '../../jsons/en';
-import {
-  deletePost,
-  getUpdatedThread,
-  updateThreadData,
-} from '../../utils/FeedUtils';
+import { formatDataResponse, SearchEntityHits } from '../../utils/APIUtils';
+import { deletePost, updateThreadData } from '../../utils/FeedUtils';
 import { showErrorToast } from '../../utils/ToastUtils';
 
 const UserPage = () => {
-  const { username, tab } = useParams<{ [key: string]: string }>();
+  const { t } = useTranslation();
+  const { username, tab = UserProfileTab.ACTIVITY } =
+    useParams<{ [key: string]: string }>();
   const { search } = useLocation();
   const { isAdminUser } = useAuth();
   const { isAuthDisabled } = useAuthContext();
@@ -59,6 +67,8 @@ const UserPage = () => {
   const [isError, setIsError] = useState(false);
   const [entityThread, setEntityThread] = useState<Thread[]>([]);
   const [isFeedLoading, setIsFeedLoading] = useState<boolean>(false);
+  const [isUserEntitiesLoading, setIsUserEntitiesLoading] =
+    useState<boolean>(false);
   const [paging, setPaging] = useState<Paging>({} as Paging);
   const [feedFilter, setFeedFilter] = useState<FeedFilter>(
     (searchParams.get('feedFilter') as FeedFilter) ?? FeedFilter.ALL
@@ -66,6 +76,17 @@ const UserPage = () => {
   const [taskStatus, setTaskStatus] = useState<ThreadTaskStatus>(
     ThreadTaskStatus.Open
   );
+  const [followingEntities, setFollowingEntities] = useState<AssetsDataType>({
+    data: [],
+    total: 0,
+    currPage: 1,
+  });
+  const [ownedEntities, setOwnedEntities] = useState<AssetsDataType>({
+    data: [],
+    total: 0,
+    currPage: 1,
+  });
+
   const threadType = useMemo(() => {
     return getUserCurrentTab(tab) === 2
       ? ThreadType.Task
@@ -76,22 +97,83 @@ const UserPage = () => {
 
   const fetchUserData = () => {
     setUserData({} as User);
-    getUserByName(username, 'profile,roles,teams,follows,owns')
-      .then((res: AxiosResponse) => {
-        if (res.data) {
-          setUserData(res.data);
+    getUserByName(username, 'profile,roles,teams')
+      .then((res) => {
+        if (res) {
+          setUserData(res);
         } else {
-          throw jsonData['api-error-messages']['unexpected-server-response'];
+          throw t('server.unexpected-response');
         }
       })
       .catch((err: AxiosError) => {
         showErrorToast(
           err,
-          jsonData['api-error-messages']['fetch-user-details-error']
+          t('server.entity-fetch-error', {
+            entity: 'User Details',
+          })
         );
         setIsError(true);
       })
       .finally(() => setIsLoading(false));
+  };
+
+  const fetchEntities = async (
+    fetchOwnedEntities = false,
+    handleEntity: Dispatch<SetStateAction<AssetsDataType>>
+  ) => {
+    const entity = fetchOwnedEntities ? ownedEntities : followingEntities;
+    if (userData.id) {
+      setIsUserEntitiesLoading(true);
+      try {
+        const response = await searchData(
+          '',
+          entity.currPage,
+          PAGE_SIZE,
+          fetchOwnedEntities
+            ? `owner.id:${userData.id}`
+            : `followers:${userData.id}`,
+          '',
+          '',
+          myDataSearchIndex
+        );
+        const hits = response.data.hits.hits as SearchEntityHits;
+
+        if (hits?.length > 0) {
+          const data = formatDataResponse(hits);
+          const total = response.data.hits.total.value;
+          handleEntity({
+            data,
+            total,
+            currPage: entity.currPage,
+          });
+        } else {
+          const data = [] as FormattedTableData[];
+          const total = 0;
+          handleEntity({
+            data,
+            total,
+            currPage: entity.currPage,
+          });
+        }
+      } catch (error) {
+        showErrorToast(
+          error as AxiosError,
+          t('server.entity-fetch-error', {
+            entity: `${fetchOwnedEntities ? 'Owned' : 'Follwing'} Entities`,
+          })
+        );
+      } finally {
+        setIsUserEntitiesLoading(false);
+      }
+    }
+  };
+
+  const handleFollowingEntityPaginate = (page: string | number) => {
+    setFollowingEntities((pre) => ({ ...pre, currPage: page as number }));
+  };
+
+  const handleOwnedEntityPaginate = (page: string | number) => {
+    setOwnedEntities((pre) => ({ ...pre, currPage: page as number }));
   };
 
   const ErrorPlaceholder = () => {
@@ -100,10 +182,10 @@ const UserPage = () => {
         className="tw-flex tw-flex-col tw-items-center tw-place-content-center tw-mt-40 tw-gap-1"
         data-testid="error">
         <p className="tw-text-base" data-testid="error-message">
-          No user available with name{' '}
+          {t('message.no-username-available')}
           <span className="tw-font-medium" data-testid="username">
             {username}
-          </span>{' '}
+          </span>
         </p>
       </div>
     );
@@ -120,8 +202,8 @@ const UserPage = () => {
         threadType,
         status
       )
-        .then((res: AxiosResponse) => {
-          const { data, paging: pagingObj } = res.data;
+        .then((res) => {
+          const { data, paging: pagingObj } = res;
           setPaging(pagingObj);
           setEntityThread((prevData) => {
             if (after) {
@@ -134,7 +216,9 @@ const UserPage = () => {
         .catch((err: AxiosError) => {
           showErrorToast(
             err,
-            jsonData['api-error-messages']['fetch-activity-feed-error']
+            t('server.entity-fetch-error', {
+              entity: 'Activity Feeds',
+            })
           );
         })
         .finally(() => {
@@ -158,15 +242,15 @@ const UserPage = () => {
     const data = {
       message: value,
       from: currentUser,
-    };
+    } as Post;
     postFeedById(id, data)
-      .then((res: AxiosResponse) => {
-        if (res.data) {
-          const { id, posts } = res.data;
+      .then((res) => {
+        if (res) {
+          const { id, posts } = res;
           setEntityThread((pre) => {
             return pre.map((thread) => {
               if (thread.id === id) {
-                return { ...res.data, posts: posts.slice(-3) };
+                return { ...res, posts: posts?.slice(-3) };
               } else {
                 return thread;
               }
@@ -175,38 +259,16 @@ const UserPage = () => {
         }
       })
       .catch((err: AxiosError) => {
-        showErrorToast(err, jsonData['api-error-messages']['feed-post-error']);
+        showErrorToast(err, t('message.feed-post-error'));
       });
   };
 
-  const deletePostHandler = (threadId: string, postId: string) => {
-    deletePost(threadId, postId)
-      .then(() => {
-        getUpdatedThread(threadId)
-          .then((data) => {
-            setEntityThread((pre) => {
-              return pre.map((thread) => {
-                if (thread.id === data.id) {
-                  return {
-                    ...thread,
-                    posts: data.posts && data.posts.slice(-3),
-                    postsCount: data.postsCount,
-                  };
-                } else {
-                  return thread;
-                }
-              });
-            });
-          })
-          .catch((error) => {
-            const message = error?.message;
-            showErrorToast(message ?? onUpdatedConversastionError);
-          });
-      })
-      .catch((error) => {
-        const message = error?.message;
-        showErrorToast(message ?? onErrorText);
-      });
+  const deletePostHandler = (
+    threadId: string,
+    postId: string,
+    isThread: boolean
+  ) => {
+    deletePost(threadId, postId, isThread, setEntityThread);
   };
 
   const updateThreadHandler = (
@@ -218,20 +280,20 @@ const UserPage = () => {
     updateThreadData(threadId, postId, isThread, data, setEntityThread);
   };
 
-  const updateUserDetails = (data: UserDetails) => {
+  const updateUserDetails = async (data: UserDetails) => {
     const updatedDetails = { ...userData, ...data };
     const jsonPatch = compare(userData, updatedDetails);
-    updateUserDetail(userData.id, jsonPatch)
-      .then((res: AxiosResponse) => {
-        if (res.data) {
-          setUserData((prevData) => ({ ...prevData, ...data }));
-        } else {
-          throw jsonData['api-error-messages']['unexpected-error'];
-        }
-      })
-      .catch((err: AxiosError) => {
-        showErrorToast(err);
-      });
+
+    try {
+      const response = await updateUserDetail(userData.id, jsonPatch);
+      if (response) {
+        setUserData((prevData) => ({ ...prevData, ...response }));
+      } else {
+        throw t('message.unexpected-error');
+      }
+    } catch (error) {
+      showErrorToast(error as AxiosError);
+    }
   };
 
   const isLoggedinUser = (userName: string) => {
@@ -254,10 +316,13 @@ const UserPage = () => {
           feedData={entityThread || []}
           feedFilter={feedFilter}
           fetchFeedHandler={handleFeedFetchFromFeedList}
+          followingEntities={followingEntities}
           isAdminUser={Boolean(isAdminUser)}
           isAuthDisabled={Boolean(isAuthDisabled)}
           isFeedLoading={isFeedLoading}
           isLoggedinUser={isLoggedinUser(username)}
+          isUserEntitiesLoading={isUserEntitiesLoading}
+          ownedEntities={ownedEntities}
           paging={paging}
           postFeedHandler={postFeedHandler}
           setFeedFilter={setFeedFilter}
@@ -267,6 +332,8 @@ const UserPage = () => {
           updateUserDetails={updateUserDetails}
           userData={userData}
           username={username}
+          onFollowingEntityPaginate={handleFollowingEntityPaginate}
+          onOwnedEntityPaginate={handleOwnedEntityPaginate}
           onSwitchChange={onSwitchChange}
         />
       );
@@ -281,7 +348,13 @@ const UserPage = () => {
   }, [username]);
 
   useEffect(() => {
-    if (userData.id) {
+    const isActivityTabs = [
+      UserProfileTab.ACTIVITY,
+      UserProfileTab.TASKS,
+    ].includes(tab as UserProfileTab);
+
+    // only make feed api call if active tab is either activity or tasks
+    if (userData.id && isActivityTabs) {
       const threadType =
         tab === 'tasks' ? ThreadType.Task : ThreadType.Conversation;
 
@@ -301,11 +374,23 @@ const UserPage = () => {
   }, [tab]);
 
   useEffect(() => {
+    if (tab === UserProfileTab.FOLLOWING) {
+      fetchEntities(false, setFollowingEntities);
+    }
+  }, [followingEntities.currPage, tab, userData]);
+
+  useEffect(() => {
+    if (tab === UserProfileTab.MY_DATA) {
+      fetchEntities(true, setOwnedEntities);
+    }
+  }, [ownedEntities.currPage, tab, userData]);
+
+  useEffect(() => {
     setCurrentLoggedInUser(AppState.getCurrentUserDetails());
   }, [AppState.nonSecureUserDetails, AppState.userDetails]);
 
   return (
-    <PageContainerV1 className="tw-pt-4">
+    <PageContainerV1>
       {isLoading ? <Loader /> : getUserComponent()}
     </PageContainerV1>
   );

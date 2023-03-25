@@ -1,5 +1,5 @@
 /*
- *  Copyright 2021 Collate
+ *  Copyright 2022 Collate.
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
@@ -11,12 +11,6 @@
  *  limitations under the License.
  */
 
-export enum FilterType {
-  TAGS = 'tags',
-  PLATFORM = 'platform',
-  CLUSTER = 'cluster',
-}
-
 export enum SearchIndex {
   TABLE = 'table_search_index',
   TOPIC = 'topic_search_index',
@@ -27,4 +21,14 @@ export enum SearchIndex {
   GLOSSARY = 'glossary_search_index',
   MLMODEL = 'mlmodel_search_index',
   TAG = 'tag_search_index',
+  CONTAINER = 'container_search_index',
 }
+
+export const GENERAL_SEARCH_INDEX = [
+  SearchIndex.DASHBOARD,
+  SearchIndex.TABLE,
+  SearchIndex.TOPIC,
+  SearchIndex.PIPELINE,
+  SearchIndex.MLMODEL,
+  SearchIndex.CONTAINER,
+];

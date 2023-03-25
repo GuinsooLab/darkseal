@@ -1,5 +1,5 @@
 /*
- *  Copyright 2021 Collate
+ *  Copyright 2022 Collate.
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
@@ -31,10 +31,8 @@ export type EditorProp = {
 
 export interface PreviewerProp {
   markdown: string;
+  maxLength?: number;
   className?: string;
-  blurClasses?: string;
-  maxHtClass?: string;
-  maxLen?: number;
   enableSeeMoreVariant?: boolean;
   textVariant?: TextVariant;
 }
@@ -44,6 +42,7 @@ export type PreviewStyle = 'tab' | 'vertical';
 export type EditorType = 'markdown' | 'wysiwyg';
 
 export interface RichTextEditorProp extends HTMLAttributes<HTMLDivElement> {
+  autofocus?: boolean;
   initialValue: string;
   placeHolder?: string;
   previewStyle?: PreviewStyle;
@@ -55,4 +54,9 @@ export interface RichTextEditorProp extends HTMLAttributes<HTMLDivElement> {
   readonly?: boolean;
   height?: string;
   onTextChange?: (value: string) => void;
+}
+
+export interface EditorContentRef {
+  getEditorContent: () => string;
+  clearEditorContent: () => void;
 }

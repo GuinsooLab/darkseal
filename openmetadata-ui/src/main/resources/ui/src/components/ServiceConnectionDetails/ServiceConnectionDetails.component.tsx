@@ -1,5 +1,5 @@
 /*
- *  Copyright 2022 Collate
+ *  Copyright 2022 Collate.
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
@@ -10,27 +10,32 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+
+/* eslint-disable @typescript-eslint/ban-types */
+/* eslint-disable @typescript-eslint/ban-ts-comment */
 // @ts-nocheck
 
-import { faInfoCircle } from '@fortawesome/free-solid-svg-icons';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { isEmpty, isNull, isObject } from 'lodash';
+import { InfoCircleOutlined } from '@ant-design/icons';
+import { Card, Tooltip } from 'antd';
+import { ObjectStoreServiceType } from 'generated/entity/services/objectstoreService';
+import { get, isEmpty, isNull, isObject } from 'lodash';
 import React, { ReactNode, useEffect, useState } from 'react';
-import { DEF_UI_SCHEMA } from '../../constants/services.const';
+import { getObjectStoreConfig } from 'utils/ObjectStoreServiceUtils';
+import { DEF_UI_SCHEMA, JWT_CONFIG } from '../../constants/Services.constant';
 import { EntityType } from '../../enums/entity.enum';
 import { DashboardServiceType } from '../../generated/entity/services/dashboardService';
 import { DatabaseServiceType } from '../../generated/entity/services/databaseService';
 import { MessagingServiceType } from '../../generated/entity/services/messagingService';
+import { MetadataServiceType } from '../../generated/entity/services/metadataService';
 import { MlModelServiceType } from '../../generated/entity/services/mlmodelService';
 import { PipelineServiceType } from '../../generated/entity/services/pipelineService';
 import { ConfigData } from '../../interface/service.interface';
 import { getDashboardConfig } from '../../utils/DashboardServiceUtils';
 import { getDatabaseConfig } from '../../utils/DatabaseServiceUtils';
 import { getMessagingConfig } from '../../utils/MessagingServiceUtils';
+import { getMetadataConfig } from '../../utils/MetadataServiceUtils';
 import { getMlmodelConfig } from '../../utils/MlmodelServiceUtils';
 import { getPipelineConfig } from '../../utils/PipelineServiceUtils';
-import PopOver from '../common/popover/PopOver';
 
 type ServiceConnectionDetailsProps = {
   connectionDetails: ConfigData;
@@ -46,7 +51,13 @@ const ServiceConnectionDetails = ({
   const [schema, setSchema] = useState({});
   const [data, setData] = useState<ReactNode>();
 
-  const getKeyValues = (obj: {}, schemaPropertyObject: {}): ReactNode => {
+  const getKeyValues = (
+    obj: object,
+    schemaPropertyObject: object
+  ): ReactNode => {
+    const internalRef = '$ref';
+    const oneOf = 'oneOf';
+
     return Object.keys(obj).map((key) => {
       const value = obj[key];
 
@@ -65,19 +76,76 @@ const ServiceConnectionDetails = ({
           serviceCategory.slice(0, -1) === EntityType.DATABASE_SERVICE &&
           key === 'credentials'
         ) {
-          if (isObject(value.gcsConfig)) {
-            // Condition for GCS Credentials value
-            const newSchemaPropertyObject =
-              schemaPropertyObject[key].definitions.GCSValues.properties;
+          // Condition for GCS Credentials path
+          const newSchemaPropertyObject =
+            schemaPropertyObject[key].definitions.GCSCredentialsPath;
 
-            return getKeyValues(value.gcsConfig, newSchemaPropertyObject);
-          } else {
-            // Condition for GCS Credentials path
-            const newSchemaPropertyObject =
-              schemaPropertyObject[key].definitions.GCSCredentialsPath;
+          return getKeyValues(value, newSchemaPropertyObject);
+        } else if (
+          serviceCategory.slice(0, -1) === EntityType.DATABASE_SERVICE &&
+          key === 'configSource'
+        ) {
+          if (isObject(value.securityConfig)) {
+            if (!value.securityConfig.gcsConfig) {
+              if (Object.keys(schemaPropertyObject[key]).includes(oneOf)) {
+                if (
+                  value.securityConfig?.awsAccessKeyId ||
+                  value.securityConfig?.awsSecretAccessKey
+                ) {
+                  return getKeyValues(
+                    value.securityConfig,
+                    get(
+                      schema,
+                      'definitions.S3Config.properties.securityConfig.properties',
+                      {}
+                    )
+                  );
+                }
+              } else if (
+                Object.keys(schemaPropertyObject[key]).includes(internalRef)
+              ) {
+                const definition = schemaPropertyObject[key][internalRef]
+                  .split('/')
+                  .splice(2);
 
-            return getKeyValues(value, newSchemaPropertyObject);
+                const newSchemaPropertyObject = schema.definitions[definition];
+
+                return getKeyValues(value, newSchemaPropertyObject);
+              }
+            } else {
+              if (isObject(value.securityConfig.gcsConfig)) {
+                // Condition for GCS Credentials value
+                return getKeyValues(
+                  value.securityConfig.gcsConfig,
+                  get(
+                    schema,
+                    'definitions.GCSConfig.properties.securityConfig.definitions.GCSValues.properties',
+                    {}
+                  )
+                );
+              } else {
+                // Condition for GCS Credentials path
+
+                return getKeyValues(
+                  value,
+                  get(
+                    schema,
+                    'definitions.GCSConfig.properties.securityConfig.definitions.GCSCredentialsPath',
+                    {}
+                  )
+                );
+              }
+            }
           }
+        } else if (
+          serviceCategory.slice(0, -1) === EntityType.METADATA_SERVICE &&
+          key === 'securityConfig'
+        ) {
+          const newSchemaPropertyObject = schemaPropertyObject[
+            key
+          ].oneOf.filter((item) => item.title === JWT_CONFIG)[0].properties;
+
+          return getKeyValues(value, newSchemaPropertyObject);
         } else {
           return getKeyValues(
             value,
@@ -95,17 +163,12 @@ const ServiceConnectionDetails = ({
           <div className="tw-w-1/2 tw-flex tw-nowrap tw-mb-3" key={key}>
             <div className="tw-flex">
               <p className="tw-text-gray-500 tw-m-0">{title || key}:</p>
-              <PopOver
-                delay={0}
-                position="bottom"
-                title={description}
-                trigger="mouseenter">
-                <FontAwesomeIcon
+              <Tooltip position="bottom" title={description} trigger="hover">
+                <InfoCircleOutlined
                   className="tw-mx-1"
-                  color="#C4C4C4"
-                  icon={{ ...faInfoCircle }}
+                  style={{ color: 'C4C4C4' }}
                 />
-              </PopOver>
+              </Tooltip>
             </div>
             <div className="tw-mx-3 tw-flex-1">
               <input
@@ -149,6 +212,14 @@ const ServiceConnectionDetails = ({
         setSchema(getMlmodelConfig(serviceFQN as MlModelServiceType).schema);
 
         break;
+      case EntityType.METADATA_SERVICE:
+        setSchema(getMetadataConfig(serviceFQN as MetadataServiceType).schema);
+
+        break;
+      case EntityType.OBJECT_STORE_SERVICE:
+        setSchema(
+          getObjectStoreConfig(serviceFQN as ObjectStoreServiceType).schema
+        );
     }
   }, [serviceCategory, serviceFQN]);
 
@@ -159,13 +230,13 @@ const ServiceConnectionDetails = ({
   }, [schema]);
 
   return (
-    <div className="tw-bg-white">
+    <Card>
       <div
-        className="tw-w-full tw-p-5 tw-flex tw-flex-wrap tw-border tw-rounded-lg tw-border-gray-300"
+        className="d-flex flex-wrap p-xss"
         data-testid="service-connection-details">
         {data}
       </div>
-    </div>
+    </Card>
   );
 };
 

@@ -1,5 +1,5 @@
 /*
- *  Copyright 2022 Collate
+ *  Copyright 2022 Collate.
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
@@ -11,12 +11,30 @@
  *  limitations under the License.
  */
 
-import { Buffer } from 'buffer';
-import { ungzip } from 'pako';
+import { t } from 'i18next';
 
-export const gzipToStringConverter = (data: string) => {
-  const gzipedDataBuffer = Buffer.from(data, 'base64');
-  const ungzipedData = ungzip(gzipedDataBuffer);
+import {
+  INGESTION_ACTION_TYPE,
+  PIPELINE_TYPE_LOCALIZATION,
+} from '../constants/Ingestions.constant';
 
-  return new TextDecoder().decode(ungzipedData);
+export const getIngestionHeadingName = (
+  ingestionType: string,
+  type: string
+) => {
+  const ingestionName = t(
+    `label.${
+      PIPELINE_TYPE_LOCALIZATION[
+        ingestionType as keyof typeof PIPELINE_TYPE_LOCALIZATION
+      ]
+    }`
+  );
+
+  return type === INGESTION_ACTION_TYPE.ADD
+    ? t('label.add-workflow-ingestion', {
+        workflow: ingestionName,
+      })
+    : t('label.edit-workflow-ingestion', {
+        workflow: ingestionName,
+      });
 };

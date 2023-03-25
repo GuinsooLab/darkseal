@@ -15,33 +15,29 @@ package org.openmetadata.client.security;
 
 import feign.RequestInterceptor;
 import feign.RequestTemplate;
-import io.swagger.client.ApiClient;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Date;
-import org.openmetadata.catalog.security.client.CustomOIDCSSOClientConfig;
-import org.openmetadata.catalog.services.connections.metadata.OpenMetadataServerConnection;
+import lombok.extern.slf4j.Slf4j;
+import org.openmetadata.client.ApiClient;
 import org.openmetadata.client.model.AccessTokenResponse;
 import org.openmetadata.client.security.interfaces.AuthenticationProvider;
 import org.openmetadata.client.security.interfaces.CustomOIDCAccessTokenApi;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.openmetadata.schema.security.client.CustomOIDCSSOClientConfig;
+import org.openmetadata.schema.services.connections.metadata.OpenMetadataConnection;
 
+@Slf4j
 public class CustomOIDCAuthenticationProvider implements AuthenticationProvider {
-
-  private static final Logger LOG = LoggerFactory.getLogger(CustomOIDCAuthenticationProvider.class);
-  private OpenMetadataServerConnection serverConfig;
   private final CustomOIDCSSOClientConfig securityConfig;
   private String generatedAuthToken;
   private Long expirationTimeMillis;
   private final CustomOIDCAccessTokenApi customSSOClient;
 
-  public CustomOIDCAuthenticationProvider(OpenMetadataServerConnection iConfig) {
-    if (!iConfig.getAuthProvider().equals(OpenMetadataServerConnection.AuthProvider.CUSTOM_OIDC)) {
+  public CustomOIDCAuthenticationProvider(OpenMetadataConnection iConfig) {
+    if (!iConfig.getAuthProvider().equals(OpenMetadataConnection.AuthProvider.CUSTOM_OIDC)) {
       LOG.error("Required type to invoke is CustomOIDC for CustomOIDCAuthentication Provider");
       throw new RuntimeException("Required type to invoke is CustomOIDC for CustomOIDCAuthentication Provider");
     }
-    serverConfig = iConfig;
 
     securityConfig = (CustomOIDCSSOClientConfig) iConfig.getSecurityConfig();
     if (securityConfig == null) {
@@ -68,7 +64,7 @@ public class CustomOIDCAuthenticationProvider implements AuthenticationProvider 
   }
 
   @Override
-  public AuthenticationProvider create(OpenMetadataServerConnection iConfig) {
+  public AuthenticationProvider create(OpenMetadataConnection iConfig) {
     return new CustomOIDCAuthenticationProvider(iConfig);
   }
 

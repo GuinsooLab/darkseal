@@ -8,37 +8,47 @@
 #  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
+"""
+Elasticsearch sink, sending metadata from OM to create and populate
+the indexes used in OM.
+
+We disable unexpected-keyword-arg as we get a false positive for request_timeout in put_mappings
+"""
 
 import json
 import ssl
-import sys
 import traceback
-from datetime import datetime
 from typing import List, Optional
 
-from elasticsearch import Elasticsearch
+import boto3
+from elasticsearch import Elasticsearch, RequestsHttpConnection
 from elasticsearch.connection import create_ssl_context
+from requests_aws4auth import AWS4Auth
 
 from metadata.config.common import ConfigModel
-from metadata.generated.schema.entity.data.chart import Chart
+from metadata.data_insight.helper.data_insight_es_index import DataInsightEsIndex
+from metadata.generated.schema.analytics.reportData import ReportData
+from metadata.generated.schema.entity.classification.classification import (
+    Classification,
+)
+from metadata.generated.schema.entity.classification.tag import Tag
 from metadata.generated.schema.entity.data.dashboard import Dashboard
 from metadata.generated.schema.entity.data.database import Database
 from metadata.generated.schema.entity.data.databaseSchema import DatabaseSchema
 from metadata.generated.schema.entity.data.glossaryTerm import GlossaryTerm
 from metadata.generated.schema.entity.data.mlmodel import MlModel
-from metadata.generated.schema.entity.data.pipeline import Pipeline, Task
+from metadata.generated.schema.entity.data.pipeline import Pipeline
 from metadata.generated.schema.entity.data.table import Column, Table
 from metadata.generated.schema.entity.data.topic import Topic
 from metadata.generated.schema.entity.services.connections.metadata.openMetadataConnection import (
     OpenMetadataConnection,
 )
-from metadata.generated.schema.entity.tags.tagCategory import TagCategory
 from metadata.generated.schema.entity.teams.team import Team
 from metadata.generated.schema.entity.teams.user import User
 from metadata.generated.schema.type.entityReference import EntityReference
 from metadata.ingestion.api.common import Entity
-from metadata.ingestion.api.sink import Sink, SinkStatus
-from metadata.ingestion.models.table_metadata import (
+from metadata.ingestion.api.sink import Sink
+from metadata.ingestion.models.es_documents import (
     DashboardESDocument,
     ESEntityReference,
     GlossaryTermESDocument,
@@ -53,6 +63,9 @@ from metadata.ingestion.models.table_metadata import (
 from metadata.ingestion.ometa.ometa_api import OpenMetadata
 from metadata.ingestion.sink.elasticsearch_mapping.dashboard_search_index_mapping import (
     DASHBOARD_ELASTICSEARCH_INDEX_MAPPING,
+)
+from metadata.ingestion.sink.elasticsearch_mapping.entity_report_data_index_mapping import (
+    ENTITY_REPORT_DATA_INDEX_MAPPING,
 )
 from metadata.ingestion.sink.elasticsearch_mapping.glossary_term_search_index_mapping import (
     GLOSSARY_TERM_ELASTICSEARCH_INDEX_MAPPING,
@@ -78,13 +91,15 @@ from metadata.ingestion.sink.elasticsearch_mapping.topic_search_index_mapping im
 from metadata.ingestion.sink.elasticsearch_mapping.user_search_index_mapping import (
     USER_ELASTICSEARCH_INDEX_MAPPING,
 )
+from metadata.ingestion.sink.elasticsearch_mapping.web_analytic_entity_view_report_data_index_mapping import (
+    WEB_ANALYTIC_ENTITY_VIEW_REPORT_DATA_INDEX_MAPPING,
+)
+from metadata.ingestion.sink.elasticsearch_mapping.web_analytic_user_activity_report_data_index_mapping import (
+    WEB_ANALYTIC_USER_ACTIVITY_REPORT_DATA_INDEX_MAPPING,
+)
 from metadata.utils.logger import ingestion_logger
 
 logger = ingestion_logger()
-
-
-def epoch_ms(dt: datetime):
-    return int(dt.timestamp() * 1000)
 
 
 def get_es_entity_ref(entity_ref: EntityReference) -> ESEntityReference:
@@ -101,6 +116,11 @@ def get_es_entity_ref(entity_ref: EntityReference) -> ESEntityReference:
 
 
 class ElasticSearchConfig(ConfigModel):
+    """
+    Representation of the Elasticsearch connection
+    to be used as a Sink.
+    """
+
     es_host: str
     es_port: int = 9200
     es_username: Optional[str] = None
@@ -114,6 +134,9 @@ class ElasticSearchConfig(ConfigModel):
     index_mlmodels: Optional[bool] = True
     index_glossary_terms: Optional[bool] = True
     index_tags: Optional[bool] = True
+    index_entity_report_data: Optional[bool] = True
+    index_web_analytic_user_activity_report_data: Optional[bool] = True
+    index_web_analytic_entity_view_report_data: Optional[bool] = True
     table_index_name: str = "table_search_index"
     topic_index_name: str = "topic_search_index"
     dashboard_index_name: str = "dashboard_search_index"
@@ -123,16 +146,28 @@ class ElasticSearchConfig(ConfigModel):
     glossary_term_index_name: str = "glossary_search_index"
     mlmodel_index_name: str = "mlmodel_search_index"
     tag_index_name: str = "tag_search_index"
+    entity_report_data_index_name: str = "entity_report_data_index"
+    web_analytic_user_activity_report_data_index_name: str = (
+        "web_analytic_user_activity_report_data_index"
+    )
+    web_analytic_entity_view_report_data_name: str = (
+        "web_analytic_entity_view_report_data_index"
+    )
     scheme: str = "http"
     use_ssl: bool = False
     verify_certs: bool = False
     timeout: int = 30
     ca_certs: Optional[str] = None
     recreate_indexes: Optional[bool] = False
+    use_AWS_credentials: Optional[bool] = False
+    region_name: Optional[str] = None
 
 
 class ElasticsearchSink(Sink[Entity]):
-    """ """
+    """
+    Class containing the logic to transform OM Entities
+    into ES indexes and data. To be used as a Workflow Sink
+    """
 
     DEFAULT_ELASTICSEARCH_INDEX_MAPPING = TABLE_ELASTICSEARCH_INDEX_MAPPING
 
@@ -141,16 +176,16 @@ class ElasticsearchSink(Sink[Entity]):
         config = ElasticSearchConfig.parse_obj(config_dict)
         return cls(config, metadata_config)
 
+    # to be fix in https://github.com/open-metadata/OpenMetadata/issues/8352
+    # pylint: disable=too-many-branches
     def __init__(
         self,
         config: ElasticSearchConfig,
         metadata_config: OpenMetadataConnection,
     ) -> None:
-
+        super().__init__()
         self.config = config
         self.metadata_config = metadata_config
-
-        self.status = SinkStatus()
         self.metadata = OpenMetadata(self.metadata_config)
         self.elasticsearch_doc_type = "_doc"
         http_auth = None
@@ -174,6 +209,19 @@ class ElasticsearchSink(Sink[Entity]):
             ssl_context=ssl_context,
             ca_certs=self.config.ca_certs,
         )
+        if self.config.use_AWS_credentials:
+            credentials = boto3.Session().get_credentials()
+            # We are initializing the Session() here and letting it pick up host creds.
+            region_from_boto3 = boto3.Session().region_name
+            http_auth = AWS4Auth(
+                region=self.config.region_name
+                if self.config.region_name
+                else region_from_boto3,
+                service="es",
+                refreshable_credentials=credentials,
+            )
+            self.elasticsearch_client.http_auth = http_auth
+            self.elasticsearch_client.connection_class = RequestsHttpConnection
 
         if self.config.index_tables:
             self._check_or_create_index(
@@ -221,6 +269,26 @@ class ElasticsearchSink(Sink[Entity]):
                 TAG_ELASTICSEARCH_INDEX_MAPPING,
             )
 
+        if self.config.index_entity_report_data:
+            self._check_or_create_index(
+                self.config.entity_report_data_index_name,
+                ENTITY_REPORT_DATA_INDEX_MAPPING,
+            )
+
+        if self.config.index_web_analytic_user_activity_report_data:
+            self._check_or_create_index(
+                self.config.web_analytic_user_activity_report_data_index_name,
+                WEB_ANALYTIC_USER_ACTIVITY_REPORT_DATA_INDEX_MAPPING,
+            )
+
+        if self.config.index_web_analytic_entity_view_report_data:
+            self._check_or_create_index(
+                self.config.web_analytic_entity_view_report_data_name,
+                WEB_ANALYTIC_ENTITY_VIEW_REPORT_DATA_INDEX_MAPPING,
+            )
+
+        super().__init__()
+
     def _check_or_create_index(self, index_name: str, es_mapping: str):
         """
         Retrieve all indices that currently have {elasticsearch_alias} alias
@@ -245,10 +313,14 @@ class ElasticsearchSink(Sink[Entity]):
                     request_timeout=self.config.timeout,
                 )
         else:
-            logger.warning(
-                "Received index not found error from Elasticsearch. "
-                + "The index doesn't exist for a newly created ES. It's OK on first run."
-            )
+            # Show different logs if we are recreating indexes, or we have a possibly unexpected index miss
+            if self.config.recreate_indexes:
+                logger.info(f"Recreating Elasticsearch index {index_name}...")
+            else:
+                logger.warning(
+                    f"Received index {index_name} not found error from Elasticsearch. "
+                    + "The index doesn't exist for a newly created ES. It's OK on first run."
+                )
             # create new index with mapping
             if self.elasticsearch_client.indices.exists(index=index_name):
                 self.elasticsearch_client.indices.delete(
@@ -329,7 +401,7 @@ class ElasticsearchSink(Sink[Entity]):
                     request_timeout=self.config.timeout,
                 )
 
-            if isinstance(record, TagCategory):
+            if isinstance(record, Classification):
                 tag_docs = self._create_tag_es_doc(record)
                 for tag_doc in tag_docs:
                     self.elasticsearch_client.index(
@@ -340,22 +412,49 @@ class ElasticsearchSink(Sink[Entity]):
                     )
                     self.status.records_written(tag_doc.name)
 
-        except Exception as e:
-            logger.error(f"Failed to index entity {record} due to {e}")
+            if isinstance(record, ReportData):
+                self.elasticsearch_client.index(
+                    index=DataInsightEsIndex[record.data.__class__.__name__].value,
+                    id=record.id,
+                    body=record.json(),
+                    request_timeout=self.config.timeout,
+                )
+                self.status.records_written(
+                    f"Event written for record type {record.data.__class__.__name__}"
+                )
+
+        except Exception as exc:
             logger.debug(traceback.format_exc())
-            logger.debug(sys.exc_info()[2])
+            logger.error(f"Failed to index entity {record}: {exc}")
+
+    def read_records(self, index: str, query: dict):
+        """Read records from es index
+
+        Args:
+            index: elasticsearch index
+            query: query to be passed to the request body
+        """
+        return self.elasticsearch_client.search(
+            index=index,
+            body=query,
+        )
+
+    def bulk_operation(
+        self,
+        body: List[dict],
+    ):
+        """Perform bulk operations.
+
+        Args:
+            body: https://www.elastic.co/guide/en/elasticsearch/reference/current/docs-bulk.html
+        """
+        return self.elasticsearch_client.bulk(body=body)
 
     def _create_table_es_doc(self, table: Table):
-        table_fqn = table.fullyQualifiedName.__root__
-        table_name = table.name
         suggest = [
-            {"input": [table_fqn], "weight": 5},
-            {"input": [table_name], "weight": 10},
+            {"input": [table.fullyQualifiedName.__root__], "weight": 5},
+            {"input": [table.name], "weight": 10},
         ]
-        column_suggest = []
-        schema_suggest = []
-        database_suggest = []
-        service_suggest = []
         tags = []
         tier = None
         column_names = []
@@ -373,23 +472,16 @@ class ElasticsearchSink(Sink[Entity]):
         database_schema_entity = self.metadata.get_by_id(
             entity=DatabaseSchema, entity_id=str(table.databaseSchema.id.__root__)
         )
-        service_suggest.append({"input": [table.service.name], "weight": 5})
-        database_suggest.append({"input": [database_entity.name.__root__], "weight": 5})
-        schema_suggest.append(
-            {"input": [database_schema_entity.name.__root__], "weight": 5}
-        )
+
         self._parse_columns(
-            table.columns, None, column_names, column_descriptions, tags
+            columns=table.columns,
+            parent_column=None,
+            column_names=column_names,
+            column_descriptions=column_descriptions,
+            tags=tags,
         )
-        for column in column_names:
-            column_suggest.append({"input": [column], "weight": 5})
 
-        table_followers = []
-        if table.followers:
-            for follower in table.followers.__root__:
-                table_followers.append(str(follower.id.__root__))
-
-        table_doc = TableESDocument(
+        return TableESDocument(
             id=str(table.id.__root__),
             name=table.name.__root__,
             displayName=table.displayName if table.displayName else table.name.__root__,
@@ -408,16 +500,26 @@ class ElasticsearchSink(Sink[Entity]):
             deleted=table.deleted,
             serviceType=str(table.serviceType.name),
             suggest=suggest,
-            service_suggest=service_suggest,
-            database_suggest=database_suggest,
-            schema_suggest=schema_suggest,
-            column_suggest=column_suggest,
+            service_suggest=[{"input": [table.service.name], "weight": 5}],
+            database_suggest=[{"input": [database_entity.name.__root__], "weight": 5}],
+            schema_suggest=[
+                {
+                    "input": [database_schema_entity.name.__root__],
+                    "weight": 5,
+                }
+            ],
+            column_suggest=[
+                {"input": [column], "weight": 5} for column in column_names
+            ],
             description=table.description.__root__ if table.description else "",
             tier=tier,
             tags=list(tags),
-            followers=table_followers,
+            followers=[
+                str(follower.id.__root__) for follower in table.followers.__root__
+            ]
+            if table.followers
+            else [],
         )
-        return table_doc
 
     def _create_topic_es_doc(self, topic: Topic):
         service_suggest = []
@@ -450,8 +552,8 @@ class ElasticsearchSink(Sink[Entity]):
             deleted=topic.deleted,
             service=topic.service,
             serviceType=str(topic.serviceType.name),
-            schemaText=topic.schemaText,
-            schemaType=str(topic.schemaType.name),
+            schemaText=topic.messageSchema.schemaText if topic.messageSchema else None,
+            schemaType=topic.messageSchema.schemaType if topic.messageSchema else None,
             cleanupPolicies=[str(policy.name) for policy in topic.cleanupPolicies],
             replicationFactor=topic.replicationFactor,
             maximumMessageSize=topic.maximumMessageSize,
@@ -466,9 +568,12 @@ class ElasticsearchSink(Sink[Entity]):
         return topic_doc
 
     def _create_dashboard_es_doc(self, dashboard: Dashboard):
+        display_name = (
+            dashboard.displayName if dashboard.displayName else dashboard.name.__root__
+        )
         suggest = [
             {"input": [dashboard.fullyQualifiedName.__root__], "weight": 10},
-            {"input": [dashboard.displayName], "weight": 5},
+            {"input": [display_name], "weight": 5},
         ]
         service_suggest = []
         chart_suggest = []
@@ -485,16 +590,15 @@ class ElasticsearchSink(Sink[Entity]):
                 tags.append(dashboard_tag)
 
         for chart in dashboard.charts:
-            chart_suggest.append({"input": [chart.displayName], "weight": 5})
+            chart_display_name = chart.displayName if chart.displayName else chart.name
+            chart_suggest.append({"input": [chart_display_name], "weight": 5})
 
         service_suggest.append({"input": [dashboard.service.name], "weight": 5})
 
         dashboard_doc = DashboardESDocument(
             id=str(dashboard.id.__root__),
-            name=dashboard.displayName
-            if dashboard.displayName
-            else dashboard.name.__root__,
-            displayName=dashboard.displayName if dashboard.displayName else "",
+            name=display_name,
+            displayName=display_name,
             description=dashboard.description.__root__ if dashboard.description else "",
             fullyQualifiedName=dashboard.fullyQualifiedName.__root__,
             version=dashboard.version.__root__,
@@ -519,9 +623,12 @@ class ElasticsearchSink(Sink[Entity]):
         return dashboard_doc
 
     def _create_pipeline_es_doc(self, pipeline: Pipeline):
+        display_name = (
+            pipeline.displayName if pipeline.displayName else pipeline.name.__root__
+        )
         suggest = [
             {"input": [pipeline.fullyQualifiedName.__root__], "weight": 10},
-            {"input": [pipeline.displayName], "weight": 5},
+            {"input": [display_name], "weight": 5},
         ]
         service_suggest = []
         task_suggest = []
@@ -546,9 +653,7 @@ class ElasticsearchSink(Sink[Entity]):
         pipeline_doc = PipelineESDocument(
             id=str(pipeline.id.__root__),
             name=pipeline.name.__root__,
-            displayName=pipeline.displayName
-            if pipeline.displayName
-            else pipeline.name.__root__,
+            displayName=display_name,
             description=pipeline.description.__root__ if pipeline.description else "",
             fullyQualifiedName=pipeline.fullyQualifiedName.__root__,
             version=pipeline.version.__root__,
@@ -572,7 +677,10 @@ class ElasticsearchSink(Sink[Entity]):
         return pipeline_doc
 
     def _create_ml_model_es_doc(self, ml_model: MlModel):
-        suggest = [{"input": [ml_model.displayName], "weight": 10}]
+        display_name = (
+            ml_model.displayName if ml_model.displayName else ml_model.name.__root__
+        )
+        suggest = [{"input": [display_name], "weight": 10}]
         tags = []
         ml_model_followers = []
         if ml_model.followers:
@@ -603,9 +711,7 @@ class ElasticsearchSink(Sink[Entity]):
         ml_model_doc = MlModelESDocument(
             id=str(ml_model.id.__root__),
             name=ml_model.name.__root__,
-            displayName=ml_model.displayName
-            if ml_model.displayName
-            else ml_model.name.__root__,
+            displayName=display_name,
             description=ml_model.description.__root__ if ml_model.description else "",
             fullyQualifiedName=ml_model.fullyQualifiedName.__root__,
             version=ml_model.version.__root__,
@@ -640,7 +746,7 @@ class ElasticsearchSink(Sink[Entity]):
         user_doc = UserESDocument(
             id=str(user.id.__root__),
             name=user.name.__root__,
-            displayName=user.displayName if user.displayName else user.name.__root__,
+            displayName=display_name,
             description=user.description.__root__ if user.description else "",
             fullyQualifiedName=user.fullyQualifiedName.__root__,
             version=user.version.__root__,
@@ -659,15 +765,17 @@ class ElasticsearchSink(Sink[Entity]):
         return user_doc
 
     def _create_team_es_doc(self, team: Team):
+        display_name = team.displayName if team.displayName else team.name.__root__
         suggest = [
-            {"input": [team.displayName], "weight": 5},
+            {"input": [display_name], "weight": 5},
             {"input": [team.name], "weight": 10},
         ]
         team_doc = TeamESDocument(
             id=str(team.id.__root__),
             name=team.name.__root__,
-            displayName=team.displayName if team.displayName else team.name.__root__,
+            displayName=display_name,
             description=team.description.__root__ if team.description else "",
+            teamType=team.teamType.name,
             fullyQualifiedName=team.fullyQualifiedName.__root__,
             version=team.version.__root__,
             updatedAt=team.updatedAt.__root__,
@@ -677,22 +785,26 @@ class ElasticsearchSink(Sink[Entity]):
             suggest=suggest,
             users=team.users if team.users else [],
             defaultRoles=team.defaultRoles if team.defaultRoles else [],
+            parents=team.parents if team.parents else [],
             isJoinable=team.isJoinable,
         )
 
         return team_doc
 
     def _create_glossary_term_es_doc(self, glossary_term: GlossaryTerm):
+        display_name = (
+            glossary_term.displayName
+            if glossary_term.displayName
+            else glossary_term.name.__root__
+        )
         suggest = [
-            {"input": [glossary_term.displayName], "weight": 5},
+            {"input": [display_name], "weight": 5},
             {"input": [glossary_term.name], "weight": 10},
         ]
         glossary_term_doc = GlossaryTermESDocument(
             id=str(glossary_term.id.__root__),
             name=str(glossary_term.name.__root__),
-            displayName=glossary_term.displayName
-            if glossary_term.displayName
-            else glossary_term.name.__root__,
+            displayName=display_name,
             description=glossary_term.description.__root__
             if glossary_term.description
             else "",
@@ -717,9 +829,13 @@ class ElasticsearchSink(Sink[Entity]):
 
         return glossary_term_doc
 
-    def _create_tag_es_doc(self, tag_category: TagCategory):
+    def _create_tag_es_doc(self, classification: Classification):
         tag_docs = []
-        for tag in tag_category.children:
+
+        tag_list = self.metadata.list_entities(
+            entity=Tag, params={"parent": classification.name.__root__}
+        )
+        for tag in tag_list.entities or []:
             suggest = [
                 {"input": [tag.name.__root__], "weight": 5},
                 {"input": [tag.fullyQualifiedName], "weight": 10},
@@ -744,11 +860,15 @@ class ElasticsearchSink(Sink[Entity]):
     def _parse_columns(
         self,
         columns: List[Column],
-        parent_column,
-        column_names,
-        column_descriptions,
-        tags,
+        parent_column: Optional[str],
+        column_names: List[str],
+        column_descriptions: List[str],
+        tags: List[str],
     ):
+        """
+        Handle column names, descriptions and tags and recursively
+        add the information for its children.
+        """
         for column in columns:
             col_name = (
                 parent_column + "." + column.name.__root__
@@ -769,9 +889,6 @@ class ElasticsearchSink(Sink[Entity]):
                     column_descriptions,
                     tags,
                 )
-
-    def get_status(self):
-        return self.status
 
     def close(self):
         self.elasticsearch_client.close()

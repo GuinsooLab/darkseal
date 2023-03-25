@@ -17,29 +17,29 @@ from typing import List, Optional, Set, Tuple
 from sqlalchemy.engine import Engine
 from sqlalchemy.engine.reflection import Inspector
 
-from metadata.generated.schema.entity.data.table import Column, DataModel, Table
+from metadata.generated.schema.entity.data.table import Column
 from metadata.generated.schema.metadataIngestion.databaseServiceMetadataPipeline import (
     DatabaseServiceMetadataPipeline,
 )
 from metadata.generated.schema.metadataIngestion.workflow import (
     Source as WorkflowSource,
 )
-from metadata.generated.schema.type.tagLabel import TagLabel
 from metadata.ingestion.models.topology import TopologyContext
 from metadata.ingestion.ometa.ometa_api import OpenMetadata
-from metadata.ingestion.source.database.database_service import SQLSourceStatus
 from metadata.utils.logger import ingestion_logger
 
 logger = ingestion_logger()
 
 
 class SqlAlchemySource(ABC):
+    """
+    Sqlalchemy Source Abstract Class
+    """
 
     engine: Engine
     metadata: OpenMetadata
     context: TopologyContext
     database_source_state: Set
-    status: SQLSourceStatus
     source_config: DatabaseServiceMetadataPipeline
     config: WorkflowSource
 
@@ -63,22 +63,6 @@ class SqlAlchemySource(ABC):
     ) -> str:
         """
         Method returns the table level comment
-        """
-
-    @abstractmethod
-    def is_partition(
-        self, table_name: str, schema_name: str, inspector: Inspector
-    ) -> bool:
-        """
-        Method to check if the table is partitioned table
-        """
-
-    @abstractmethod
-    def get_data_model(
-        self, database: str, schema_name: str, table_name: str
-    ) -> DataModel:
-        """
-        Method to fetch data models
         """
 
     @abstractmethod

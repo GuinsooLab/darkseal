@@ -56,6 +56,9 @@ from metadata.generated.schema.entity.services.mlmodelService import (
     MlModelService,
     MlModelServiceType,
 )
+from metadata.generated.schema.security.client.openMetadataJWTClientConfig import (
+    OpenMetadataJWTClientConfig,
+)
 from metadata.generated.schema.type.entityReference import EntityReference
 from metadata.ingestion.ometa.ometa_api import OpenMetadata
 
@@ -66,7 +69,13 @@ class OMetaModelTest(TestCase):
     Install the ingestion package before running the tests
     """
 
-    server_config = OpenMetadataConnection(hostPort="http://localhost:8585/api")
+    server_config = OpenMetadataConnection(
+        hostPort="http://localhost:8585/api",
+        authProvider="openmetadata",
+        securityConfig=OpenMetadataJWTClientConfig(
+            jwtToken="eyJraWQiOiJHYjM4OWEtOWY3Ni1nZGpzLWE5MmotMDI0MmJrOTQzNTYiLCJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9.eyJzdWIiOiJhZG1pbiIsImlzQm90IjpmYWxzZSwiaXNzIjoib3Blbi1tZXRhZGF0YS5vcmciLCJpYXQiOjE2NjM5Mzg0NjIsImVtYWlsIjoiYWRtaW5Ab3Blbm1ldGFkYXRhLm9yZyJ9.tS8um_5DKu7HgzGBzS1VTA5uUjKWOCU0B_j08WXBiEC0mr0zNREkqVfwFDD-d24HlNEbrqioLsBuFRiwIWKc1m_ZlVQbG7P36RUxhuv2vbSp80FKyNM-Tj93FDzq91jsyNmsQhyNv_fNr3TXfzzSPjHt8Go0FMMP66weoKMgW2PbXlhVKwEuXUHyakLLzewm9UMeQaEiRzhiTMU3UkLXcKbYEJJvfNFcLwSl9W8JCO_l0Yj3ud-qt_nQYEZwqW6u5nfdQllN133iikV4fM5QZsMCnm8Rq1mvLR0y9bmJiD7fwM1tmJ791TUWqmKaTnP49U493VanKpUAfzIiOiIbhg"
+        ),
+    )
     metadata = OpenMetadata(server_config)
 
     assert metadata.health_check()
@@ -99,7 +108,9 @@ class OMetaModelTest(TestCase):
         )
 
         cls.create = CreateMlModelRequest(
-            name="test-model", algorithm="algo", service=cls.service_reference
+            name="test-model",
+            algorithm="algo",
+            service=cls.service_entity.fullyQualifiedName,
         )
 
         cls.entity = MlModel(
@@ -268,34 +279,26 @@ class OMetaModelTest(TestCase):
 
         create_db = CreateDatabaseRequest(
             name="test-db-ml",
-            service=EntityReference(id=service_entity.id, type="databaseService"),
+            service=service_entity.fullyQualifiedName,
         )
         create_db_entity = self.metadata.create_or_update(data=create_db)
 
-        db_reference = EntityReference(
-            id=create_db_entity.id, name="test-db-ml", type="database"
-        )
-
         create_schema = CreateDatabaseSchemaRequest(
             name="test-schema-ml",
-            database=db_reference,
+            database=create_db_entity.fullyQualifiedName,
         )
         create_schema_entity = self.metadata.create_or_update(data=create_schema)
 
-        schema_reference = EntityReference(
-            id=create_schema_entity.id, name="test-schema-ml", type="databaseSchema"
-        )
-
         create_table1 = CreateTableRequest(
             name="test-ml",
-            databaseSchema=schema_reference,
+            databaseSchema=create_schema_entity.fullyQualifiedName,
             columns=[Column(name="education", dataType=DataType.STRING)],
         )
         table1_entity = self.metadata.create_or_update(data=create_table1)
 
         create_table2 = CreateTableRequest(
             name="another_test-ml",
-            databaseSchema=schema_reference,
+            databaseSchema=create_schema_entity.fullyQualifiedName,
             columns=[Column(name="age", dataType=DataType.INT)],
         )
         table2_entity = self.metadata.create_or_update(data=create_table2)
@@ -347,15 +350,20 @@ class OMetaModelTest(TestCase):
                 MlHyperParameter(name="random", value="hello"),
             ],
             target="myTarget",
-            service=self.service_reference,
+            service=self.service_entity.fullyQualifiedName,
         )
 
-        res = self.metadata.create_or_update(data=model)
+        res: MlModel = self.metadata.create_or_update(data=model)
 
         self.assertIsNotNone(res.mlFeatures)
         self.assertIsNotNone(res.mlHyperParameters)
 
-        lineage = self.metadata.add_mlmodel_lineage(model=res)
+        # Lineage will be created just by ingesting the model.
+        # Alternatively, we could manually send lineage via `add_mlmodel_lineage`
+        # E.g., lineage = self.metadata.add_mlmodel_lineage(model=res)
+        lineage = self.metadata.get_lineage_by_id(
+            entity=MlModel, entity_id=str(res.id.__root__)
+        )
 
         nodes = {node["id"] for node in lineage["nodes"]}
         assert nodes == {str(table1_entity.id.__root__), str(table2_entity.id.__root__)}

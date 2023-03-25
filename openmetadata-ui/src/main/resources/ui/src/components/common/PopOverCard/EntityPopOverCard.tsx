@@ -1,5 +1,5 @@
 /*
- *  Copyright 2021 Collate
+ *  Copyright 2022 Collate.
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
@@ -11,32 +11,30 @@
  *  limitations under the License.
  */
 
-import { Popover } from 'antd';
-import { AxiosError, AxiosResponse } from 'axios';
+import { Button, Divider, Popover, Space, Typography } from 'antd';
+import { AxiosError } from 'axios';
+import { EntityUnion } from 'components/Explore/explore.interface';
 import { uniqueId } from 'lodash';
 import { EntityTags } from 'Models';
-import React, { FC, HTMLAttributes, useMemo, useState } from 'react';
+import React, { FC, HTMLAttributes, useEffect, useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
-import AppState from '../../../AppState';
-import { getDashboardByFqn } from '../../../axiosAPIs/dashboardAPI';
+import { getDashboardByFqn } from 'rest/dashboardAPI';
 import {
   getDatabaseDetailsByFQN,
   getDatabaseSchemaDetailsByFQN,
-} from '../../../axiosAPIs/databaseAPI';
-import { getMlModelByFQN } from '../../../axiosAPIs/mlModelAPI';
-import { getPipelineByFqn } from '../../../axiosAPIs/pipelineAPI';
-import { getTableDetailsByFQN } from '../../../axiosAPIs/tableAPI';
-import { getTopicByFqn } from '../../../axiosAPIs/topicsAPI';
+} from 'rest/databaseAPI';
+import { getMlModelByFQN } from 'rest/mlModelAPI';
+import { getPipelineByFqn } from 'rest/pipelineAPI';
+import { getTableDetailsByFQN } from 'rest/tableAPI';
+import { getTopicByFqn } from 'rest/topicsAPI';
+import { getEntityName } from 'utils/EntityUtils';
+import AppState from '../../../AppState';
 import { FQN_SEPARATOR_CHAR } from '../../../constants/char.constants';
 import { EntityType } from '../../../enums/entity.enum';
-import { Dashboard } from '../../../generated/entity/data/dashboard';
-import { Database } from '../../../generated/entity/data/database';
-import { DatabaseSchema } from '../../../generated/entity/data/databaseSchema';
-import { Mlmodel } from '../../../generated/entity/data/mlmodel';
-import { Pipeline } from '../../../generated/entity/data/pipeline';
 import { Table } from '../../../generated/entity/data/table';
-import { Topic } from '../../../generated/entity/data/topic';
-import { getEntityName } from '../../../utils/CommonUtils';
+import { TagSource } from '../../../generated/type/tagLabel';
+import SVGIcons from '../../../utils/SvgUtils';
 import {
   getEntityLink,
   getTagsWithoutTier,
@@ -46,191 +44,95 @@ import { showErrorToast } from '../../../utils/ToastUtils';
 import ProfilePicture from '../ProfilePicture/ProfilePicture';
 import RichTextEditorPreviewer from '../rich-text-editor/RichTextEditorPreviewer';
 
-export type EntityData = Table &
-  Topic &
-  Dashboard &
-  Pipeline &
-  Mlmodel &
-  Database &
-  DatabaseSchema;
-
 interface Props extends HTMLAttributes<HTMLDivElement> {
   entityType: string;
   entityFQN: string;
 }
 
 const EntityPopOverCard: FC<Props> = ({ children, entityType, entityFQN }) => {
-  const [entityData, setEntityData] = useState<EntityData>({} as EntityData);
+  const { t } = useTranslation();
+  const [entityData, setEntityData] = useState<EntityUnion>({} as EntityUnion);
 
   const entityTier = useMemo(() => {
-    const tierFQN = getTierTags(entityData.tags || [])?.tagFQN;
+    const tierFQN = getTierTags((entityData as Table).tags || [])?.tagFQN;
 
     return tierFQN?.split(FQN_SEPARATOR_CHAR)[1];
-  }, [entityData.tags]);
+  }, [(entityData as Table).tags]);
 
   const entityTags = useMemo(() => {
-    const tags: EntityTags[] = getTagsWithoutTier(entityData.tags || []) || [];
+    const tags: EntityTags[] =
+      getTagsWithoutTier((entityData as Table).tags || []) || [];
 
-    return tags.map((tag) => `#${tag.tagFQN}`);
-  }, [entityData.tags]);
+    return tags.map((tag) =>
+      tag.source === TagSource.Glossary ? tag.tagFQN : `#${tag.tagFQN}`
+    );
+  }, [(entityData as Table).tags]);
 
   const getData = () => {
-    const setEntityDetails = (entityDetail: EntityData) => {
+    const setEntityDetails = (entityDetail: EntityUnion) => {
       AppState.entityData[entityFQN] = entityDetail;
     };
 
     const fields = 'tags,owner';
 
+    let promise: Promise<EntityUnion> | null = null;
+
     switch (entityType) {
       case EntityType.TABLE:
-        getTableDetailsByFQN(entityFQN, fields)
-          .then((res: AxiosResponse) => {
-            setEntityDetails(res.data);
-
-            setEntityData(res.data);
-          })
-          .catch((err: AxiosError) => showErrorToast(err));
+        promise = getTableDetailsByFQN(entityFQN, fields);
 
         break;
       case EntityType.TOPIC:
-        getTopicByFqn(entityFQN, fields)
-          .then((res: AxiosResponse) => {
-            setEntityDetails(res.data);
-
-            setEntityData(res.data);
-          })
-          .catch((err: AxiosError) => showErrorToast(err));
+        promise = getTopicByFqn(entityFQN, fields);
 
         break;
       case EntityType.DASHBOARD:
-        getDashboardByFqn(entityFQN, fields)
-          .then((res: AxiosResponse) => {
-            setEntityDetails(res.data);
-
-            setEntityData(res.data);
-          })
-          .catch((err: AxiosError) => showErrorToast(err));
+        promise = getDashboardByFqn(entityFQN, fields);
 
         break;
       case EntityType.PIPELINE:
-        getPipelineByFqn(entityFQN, fields)
-          .then((res: AxiosResponse) => {
-            setEntityDetails(res.data);
-
-            setEntityData(res.data);
-          })
-          .catch((err: AxiosError) => showErrorToast(err));
+        promise = getPipelineByFqn(entityFQN, fields);
 
         break;
       case EntityType.MLMODEL:
-        getMlModelByFQN(entityFQN, fields)
-          .then((res: AxiosResponse) => {
-            setEntityDetails(res.data);
-
-            setEntityData(res.data);
-          })
-          .catch((err: AxiosError) => showErrorToast(err));
+        promise = getMlModelByFQN(entityFQN, fields);
 
         break;
       case EntityType.DATABASE:
-        getDatabaseDetailsByFQN(entityFQN, 'owner')
-          .then((res: AxiosResponse) => {
-            setEntityDetails(res.data);
-
-            setEntityData(res.data);
-          })
-          .catch((err: AxiosError) => showErrorToast(err));
+        promise = getDatabaseDetailsByFQN(entityFQN, 'owner');
 
         break;
       case EntityType.DATABASE_SCHEMA:
-        getDatabaseSchemaDetailsByFQN(entityFQN, 'owner')
-          .then((res: AxiosResponse) => {
-            setEntityDetails(res.data);
-
-            setEntityData(res.data);
-          })
-          .catch((err: AxiosError) => showErrorToast(err));
+        promise = getDatabaseSchemaDetailsByFQN(entityFQN, 'owner');
 
         break;
 
       default:
         break;
     }
+
+    if (promise) {
+      promise
+        .then((res) => {
+          setEntityDetails(res);
+
+          setEntityData(res);
+        })
+        .catch((err: AxiosError) => showErrorToast(err));
+    }
   };
 
   const PopoverTitle = () => {
     return (
       <Link data-testid="entitylink" to={getEntityLink(entityType, entityFQN)}>
-        <button className="tw-text-info" disabled={AppState.isTourOpen}>
+        <Button
+          className="p-0"
+          disabled={AppState.isTourOpen}
+          type="link"
+          onClick={(e) => e.stopPropagation()}>
           <span>{entityFQN}</span>
-        </button>
+        </Button>
       </Link>
-    );
-  };
-
-  const PopoverContent = () => {
-    return (
-      <div className="tw-w-80">
-        <div className="tw-flex">
-          <div data-testid="owner">
-            <span>
-              {entityData.owner ? (
-                <span className="tw-flex">
-                  <span className="tw-text-grey-muted">Owner:</span>{' '}
-                  <span className="tw-flex tw-ml-1">
-                    <ProfilePicture
-                      displayName={getEntityName(entityData.owner)}
-                      id=""
-                      name={getEntityName(entityData.owner)}
-                      width="20"
-                    />
-                    <span className="tw-ml-1">
-                      {getEntityName(entityData.owner)}
-                    </span>
-                  </span>
-                </span>
-              ) : (
-                <span className="tw-text-grey-muted">No Owner</span>
-              )}
-            </span>
-          </div>
-          <span className="tw-mx-1.5 tw-inline-block tw-text-gray-400">|</span>
-          <div data-testid="tier">
-            {entityTier ? (
-              entityTier
-            ) : (
-              <span className="tw-text-grey-muted">No Tier</span>
-            )}
-          </div>
-        </div>
-
-        <div
-          className="description-text tw-mt-1"
-          data-testid="description-text">
-          {entityData.description ? (
-            <RichTextEditorPreviewer
-              enableSeeMoreVariant={false}
-              markdown={entityData.description}
-            />
-          ) : (
-            <span className="tw-no-description">No description</span>
-          )}
-        </div>
-
-        {entityData.tags ? (
-          <div
-            className="tw-mt-2 tw-flex tw-flex-wrap tw-gap-1"
-            data-testid="tags">
-            {entityTags.map((tag) => (
-              <span
-                className="tw-border tw-border-main tw-px-1 tw-rounded tw-text-xs"
-                key={uniqueId()}>
-                {tag}
-              </span>
-            ))}
-          </div>
-        ) : null}
-      </div>
     );
   };
 
@@ -243,6 +145,84 @@ const EntityPopOverCard: FC<Props> = ({ children, entityType, entityFQN }) => {
     }
   };
 
+  const PopoverContent = () => {
+    useEffect(() => {
+      onMouseOver();
+    }, []);
+
+    return (
+      <div className="w-500">
+        <Space align="center" size="small">
+          <div data-testid="owner">
+            {entityData.owner ? (
+              <Space align="center" size="small">
+                <ProfilePicture
+                  displayName={getEntityName(entityData.owner)}
+                  id={entityData.name}
+                  name={getEntityName(entityData.owner)}
+                  width="20"
+                />
+                <Typography.Text className="text-xs">
+                  {getEntityName(entityData.owner)}
+                </Typography.Text>
+              </Space>
+            ) : (
+              <Typography.Text className="text-xs text-grey-muted">
+                {t('label.no-entity', {
+                  entity: t('label.owner'),
+                })}
+              </Typography.Text>
+            )}
+          </div>
+          <span className="text-grey-muted">|</span>
+          <Typography.Text
+            className="text-xs text-grey-muted"
+            data-testid="tier">
+            {entityTier
+              ? entityTier
+              : t('label.no-entity', {
+                  entity: t('label.tier'),
+                })}
+          </Typography.Text>
+        </Space>
+
+        <div className="description-text m-t-sm" data-testid="description-text">
+          {entityData.description ? (
+            <RichTextEditorPreviewer
+              enableSeeMoreVariant={false}
+              markdown={entityData.description}
+            />
+          ) : (
+            <Typography.Text className="text-xs text-grey-muted">
+              {t('label.no-entity', {
+                entity: t('label.description'),
+              })}
+            </Typography.Text>
+          )}
+        </div>
+
+        {entityTags.length ? (
+          <>
+            <Divider className="m-b-xs m-t-sm" />
+            <div className="d-flex flex-start">
+              <span className="w-5 m-r-xs">
+                <SVGIcons alt="icon-tag" icon="icon-tag-grey" width="14" />
+              </span>
+
+              <Space wrap align="center" size={[16, 0]}>
+                {entityTags.map((tag) => (
+                  <span className="text-xs font-medium" key={uniqueId()}>
+                    {tag}
+                  </span>
+                ))}
+              </Space>
+            </div>
+          </>
+        ) : null}
+      </div>
+    );
+  };
+
   return (
     <Popover
       destroyTooltipOnHide
@@ -252,7 +232,7 @@ const EntityPopOverCard: FC<Props> = ({ children, entityType, entityFQN }) => {
       title={<PopoverTitle />}
       trigger="hover"
       zIndex={9999}>
-      <div onMouseOver={onMouseOver}>{children}</div>
+      {children}
     </Popover>
   );
 };

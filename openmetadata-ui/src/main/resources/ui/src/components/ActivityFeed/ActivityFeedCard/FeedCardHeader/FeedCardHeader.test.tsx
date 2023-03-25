@@ -1,5 +1,5 @@
 /*
- *  Copyright 2021 Collate
+ *  Copyright 2022 Collate.
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
@@ -26,7 +26,7 @@ const FQN = 'service.database.schema.table';
 const type = 'table';
 const expectedDisplayName = 'database.schema.table';
 
-jest.mock('../../../../axiosAPIs/userAPI', () => ({
+jest.mock('rest/userAPI', () => ({
   getUserByName: jest.fn().mockReturnValue({}),
 }));
 
@@ -46,7 +46,10 @@ jest.mock('../../../../utils/TableUtils', () => ({
 }));
 
 jest.mock('../../../../utils/TimeUtils', () => ({
-  getDayTimeByTimeStamp: jest.fn(),
+  getDayTimeByTimeStamp: jest
+    .fn()
+    .mockImplementation(() => 'Jan 1, 1970 00:00 AM'),
+  getDateTimeFromMilliSeconds: jest.fn(),
 }));
 
 jest.mock('../../../common/ProfilePicture/ProfilePicture', () => {
@@ -63,8 +66,8 @@ const mockFeedHeaderProps = {
   feedType: ThreadType.Conversation,
 };
 
-describe('Test Feedheader Component', () => {
-  it('Checks if the Feedheader component has isEntityFeed as true', async () => {
+describe('Test FeedHeader Component', () => {
+  it('Checks if the FeedHeader component has isEntityFeed as true', async () => {
     const { container } = render(<FeedCardHeader {...mockFeedHeaderProps} />, {
       wrapper: MemoryRouter,
     });
@@ -86,9 +89,10 @@ describe('Test Feedheader Component', () => {
     expect(entityTypeElement).not.toBeInTheDocument();
     expect(entityLinkElement).not.toBeInTheDocument();
     expect(timeStampElement).toBeInTheDocument();
+    expect(timeStampElement).toHaveTextContent('Jan 1, 1970 00:00 AM');
   });
 
-  it('Checks if the Feedheader component has isEntityFeed as false', async () => {
+  it('Checks if the FeedHeader component has isEntityFeed as false', async () => {
     const { container } = render(
       <FeedCardHeader {...mockFeedHeaderProps} isEntityFeed={false} />,
       {
@@ -113,6 +117,7 @@ describe('Test Feedheader Component', () => {
     expect(entityTypeElement).toBeInTheDocument();
     expect(entityLinkElement).toBeInTheDocument();
     expect(timeStampElement).toBeInTheDocument();
+    expect(timeStampElement).toHaveTextContent('Jan 1, 1970 00:00 AM');
   });
 
   it('Should show link text as `database.schema.table` if entity type is table', async () => {

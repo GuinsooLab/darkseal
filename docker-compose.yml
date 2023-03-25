@@ -16,7 +16,7 @@ volumes:
   ingestion-volume-tmp:
 services:
   mysql:
-    image: guinsoolab/darkseal-mysql:0.11.4.1
+    image: guinsoolab/darkseal-mysql:latest
     container_name: darkseal_mysql
     restart: always
     depends_on:
@@ -32,7 +32,7 @@ services:
         ipv4_address: 172.16.239.10
 
   elasticsearch:
-    image: guinsoolab/darkseal-elasticsearch:0.11.4.1
+    image: guinsoolab/darkseal-elasticsearch:latest
     container_name: darkseal_elasticsearch
     environment:
       - discovery.type=single-node
@@ -48,7 +48,7 @@ services:
       - 9300:9300
 
   darkseal-server:
-    image: guinsoolab/darkseal-server:0.11.4.1
+    image: guinsoolab/darkseal-server:latest
     container_name: darkseal_server
     environment:
       ELASTICSEARCH_HOST: elasticsearch
@@ -114,7 +114,7 @@ services:
       - "elasticsearch:172.16.239.11"
 
   ingestion:
-    image: guinsoolab/darkseal-ingestion:0.11.4.1
+    image: guinsoolab/darkseal-ingestion:latest
     container_name: darkseal_ingestion
     depends_on:
       - mysql

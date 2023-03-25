@@ -1,5 +1,5 @@
 /*
- *  Copyright 2021 Collate
+ *  Copyright 2022 Collate.
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
@@ -13,151 +13,113 @@
 
 import { Button, Card } from 'antd';
 import { isNil } from 'lodash';
-import React, { FunctionComponent, useEffect, useState } from 'react';
+import React, { FunctionComponent, useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
-import {
-  getExplorePathWithSearch,
-  getTeamAndUserDetailsPath,
-  ROUTES,
-  TITLE_FOR_NON_ADMIN_ACTION,
-} from '../../constants/constants';
-import { UserType } from '../../enums/user.enum';
+import { getExplorePath, ROUTES } from '../../constants/constants';
 import { getCountBadge } from '../../utils/CommonUtils';
 import SVGIcons, { Icons } from '../../utils/SvgUtils';
-import NonAdminAction from '../common/non-admin-action/NonAdminAction';
-import { leftPanelAntCardStyle } from '../containers/PageLayout';
+import EntityListSkeleton from '../Skeleton/MyData/EntityListSkeleton/EntityListSkeleton.component';
+import { MyAssetStatsProps } from './MyAssetStats.interface';
 
-type Props = {
-  countDashboards: number;
-  countPipelines: number;
-  countServices: number;
-  countMlModal: number;
-  countTables: number;
-  countTopics: number;
-  countTeams: number;
-  countUsers: number;
-};
-type Summary = {
-  icon: string;
-  data: string;
-  count?: number;
-  link?: string;
-  dataTestId?: string;
-  adminOnly?: boolean;
-};
+const MyAssetStats: FunctionComponent<MyAssetStatsProps> = ({
+  entityState,
+}: MyAssetStatsProps) => {
+  const { t } = useTranslation();
+  const { entityCounts, entityCountLoading } = entityState;
 
-const MyAssetStats: FunctionComponent<Props> = ({
-  countDashboards,
-  countPipelines,
-  countMlModal,
-  countServices,
-  countTables,
-  countTopics,
-  countTeams,
-  countUsers,
-}: Props) => {
-  const [dataSummary, setdataSummary] = useState<Record<string, Summary>>({});
-
-  const getSummarydata = () => {
-    return {
+  const dataSummary = useMemo(
+    () => ({
       tables: {
         icon: Icons.TABLE_GREY,
-        data: 'Tables',
-        count: countTables,
-        link: getExplorePathWithSearch(undefined, 'tables'),
+        data: t('label.table-plural'),
+        count: entityCounts.tableCount,
+        link: getExplorePath({ tab: 'tables' }),
         dataTestId: 'tables',
       },
       topics: {
         icon: Icons.TOPIC_GREY,
-        data: 'Topics',
-        count: countTopics,
-        link: getExplorePathWithSearch(undefined, 'topics'),
+        data: t('label.topic-plural'),
+        count: entityCounts.topicCount,
+        link: getExplorePath({ tab: 'topics' }),
         dataTestId: 'topics',
       },
       dashboards: {
         icon: Icons.DASHBOARD_GREY,
-        data: 'Dashboards',
-        count: countDashboards,
-        link: getExplorePathWithSearch(undefined, 'dashboards'),
+        data: t('label.dashboard-plural'),
+        count: entityCounts.dashboardCount,
+        link: getExplorePath({ tab: 'dashboards' }),
         dataTestId: 'dashboards',
       },
       pipelines: {
         icon: Icons.PIPELINE_GREY,
-        data: 'Pipelines',
-        count: countPipelines,
-        link: getExplorePathWithSearch(undefined, 'pipelines'),
+        data: t('label.pipeline-plural'),
+        count: entityCounts.pipelineCount,
+        link: getExplorePath({ tab: 'pipelines' }),
         dataTestId: 'pipelines',
       },
       mlModal: {
         icon: Icons.MLMODAL,
-        data: 'ML Models',
-        count: countMlModal,
-        link: getExplorePathWithSearch(undefined, 'mlmodels'),
+        data: t('label.ml-model-plural'),
+        count: entityCounts.mlmodelCount,
+        link: getExplorePath({ tab: 'mlmodels' }),
         dataTestId: 'mlmodels',
       },
-      service: {
-        icon: Icons.SERVICE,
-        data: 'Services',
-        count: countServices,
-        link: ROUTES.SERVICES,
-        dataTestId: 'service',
+      containers: {
+        icon: Icons.CONTAINER,
+        data: t('label.container-plural'),
+        count: entityCounts.storageContainerCount,
+        link: getExplorePath({ tab: 'containers' }),
+        dataTestId: 'containers',
       },
-      user: {
-        icon: Icons.USERS,
-        data: 'Users',
-        count: countUsers,
-        link: getTeamAndUserDetailsPath(UserType.USERS),
-        dataTestId: 'user',
-        adminOnly: true,
+      testSuite: {
+        icon: Icons.TEST_SUITE,
+        data: t('label.test-suite-plural'),
+        count: entityCounts.testSuiteCount,
+        link: ROUTES.TEST_SUITES,
+        dataTestId: 'test-suite',
       },
-      teams: {
-        icon: Icons.TEAMS_GREY,
-        data: 'Teams',
-        count: countTeams,
-        link: getTeamAndUserDetailsPath(),
-        dataTestId: 'terms',
+      glossaries: {
+        icon: Icons.FLAT_FOLDER,
+        data: t('label.glossary-plural'),
+        count: entityCounts.glossaryCount,
+        link: ROUTES.GLOSSARY,
+        dataTestId: 'glossaries',
       },
-    };
-  };
-
-  useEffect(() => {
-    setdataSummary(getSummarydata());
-  }, []);
+      glossaryTerms: {
+        icon: Icons.FLAT_DOC,
+        data: t('label.glossary-term-plural'),
+        count: entityCounts.glossaryTermCount,
+        link: ROUTES.GLOSSARY,
+        dataTestId: 'glossary-terms',
+      },
+    }),
+    [entityState]
+  );
 
   return (
-    <div className="ant-entity-card">
-      <Card
-        data-testid="data-summary-container"
-        id="assetStatsCount"
-        style={leftPanelAntCardStyle}>
-        {Object.values(dataSummary).map((data, index) => (
-          <div
-            className="tw-flex tw-items-center tw-justify-between"
-            data-testid={`${data.dataTestId}-summary`}
-            key={index}>
-            <div className="tw-flex">
-              <SVGIcons
-                alt="icon"
-                className="tw-h-4 tw-w-4 tw-self-center"
-                icon={data.icon}
-              />
-              {data.link ? (
-                data.adminOnly ? (
-                  <NonAdminAction
-                    position="bottom"
-                    title={TITLE_FOR_NON_ADMIN_ACTION}>
-                    <Link
-                      className="tw-font-medium hover:tw-text-primary-hover hover:tw-underline"
-                      data-testid={data.dataTestId}
-                      to={data.link}>
-                      <Button
-                        className="tw-text-grey-body hover:tw-text-primary-hover hover:tw-underline"
-                        type="text">
-                        {data.data}
-                      </Button>
-                    </Link>
-                  </NonAdminAction>
-                ) : (
+    <Card
+      className="panel-shadow-color"
+      data-testid="data-summary-container"
+      id="assetStatsCount">
+      <EntityListSkeleton
+        isCount
+        isLabel
+        isSelect
+        loading={Boolean(entityCountLoading)}>
+        <>
+          {Object.values(dataSummary).map((data, index) => (
+            <div
+              className="tw-flex tw-items-center tw-justify-between"
+              data-testid={`${data.dataTestId}-summary`}
+              key={index}>
+              <div className="tw-flex">
+                <SVGIcons
+                  alt="icon"
+                  className="tw-h-4 tw-w-4 tw-self-center"
+                  icon={data.icon}
+                />
+                {data.link ? (
                   <Link
                     className="tw-font-medium hover:tw-text-primary-hover hover:tw-underline"
                     data-testid={data.dataTestId}
@@ -168,16 +130,16 @@ const MyAssetStats: FunctionComponent<Props> = ({
                       {data.data}
                     </Button>
                   </Link>
-                )
-              ) : (
-                <p className="tw-text-grey-body tw-pl-2">{data.data}</p>
-              )}
+                ) : (
+                  <p className="tw-text-grey-body tw-pl-2">{data.data}</p>
+                )}
+              </div>
+              {!isNil(data.count) && getCountBadge(data.count, '', false)}
             </div>
-            {!isNil(data.count) && getCountBadge(data.count, '', false)}
-          </div>
-        ))}
-      </Card>
-    </div>
+          ))}
+        </>
+      </EntityListSkeleton>
+    </Card>
   );
 };
 

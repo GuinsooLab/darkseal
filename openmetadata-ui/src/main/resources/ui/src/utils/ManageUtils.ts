@@ -1,5 +1,5 @@
 /*
- *  Copyright 2021 Collate
+ *  Copyright 2022 Collate.
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
@@ -11,73 +11,64 @@
  *  limitations under the License.
  */
 
-import { FormattedTeamsData, FormattedUsersData } from 'Models';
+import { ReactNode } from 'react';
 import AppState from '../AppState';
-import { EntityReference } from '../generated/type/entityUsage';
-import { getEntityName } from './CommonUtils';
+import { Team } from '../generated/entity/teams/team';
+import { User } from '../generated/entity/teams/user';
+import { getEntityName } from './EntityUtils';
+
+export type OwnerItem = {
+  name: string;
+  value: string;
+  group: string;
+  type: string;
+} & Record<string, ReactNode>;
 
 /**
  * @param listUsers - List of users
  * @param listTeams - List of teams
- * @param excludeCurrentUser - Wether to exclude current user to be on list. Needed when calls from searching
- * @returns List of user or team
+ * @param excludeCurrentUser - Whether to exclude current user from the list
+ * @param searchQuery - Search query for user or team
+ * @returns List of users or teams
  */
 export const getOwnerList = (
-  listUsers?: FormattedUsersData[],
-  listTeams?: FormattedTeamsData[],
-  excludeCurrentUser?: boolean
-) => {
+  listUsers: User[] = [],
+  listTeams: Team[] = [],
+  excludeCurrentUser = false
+): OwnerItem[] => {
   const userDetails = AppState.getCurrentUserDetails();
 
-  const userTeams =
-    userDetails?.teams?.map((userTeam) => ({
-      name: getEntityName(userTeam),
-      value: userTeam.id,
-      group: 'Teams',
-      type: 'team',
-    })) ?? [];
-
-  if (userDetails?.isAdmin) {
-    const users = (listUsers || [])
-      .map((user) => ({
-        name: getEntityName(user as unknown as EntityReference),
-        value: user.id,
-        group: 'Users',
-        type: 'user',
-      }))
-      .filter((u) => u.value != userDetails.id);
-    const teams = (listTeams || []).map((team) => ({
-      name: getEntityName(team),
-      value: team.id,
-      group: 'Teams',
-      type: 'team',
-    }));
-
-    return [
-      ...(!excludeCurrentUser
-        ? [
-            {
-              name: getEntityName(userDetails as unknown as EntityReference),
-              value: userDetails.id,
-              group: 'Users',
-              type: 'user',
-            },
-          ]
-        : []),
-      ...users,
-      ...teams,
-    ];
-  } else {
-    return userDetails && !excludeCurrentUser
+  const users = listUsers.flatMap((user) =>
+    user.id !== userDetails?.id
       ? [
           {
-            name: getEntityName(userDetails as unknown as EntityReference),
+            name: getEntityName(user),
+            value: user.id,
+            group: 'Users',
+            type: 'user',
+          },
+        ]
+      : []
+  );
+
+  const teams = listTeams.map((team) => ({
+    name: getEntityName(team),
+    value: team.id,
+    group: 'Teams',
+    type: 'team',
+  }));
+
+  const currentUser =
+    !excludeCurrentUser && userDetails
+      ? [
+          {
+            name: getEntityName(userDetails),
             value: userDetails.id,
             group: 'Users',
             type: 'user',
           },
-          ...userTeams,
         ]
-      : userTeams;
-  }
+      : [];
+
+  return [...currentUser, ...users, ...teams];
 };

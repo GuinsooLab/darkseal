@@ -1,5 +1,5 @@
 /*
- *  Copyright 2021 Collate
+ *  Copyright 2022 Collate.
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
@@ -11,55 +11,79 @@
  *  limitations under the License.
  */
 
-import { AxiosError, AxiosResponse } from 'axios';
+/* eslint-disable @typescript-eslint/ban-types */
+
+import { CheckOutlined } from '@ant-design/icons';
+import { Typography } from 'antd';
+import { AxiosError } from 'axios';
 import classNames from 'classnames';
-import { capitalize, isEmpty, isNull, isUndefined } from 'lodash';
 import {
-  EntityFieldThreadCount,
+  getDayCron,
+  getHourCron,
+} from 'components/common/CronEditor/CronEditor.constant';
+import ErrorPlaceHolder from 'components/common/error-with-placeholder/ErrorPlaceHolder';
+import Loader from 'components/Loader/Loader';
+import { t } from 'i18next';
+import {
+  capitalize,
+  isEmpty,
+  isNil,
+  isNull,
+  isString,
+  isUndefined,
+  toNumber,
+} from 'lodash';
+import {
+  CurrentState,
+  ExtraInfo,
+  FormattedTableData,
   RecentlySearched,
   RecentlySearchedData,
   RecentlyViewed,
   RecentlyViewedData,
 } from 'Models';
-import React, { FormEvent } from 'react';
+import React from 'react';
+import { Trans } from 'react-i18next';
 import { reactLocalStorage } from 'reactjs-localstorage';
+import { getFeedCount } from 'rest/feedsAPI';
 import AppState from '../AppState';
-import { getFeedCount } from '../axiosAPIs/feedsAPI';
-import { Button } from '../components/buttons/Button/Button';
+import { AddIngestionState } from '../components/AddIngestion/addIngestion.interface';
 import { FQN_SEPARATOR_CHAR } from '../constants/char.constants';
 import {
+  getTeamAndUserDetailsPath,
+  getUserPath,
   imageTypes,
   LOCALSTORAGE_RECENTLY_SEARCHED,
   LOCALSTORAGE_RECENTLY_VIEWED,
-  TITLE_FOR_NON_OWNER_ACTION,
 } from '../constants/constants';
 import {
   UrlEntityCharRegEx,
   validEmailRegEx,
 } from '../constants/regex.constants';
+import { SIZE } from '../enums/common.enum';
 import { EntityType, FqnPart, TabSpecificField } from '../enums/entity.enum';
-import { Ownership } from '../enums/mydata.enum';
+import { FilterPatternEnum } from '../enums/filterPattern.enum';
 import { ThreadTaskStatus, ThreadType } from '../generated/entity/feed/thread';
-import { EntityReference, User } from '../generated/entity/teams/user';
+import { PipelineType } from '../generated/entity/services/ingestionPipelines/ingestionPipeline';
+import { EntityReference } from '../generated/entity/teams/user';
+import { Paging } from '../generated/type/paging';
+import { TagLabel } from '../generated/type/tagLabel';
+import { EntityFieldThreadCount } from '../interface/feed.interface';
 import jsonData from '../jsons/en';
 import { getEntityFeedLink, getTitleCase } from './EntityUtils';
 import Fqn from './Fqn';
-import { getExplorePathWithInitFilters } from './RouterUtils';
 import { serviceTypeLogo } from './ServiceUtils';
-import SVGIcons, { Icons } from './SvgUtils';
+import { getTierFromSearchTableTags } from './TableUtils';
 import { TASK_ENTITIES } from './TasksUtils';
 import { showErrorToast } from './ToastUtils';
 
-export const arraySorterByKey = (
-  key: string,
+export const arraySorterByKey = <T extends object>(
+  key: keyof T,
   sortDescending = false
-): Function => {
+) => {
   const sortOrder = sortDescending ? -1 : 1;
 
-  return (
-    elementOne: { [x: string]: number | string },
-    elementTwo: { [x: string]: number | string }
-  ) => {
+  return (elementOne: T, elementTwo: T) => {
     return (
       (elementOne[key] < elementTwo[key]
         ? -1
@@ -72,12 +96,6 @@ export const arraySorterByKey = (
 
 export const isEven = (value: number): boolean => {
   return value % 2 === 0;
-};
-
-export const getTableFQNFromColumnFQN = (columnFQN: string): string => {
-  const arrColFQN = columnFQN.split(FQN_SEPARATOR_CHAR);
-
-  return arrColFQN.slice(0, arrColFQN.length - 1).join(FQN_SEPARATOR_CHAR);
 };
 
 export const getPartialNameFromFQN = (
@@ -140,15 +158,18 @@ export const getPartialNameFromTableFQN = (
   return arrPartialName.join(joinSeparator);
 };
 
-export const getCurrentUserId = (): string => {
-  // TODO: Replace below with USERID from Logged-in data
-  const { id: userId } = !isEmpty(AppState.userDetails)
-    ? AppState.userDetails
-    : AppState.users?.length
-    ? AppState.users[0]
-    : { id: undefined };
+export const getTableFQNFromColumnFQN = (columnFQN: string): string => {
+  return getPartialNameFromTableFQN(
+    columnFQN,
+    [FqnPart.Service, FqnPart.Database, FqnPart.Schema, FqnPart.Table],
+    '.'
+  );
+};
 
-  return userId as string;
+export const getCurrentUserId = (): string => {
+  const currentUser = AppState.getCurrentUserDetails();
+
+  return currentUser?.id || '';
 };
 
 export const pluralize = (count: number, noun: string, suffix = 's') => {
@@ -258,14 +279,9 @@ export const addToRecentSearched = (searchTerm: string): void => {
     let arrSearchedData: RecentlySearched['data'] = [];
     if (recentlySearch?.data) {
       const arrData = recentlySearch.data
-        // search term is not case-insensetive.
+        // search term is not case-insensitive.
         .filter((item) => item.term !== searchData.term)
-        .sort(
-          arraySorterByKey('timestamp', true) as (
-            a: RecentlySearchedData,
-            b: RecentlySearchedData
-          ) => number
-        );
+        .sort(arraySorterByKey<RecentlySearchedData>('timestamp', true));
       arrData.unshift(searchData);
 
       if (arrData.length > 5) {
@@ -299,12 +315,7 @@ export const addToRecentViewed = (eData: RecentlyViewedData): void => {
   if (recentlyViewed?.data) {
     const arrData = recentlyViewed.data
       .filter((item) => item.fqn !== entityData.fqn)
-      .sort(
-        arraySorterByKey('timestamp', true) as (
-          a: RecentlyViewedData,
-          b: RecentlyViewedData
-        ) => number
-      );
+      .sort(arraySorterByKey<RecentlyViewedData>('timestamp', true));
     arrData.unshift(entityData);
 
     if (arrData.length > 5) {
@@ -319,41 +330,6 @@ export const addToRecentViewed = (eData: RecentlyViewedData): void => {
   setRecentlyViewedData(recentlyViewed.data);
 };
 
-export const getHtmlForNonAdminAction = (isClaimOwner: boolean) => {
-  return (
-    <>
-      <p>{TITLE_FOR_NON_OWNER_ACTION}</p>
-      {!isClaimOwner ? <p>Claim ownership in Manage </p> : null}
-    </>
-  );
-};
-
-export const getOwnerIds = (
-  filter: Ownership,
-  userDetails: User,
-  nonSecureUserDetails: User
-): Array<string> => {
-  if (filter === Ownership.OWNER) {
-    if (!isEmpty(userDetails)) {
-      return [
-        ...(userDetails.teams?.map((team) => team.id) || []),
-        userDetails.id,
-      ];
-    } else {
-      if (!isEmpty(nonSecureUserDetails)) {
-        return [
-          ...(nonSecureUserDetails.teams?.map((team) => team.id) || []),
-          nonSecureUserDetails.id,
-        ];
-      } else {
-        return [];
-      }
-    }
-  } else {
-    return [userDetails.id || nonSecureUserDetails.id];
-  }
-};
-
 export const getActiveCatClass = (name: string, activeName = '') => {
   return activeName === name ? 'activeCategory' : '';
 };
@@ -363,18 +339,6 @@ export const errorMsg = (value: string) => {
     <div className="tw-mt-1">
       <strong
         className="tw-text-red-500 tw-text-xs tw-italic"
-        data-testid="error-message">
-        {value}
-      </strong>
-    </div>
-  );
-};
-
-export const validMsg = (value: string) => {
-  return (
-    <div className="tw-mt-1">
-      <strong
-        className="tw-text-success tw-text-xs tw-italic"
         data-testid="error-message">
         {value}
       </strong>
@@ -427,14 +391,6 @@ export const getServiceLogo = (
   return null;
 };
 
-export const getSvgArrow = (isActive: boolean) => {
-  return isActive ? (
-    <SVGIcons alt="arrow-down" icon={Icons.ARROW_DOWN_PRIMARY} />
-  ) : (
-    <SVGIcons alt="arrow-right" icon={Icons.ARROW_RIGHT_PRIMARY} />
-  );
-};
-
 export const isValidUrl = (href?: string) => {
   if (!href) {
     return false;
@@ -479,61 +435,34 @@ export const getFields = (defaultFields: string, tabSpecificField: string) => {
   return `${defaultFields}, ${tabSpecificField}`;
 };
 
-export const restrictFormSubmit = (e: FormEvent) => {
-  e.preventDefault();
-};
-
 export const getEntityMissingError = (entityType: string, fqn: string) => {
   return (
     <p>
-      {capitalize(entityType)} instance for <strong>{fqn}</strong> not found
+      {capitalize(entityType)} {t('label.instance-lowercase')}{' '}
+      {t('label.for-lowercase')} <strong>{fqn}</strong>{' '}
+      {t('label.not-found-lowercase')}
     </p>
   );
 };
 
-export const getDocButton = (label: string, url: string, dataTestId = '') => {
-  return (
-    <Button
-      className="tw-group tw-rounded tw-w-full tw-px-3 tw-py-1.5 tw-text-sm"
-      data-testid={dataTestId}
-      href={url}
-      rel="noopener noreferrer"
-      size="custom"
-      tag="a"
-      target="_blank"
-      theme="primary"
-      variant="outlined">
-      <SVGIcons
-        alt="Doc icon"
-        className="tw-align-middle tw-mr-2 group-hover:tw-hidden"
-        icon={Icons.DOC_PRIMARY}
-        width="14"
-      />
-      <SVGIcons
-        alt="Doc icon"
-        className="tw-align-middle tw-mr-2 tw-hidden group-hover:tw-inline-block"
-        icon={Icons.DOC_WHITE}
-        width="14"
-      />
-      <span>{label}</span>
-      <SVGIcons
-        alt="external-link"
-        className="tw-align-middle tw-ml-2 group-hover:tw-hidden"
-        icon={Icons.EXTERNAL_LINK}
-        width="14"
-      />
-      <SVGIcons
-        alt="external-link"
-        className="tw-align-middle tw-ml-2 tw-hidden group-hover:tw-inline-block"
-        icon={Icons.EXTERNAL_LINK_WHITE}
-        width="14"
-      />
-    </Button>
-  );
-};
-
 export const getNameFromFQN = (fqn: string): string => {
-  const arr = fqn.split(FQN_SEPARATOR_CHAR);
+  let arr: string[] = [];
+
+  // Check for fqn containing name inside double quotes which can contain special characters such as '/', '.' etc.
+  // Example: sample_data.example_table."example.sample/fqn"
+
+  // Regular expression which matches pattern like '."some content"' at the end of string
+  // Example in string 'sample_data."example_table"."example.sample/fqn"',
+  // this regular expression  will match '."example.sample/fqn"'
+  const regexForQuoteInFQN = /(\."[^"]+")$/g;
+
+  if (regexForQuoteInFQN.test(fqn)) {
+    arr = fqn.split('"');
+
+    return arr[arr.length - 2];
+  }
+
+  arr = fqn.split(FQN_SEPARATOR_CHAR);
 
   return arr[arr.length - 1];
 };
@@ -598,47 +527,31 @@ export const prepareLabel = (type: string, fqn: string, withQuotes = true) => {
  */
 export const getEntityPlaceHolder = (value: string, isDeleted?: boolean) => {
   if (isDeleted) {
-    return `${value} (Deactivated)`;
+    return `${value} (${t('label.deactivated')})`;
   } else {
     return value;
   }
 };
 
-/**
- * Take entity reference as input and return name for entity
- * @param entity - entity reference
- * @returns - entity name
- */
-export const getEntityName = (entity?: EntityReference) => {
-  return entity?.displayName || entity?.name || '';
-};
-
 export const getEntityDeleteMessage = (entity: string, dependents: string) => {
   if (dependents) {
-    return `Permanently deleting this ${getTitleCase(
-      entity
-    )} will remove its metadata, as well as the metadata of ${dependents} from Darkseal permanently.`;
+    return t('message.permanently-delete-metadata-and-dependents', {
+      entityName: getTitleCase(entity),
+      dependents,
+    });
   } else {
-    return `Permanently deleting this ${getTitleCase(
-      entity
-    )} will remove its metadata from Darkseal permanently.`;
+    return t('message.permanently-delete-metadata', {
+      entityName: getTitleCase(entity),
+    });
   }
-};
-
-export const getExploreLinkByFilter = (
-  filter: Ownership,
-  userDetails: User,
-  nonSecureUserDetails: User
-) => {
-  return getExplorePathWithInitFilters(
-    '',
-    undefined,
-    `${filter}=${getOwnerIds(filter, userDetails, nonSecureUserDetails).join()}`
-  );
 };
 
 export const replaceSpaceWith_ = (text: string) => {
   return text.replace(/\s/g, '_');
+};
+
+export const replaceAllSpacialCharWith_ = (text: string) => {
+  return text.replaceAll(/[&/\\#, +()$~%.'":*?<>{}]/g, '_');
 };
 
 export const getFeedCounts = (
@@ -655,9 +568,9 @@ export const getFeedCounts = (
     getEntityFeedLink(entityType, entityFQN),
     ThreadType.Conversation
   )
-    .then((res: AxiosResponse) => {
-      if (res.data) {
-        conversationCallback(res.data.counts);
+    .then((res) => {
+      if (res) {
+        conversationCallback(res.counts);
       } else {
         throw jsonData['api-error-messages']['fetch-entity-feed-count-error'];
       }
@@ -675,9 +588,9 @@ export const getFeedCounts = (
     ThreadType.Task,
     ThreadTaskStatus.Open
   )
-    .then((res: AxiosResponse) => {
-      if (res.data) {
-        taskCallback(res.data.counts);
+    .then((res) => {
+      if (res) {
+        taskCallback(res.counts);
       } else {
         throw jsonData['api-error-messages']['fetch-entity-feed-count-error'];
       }
@@ -691,9 +604,9 @@ export const getFeedCounts = (
 
   // To get all thread count (task + conversation)
   getFeedCount(getEntityFeedLink(entityType, entityFQN))
-    .then((res: AxiosResponse) => {
-      if (res.data) {
-        entityCallback(res.data.totalCount);
+    .then((res) => {
+      if (res) {
+        entityCallback(res.totalCount);
       } else {
         throw jsonData['api-error-messages']['fetch-entity-feed-count-error'];
       }
@@ -713,3 +626,278 @@ export const getFeedCounts = (
  */
 export const isTaskSupported = (entityType: EntityType) =>
   TASK_ENTITIES.includes(entityType);
+
+/**
+ * Utility function to show pagination
+ * @param paging paging object
+ * @returns boolean
+ */
+export const showPagination = (paging: Paging) => {
+  return !isNil(paging.after) || !isNil(paging.before);
+};
+
+export const formatNumberWithComma = (number: number) => {
+  return new Intl.NumberFormat('en-US').format(number);
+};
+
+/**
+ * If the number is a time format, return the number, otherwise format the number with commas
+ * @param {number} number - The number to be formatted.
+ * @returns A function that takes a number and returns a string.
+ */
+export const getStatisticsDisplayValue = (
+  number: string | number | undefined
+) => {
+  const displayValue = toNumber(number);
+
+  if (isNaN(displayValue)) {
+    return number;
+  }
+
+  return formatNumberWithComma(displayValue);
+};
+
+export const formTwoDigitNmber = (number: number) => {
+  return number.toLocaleString('en-US', {
+    minimumIntegerDigits: 2,
+    useGrouping: false,
+  });
+};
+
+export const getTeamsUser = (
+  data?: ExtraInfo
+): Record<string, string | undefined> | undefined => {
+  if (!isUndefined(data) && !isEmpty(data?.placeholderText || data?.id)) {
+    const currentUser = AppState.getCurrentUserDetails();
+    const teams = currentUser?.teams;
+
+    const dataFound = teams?.find((team) => {
+      return data.id === team.id;
+    });
+
+    if (dataFound) {
+      return {
+        ownerName: (currentUser?.displayName || currentUser?.name) as string,
+        id: currentUser?.id as string,
+      };
+    }
+  }
+
+  return;
+};
+
+export const getHostNameFromURL = (url: string) => {
+  if (isValidUrl(url)) {
+    const domain = new URL(url);
+
+    return domain.hostname;
+  } else {
+    return '';
+  }
+};
+
+export const getOwnerValue = (owner: EntityReference) => {
+  switch (owner?.type) {
+    case 'team':
+      return getTeamAndUserDetailsPath(owner?.name || '');
+    case 'user':
+      return getUserPath(owner?.fullyQualifiedName ?? '');
+    default:
+      return '';
+  }
+};
+
+export const getIngestionFrequency = (pipelineType: PipelineType) => {
+  const value = {
+    min: 0,
+    hour: 0,
+  };
+
+  switch (pipelineType) {
+    case PipelineType.TestSuite:
+    case PipelineType.Metadata:
+      return getHourCron(value);
+
+    default:
+      return getDayCron(value);
+  }
+};
+
+export const getEmptyPlaceholder = () => {
+  return (
+    <ErrorPlaceHolder size={SIZE.MEDIUM}>
+      <Typography.Paragraph>
+        {t('message.no-data-available')}
+      </Typography.Paragraph>
+    </ErrorPlaceHolder>
+  );
+};
+
+//  return the status like loading and success
+export const getLoadingStatus = (
+  current: CurrentState,
+  id: string | undefined,
+  displayText: string
+) => {
+  return current.id === id ? (
+    current.state === 'success' ? (
+      <CheckOutlined />
+    ) : (
+      <Loader size="small" type="default" />
+    )
+  ) : (
+    displayText
+  );
+};
+
+export const refreshPage = () => window.location.reload();
+// return array of id as  strings
+export const getEntityIdArray = (entities: EntityReference[]): string[] =>
+  entities.map((item) => item.id);
+
+export const getEntityFqnArray = (entities: EntityReference[]): string[] =>
+  entities.map((item) => item.fullyQualifiedName!);
+
+export const getTierFromEntityInfo = (entity: FormattedTableData) => {
+  return (
+    entity.tier?.tagFQN ||
+    getTierFromSearchTableTags((entity.tags || []).map((tag) => tag.tagFQN))
+  )?.split(FQN_SEPARATOR_CHAR)[1];
+};
+
+export const getTagValue = (tag: string | TagLabel): string | TagLabel => {
+  if (isString(tag)) {
+    return tag.startsWith(`Tier${FQN_SEPARATOR_CHAR}Tier`)
+      ? tag.split(FQN_SEPARATOR_CHAR)[1]
+      : tag;
+  } else {
+    return {
+      ...tag,
+      tagFQN: tag.tagFQN.startsWith(`Tier${FQN_SEPARATOR_CHAR}Tier`)
+        ? tag.tagFQN.split(FQN_SEPARATOR_CHAR)[1]
+        : tag.tagFQN,
+    };
+  }
+};
+
+export const getTrimmedContent = (content: string, limit: number) => {
+  const lines = content.split('\n');
+  // Selecting the content in three lines
+  const contentInThreeLines = lines.slice(0, 3).join('\n');
+
+  const slicedContent = contentInThreeLines.slice(0, limit);
+
+  // Logic for eliminating any broken words at the end
+  // To avoid any URL being cut
+  const words = slicedContent.split(' ');
+  const wordsCount = words.length;
+
+  if (wordsCount === 1) {
+    // In case of only one word (possibly too long URL)
+    // return the whole word instead of trimming
+    return content.split(' ')[0];
+  }
+
+  // Eliminate word at the end to avoid using broken words
+  const refinedContent = words.slice(0, wordsCount - 1);
+
+  return refinedContent.join(' ');
+};
+
+export const sortTagsCaseInsensitive = (tags: TagLabel[]) => {
+  return tags.sort((tag1, tag2) =>
+    tag1.tagFQN.toLowerCase() < tag2.tagFQN.toLowerCase() ? -1 : 1
+  );
+};
+
+export const Transi18next = ({
+  i18nKey,
+  values,
+  renderElement,
+  ...otherProps
+}: {
+  i18nKey: string;
+  values?: object;
+  renderElement: JSX.Element | HTMLElement;
+}): JSX.Element => (
+  <Trans i18nKey={i18nKey} values={values} {...otherProps}>
+    {renderElement}
+  </Trans>
+);
+
+/**
+ * It returns a link to the documentation for the given filter pattern type
+ * @param {FilterPatternEnum} type - The type of filter pattern.
+ * @returns A string
+ */
+export const getFilterPatternDocsLinks = (type: FilterPatternEnum) => {
+  switch (type) {
+    case FilterPatternEnum.DATABASE:
+    case FilterPatternEnum.SCHEMA:
+    case FilterPatternEnum.TABLE:
+      return `https://docs.open-metadata.org/connectors/ingestion/workflows/metadata/filter-patterns/${FilterPatternEnum.DATABASE}#${type}-filter-pattern`;
+
+    case FilterPatternEnum.DASHBOARD:
+    case FilterPatternEnum.CHART:
+      return 'https://docs.open-metadata.org/connectors/dashboard/metabase#6-configure-metadata-ingestion';
+
+    case FilterPatternEnum.TOPIC:
+      return 'https://docs.open-metadata.org/connectors/messaging/kafka#6-configure-metadata-ingestion';
+
+    case FilterPatternEnum.PIPELINE:
+      return 'https://docs.open-metadata.org/connectors/pipeline/airflow#6-configure-metadata-ingestion';
+
+    case FilterPatternEnum.MLMODEL:
+      return 'https://docs.open-metadata.org/connectors/ml-model/mlflow';
+
+    default:
+      return 'https://docs.open-metadata.org/connectors/ingestion/workflows/metadata/filter-patterns';
+  }
+};
+
+/**
+ * It takes a string and returns a string
+ * @param {FilterPatternEnum} type - FilterPatternEnum
+ * @returns A function that takes in a type and returns a keyof AddIngestionState
+ */
+export const getFilterTypes = (
+  type: FilterPatternEnum
+): keyof AddIngestionState => {
+  switch (type) {
+    case FilterPatternEnum.CHART:
+      return 'chartFilterPattern' as keyof AddIngestionState;
+    case FilterPatternEnum.DASHBOARD:
+      return 'dashboardFilterPattern' as keyof AddIngestionState;
+    case FilterPatternEnum.DATABASE:
+      return 'databaseFilterPattern' as keyof AddIngestionState;
+    case FilterPatternEnum.MLMODEL:
+      return 'mlModelFilterPattern' as keyof AddIngestionState;
+    case FilterPatternEnum.PIPELINE:
+      return 'pipelineFilterPattern' as keyof AddIngestionState;
+    case FilterPatternEnum.SCHEMA:
+      return 'schemaFilterPattern' as keyof AddIngestionState;
+    case FilterPatternEnum.TABLE:
+      return 'tableFilterPattern' as keyof AddIngestionState;
+    default:
+      return 'topicFilterPattern' as keyof AddIngestionState;
+  }
+};
+
+/**
+ * It takes a state and an action, and returns a new state with the action merged into it
+ * @param {S} state - S - The current state of the reducer.
+ * @param {A} action - A - The action that was dispatched.
+ * @returns An object with the state and action properties.
+ */
+export const reducerWithoutAction = <S, A>(state: S, action: A) => {
+  return {
+    ...state,
+    ...action,
+  };
+};
+
+/**
+ * @param text plain text
+ * @returns base64 encoded text
+ */
+export const getBase64EncodedString = (text: string): string => btoa(text);

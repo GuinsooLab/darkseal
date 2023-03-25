@@ -17,7 +17,7 @@ To be used by OpenMetadata class
 from metadata.generated.schema.entity.data.dashboard import Dashboard
 from metadata.generated.schema.type.usageRequest import UsageRequest
 from metadata.ingestion.ometa.client import REST
-from metadata.ingestion.ometa.utils import ometa_logger
+from metadata.utils.logger import ometa_logger
 
 logger = ometa_logger()
 
@@ -44,4 +44,4 @@ class OMetaDashboardMixin:
             f"/usage/dashboard/{dashboard.id.__root__}",
             data=dashboard_usage_request.json(),
         )
-        logger.debug("published dashboard usage %s", resp)
+        logger.debug("Published dashboard usage %s", resp)

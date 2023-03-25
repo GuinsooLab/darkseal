@@ -1,5 +1,5 @@
 /*
- *  Copyright 2021 Collate
+ *  Copyright 2022 Collate.
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
@@ -11,12 +11,32 @@
  *  limitations under the License.
  */
 
-import { DynamicObj, Paging } from 'Models';
-import { DashboardService } from '../generated/entity/services/dashboardService';
+import {
+  ObjectStoreConnection,
+  ObjectstoreService,
+} from 'generated/entity/services/objectstoreService';
+import {
+  DashboardConnection,
+  DashboardService,
+} from '../generated/entity/services/dashboardService';
 import { DatabaseService } from '../generated/entity/services/databaseService';
-import { MessagingService } from '../generated/entity/services/messagingService';
-import { MlmodelService } from '../generated/entity/services/mlmodelService';
-import { PipelineService } from '../generated/entity/services/pipelineService';
+import {
+  MessagingConnection,
+  MessagingService,
+} from '../generated/entity/services/messagingService';
+import {
+  MetadataConnection,
+  MetadataService,
+} from '../generated/entity/services/metadataService';
+import {
+  MlModelConnection,
+  MlmodelService,
+} from '../generated/entity/services/mlmodelService';
+import {
+  PipelineConnection,
+  PipelineService,
+} from '../generated/entity/services/pipelineService';
+import { Paging } from '../generated/type/paging';
 
 export interface IngestionSchedule {
   repeatFrequency: string;
@@ -28,8 +48,8 @@ export interface DatabaseConnection {
   password: string;
   username: string;
   database: string;
-  connectionArguments: DynamicObj;
-  connectionOptions: DynamicObj;
+  connectionArguments: Record<string, string>;
+  connectionOptions: Record<string, string>;
 }
 
 export interface DataObj {
@@ -58,26 +78,25 @@ export interface EditObj {
   id?: string;
 }
 
-export type ServiceDataObj = { name: string } & Partial<DatabaseService> &
-  Partial<MessagingService> &
-  Partial<DashboardService> &
-  Partial<PipelineService> &
-  Partial<MlmodelService>;
-
-export type DataService =
+export type ServicesType =
   | DatabaseService
   | MessagingService
   | DashboardService
   | PipelineService
-  | MlmodelService;
+  | MlmodelService
+  | MetadataService
+  | ObjectstoreService;
 
 export interface ServiceResponse {
-  data: Array<ServiceDataObj>;
+  data: Array<ServicesType>;
   paging: Paging;
 }
 
-export type ConfigData = Partial<DatabaseService['connection']> &
-  Partial<MessagingService['connection']> &
-  Partial<DashboardService['connection']> &
-  Partial<PipelineService['connection']> &
-  Partial<MlmodelService['connection']>;
+export type ConfigData =
+  | DatabaseConnection
+  | MessagingConnection
+  | DashboardConnection
+  | PipelineConnection
+  | MlModelConnection
+  | MetadataConnection
+  | ObjectStoreConnection;

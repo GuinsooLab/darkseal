@@ -14,21 +14,19 @@
 package org.openmetadata.client.security;
 
 import feign.RequestTemplate;
-import org.openmetadata.catalog.security.client.OpenMetadataJWTClientConfig;
-import org.openmetadata.catalog.services.connections.metadata.OpenMetadataServerConnection;
+import lombok.extern.slf4j.Slf4j;
 import org.openmetadata.client.security.interfaces.AuthenticationProvider;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.openmetadata.schema.security.client.OpenMetadataJWTClientConfig;
+import org.openmetadata.schema.services.connections.metadata.OpenMetadataConnection;
 
+@Slf4j
 public class OpenMetadataAuthenticationProvider implements AuthenticationProvider {
-
-  private static final Logger LOG = LoggerFactory.getLogger(OpenMetadataAuthenticationProvider.class);
   private final OpenMetadataJWTClientConfig securityConfig;
   private String generatedAuthToken;
   private Long expirationTimeMillis;
 
-  public OpenMetadataAuthenticationProvider(OpenMetadataServerConnection iConfig) {
-    if (!iConfig.getAuthProvider().equals(OpenMetadataServerConnection.AuthProvider.OPENMETADATA)) {
+  public OpenMetadataAuthenticationProvider(OpenMetadataConnection iConfig) {
+    if (!iConfig.getAuthProvider().equals(OpenMetadataConnection.AuthProvider.OPENMETADATA)) {
       LOG.error("Required type to invoke is OpenMetadata for OpenMetadataAuthentication Provider");
       throw new RuntimeException("Required type to invoke is OpenMetadata for OpenMetadataAuthentication Provider");
     }
@@ -42,7 +40,7 @@ public class OpenMetadataAuthenticationProvider implements AuthenticationProvide
   }
 
   @Override
-  public AuthenticationProvider create(OpenMetadataServerConnection iConfig) {
+  public AuthenticationProvider create(OpenMetadataConnection iConfig) {
     return new OpenMetadataAuthenticationProvider(iConfig);
   }
 

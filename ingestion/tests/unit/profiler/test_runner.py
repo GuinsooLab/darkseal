@@ -18,11 +18,12 @@ from unittest import TestCase
 import pytest
 from sqlalchemy import TEXT, Column, Integer, String, create_engine, func
 from sqlalchemy.exc import OperationalError
-from sqlalchemy.orm import DeclarativeMeta, declarative_base
+from sqlalchemy.orm import declarative_base
 
-from metadata.orm_profiler.profiler.runner import QueryRunner
-from metadata.orm_profiler.profiler.sampler import Sampler
-from metadata.utils.connections import create_and_bind_session
+from metadata.ingestion.connections.session import create_and_bind_session
+from metadata.profiler.api.models import ProfileSampleConfig
+from metadata.profiler.profiler.runner import QueryRunner
+from metadata.profiler.profiler.sampler import Sampler
 from metadata.utils.timeout import cls_timeout
 
 Base = declarative_base()
@@ -43,13 +44,11 @@ class Timer:
     Helper to test timeouts
     """
 
-    @staticmethod
-    def slow():
+    def slow(self):
         time.sleep(10)
         return 1
 
-    @staticmethod
-    def fast():
+    def fast(self):
         return 1
 
 
@@ -61,11 +60,14 @@ class RunnerTest(TestCase):
     engine = create_engine("sqlite+pysqlite:///:memory:", echo=False, future=True)
     session = create_and_bind_session(engine)
 
-    sampler = Sampler(session=session, table=User, profile_sample=50.0)
+    sampler = Sampler(
+        session=session,
+        table=User,
+        profile_sample_config=ProfileSampleConfig(profile_sample=50.0),
+    )
     sample = sampler.random_sample()
 
     raw_runner = QueryRunner(session=session, table=User, sample=sample)
-
     timeout_runner: Timer = cls_timeout(1)(Timer())
 
     @classmethod

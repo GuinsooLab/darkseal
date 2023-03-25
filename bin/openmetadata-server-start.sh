@@ -10,7 +10,7 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 
-if [ $# -lt 1 ];
+ if [ $# -lt 1 ];
 then
 	echo "USAGE: $0 [-daemon] openmetadata.yaml"
 	exit 1
@@ -38,6 +38,7 @@ fi
 
 # classpath addition for release
 
+echo $CLASSPATH
 for file in $base_dir/libs/*.jar;
 do
     CLASSPATH=$CLASSPATH:$file
@@ -47,7 +48,6 @@ if [ ! "x$EXT_CLASSPATH" = "x" ]; then
  CLASSPATH=$CLASSPATH:$EXT_CLASSPATH;
 fi
 
-echo $CLASSPATH
 
 COMMAND=$1
 case $COMMAND in
@@ -71,12 +71,11 @@ else
   JAVA="$JAVA_HOME/bin/java"
 fi
 
-
 # Set Debug options if enabled
 if [ "x$OPENMETADATA_DEBUG" != "x" ]; then
 
     # Use default ports
-    DEFAULT_JAVA_DEBUG_PORT="5005"
+    DEFAULT_JAVA_DEBUG_PORT="0.0.0.0:5005"
 
     if [ -z "$JAVA_DEBUG_PORT" ]; then
         JAVA_DEBUG_PORT="$DEFAULT_JAVA_DEBUG_PORT"
@@ -110,9 +109,9 @@ if [ -z "$OPENMETADATA_JVM_PERFORMANCE_OPTS" ]; then
 fi
 
 #Application classname
-APP_CLASS="org.openmetadata.catalog.CatalogApplication"
+APP_CLASS="org.openmetadata.service.OpenMetadataApplication"
 
-# Launch mode-
+# Launch mode
 if [ "x$DAEMON_MODE" = "xtrue" ]; then
     nohup $JAVA $OPENMETADATA_HEAP_OPTS $OPENMETADATA_JVM_PERFORMANCE_OPTS -cp $CLASSPATH $OPENMETADATA_OPTS "$APP_CLASS" "server" "$@" > "$CONSOLE_OUTPUT_FILE" 2>&1 < /dev/null &
 else

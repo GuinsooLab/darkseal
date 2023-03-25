@@ -1,5 +1,5 @@
 /*
- *  Copyright 2021 Collate
+ *  Copyright 2022 Collate.
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
@@ -11,334 +11,286 @@
  *  limitations under the License.
  */
 
-import { AxiosError } from 'axios';
-import { isEmpty } from 'lodash';
+import PageContainerV1 from 'components/containers/PageContainerV1';
+import { useAdvanceSearch } from 'components/Explore/AdvanceSearchProvider/AdvanceSearchProvider.component';
+import Explore from 'components/Explore/Explore.component';
 import {
-  Bucket,
-  FilterObject,
-  SearchDataFunctionType,
-  SearchResponse,
-} from 'Models';
+  ExploreProps,
+  ExploreSearchIndex,
+  SearchHitCounts,
+  UrlParams,
+} from 'components/Explore/explore.interface';
+import { withAdvanceSearch } from 'components/router/withAdvanceSearch';
+import { SORT_ORDER } from 'enums/common.enum';
+import { isNil, isString } from 'lodash';
+import Qs from 'qs';
 import React, {
-  Fragment,
   FunctionComponent,
+  useCallback,
   useEffect,
   useMemo,
   useState,
 } from 'react';
 import { useHistory, useLocation, useParams } from 'react-router-dom';
+import { searchQuery } from 'rest/searchAPI';
+import useDeepCompareEffect from 'use-deep-compare-effect';
 import AppState from '../../AppState';
-import { searchData } from '../../axiosAPIs/miscAPI';
-import PageContainerV1 from '../../components/containers/PageContainerV1';
-import Explore from '../../components/Explore/Explore.component';
+import { getExplorePath, PAGE_SIZE } from '../../constants/constants';
 import {
-  ExploreSearchData,
-  UrlParams,
-} from '../../components/Explore/explore.interface';
-import { getExplorePathWithSearch, PAGE_SIZE } from '../../constants/constants';
-import {
-  emptyValue,
-  getCurrentIndex,
-  getCurrentTab,
-  getInitialFilter,
-  getQueryParam,
-  getSearchFilter,
-  INITIAL_FROM,
-  INITIAL_SORT_ORDER,
+  INITIAL_SORT_FIELD,
   tabsInfo,
-  ZERO_SIZE,
 } from '../../constants/explore.constants';
 import { SearchIndex } from '../../enums/search.enum';
-import jsonData from '../../jsons/en';
-import { getTotalEntityCountByType } from '../../utils/EntityUtils';
-import { getFilterString, prepareQueryParams } from '../../utils/FilterUtils';
+import { SearchResponse } from '../../interface/search.interface';
+import { getCombinedQueryFilterObject } from '../../utils/ExplorePage/ExplorePageUtils';
+import {
+  filterObjectToElasticsearchQuery,
+  isFilterObject,
+} from '../../utils/FilterUtils';
 import { showErrorToast } from '../../utils/ToastUtils';
+import { QueryFilterInterface } from './ExplorePage.interface';
 
 const ExplorePage: FunctionComponent = () => {
   const location = useLocation();
   const history = useHistory();
-  const initialFilter = useMemo(
-    () => getQueryParam(getInitialFilter(location.search)),
+
+  const { tab } = useParams<UrlParams>();
+
+  const [searchResults, setSearchResults] =
+    useState<SearchResponse<ExploreSearchIndex>>();
+
+  const [advancesSearchQueryFilter, setAdvancedSearchQueryFilter] =
+    useState<Record<string, unknown>>();
+
+  const [sortValue, setSortValue] = useState<string>(INITIAL_SORT_FIELD);
+
+  const [sortOrder, setSortOrder] = useState<SORT_ORDER>(SORT_ORDER.DESC);
+
+  const [searchHitCounts, setSearchHitCounts] = useState<SearchHitCounts>();
+
+  const [isLoading, setIsLoading] = useState(true);
+
+  const { queryFilter } = useAdvanceSearch();
+
+  const parsedSearch = useMemo(
+    () =>
+      Qs.parse(
+        location.search.startsWith('?')
+          ? location.search.substr(1)
+          : location.search
+      ),
     [location.search]
   );
-  const searchFilter = useMemo(
-    () => getQueryParam(getSearchFilter(location.search)),
+
+  const searchQueryParam = useMemo(
+    () => (isString(parsedSearch.search) ? parsedSearch.search : ''),
     [location.search]
   );
-  const [error, setError] = useState<string>('');
-  const { searchQuery, tab } = useParams<UrlParams>();
-  const [searchText, setSearchText] = useState<string>(searchQuery || '');
-  const [tableCount, setTableCount] = useState<number>(0);
-  const [topicCount, setTopicCount] = useState<number>(0);
-  const [dashboardCount, setDashboardCount] = useState<number>(0);
-  const [pipelineCount, setPipelineCount] = useState<number>(0);
-  const [dbtModelCount, setDbtModelCount] = useState<number>(0);
-  const [mlModelCount, setMlModelCount] = useState<number>(0);
-  const [searchResult, setSearchResult] = useState<ExploreSearchData>();
-  const [showDeleted, setShowDeleted] = useState(false);
-  const [initialSortField] = useState<string>(
-    tabsInfo[getCurrentTab(tab) - 1].sortField
+
+  const postFilter = useMemo(
+    () =>
+      isFilterObject(parsedSearch.postFilter)
+        ? parsedSearch.postFilter
+        : undefined,
+    [location.search]
   );
 
-  const handleSearchText = (text: string) => {
-    setSearchText(text);
+  const elasticsearchQueryFilter = useMemo(
+    () => filterObjectToElasticsearchQuery(postFilter),
+    [postFilter]
+  );
+
+  const handlePageChange: ExploreProps['onChangePage'] = (page) => {
+    history.push({ search: Qs.stringify({ ...parsedSearch, page }) });
   };
 
-  const handleTableCount = (count: number) => {
-    setTableCount(count);
-  };
-
-  const handleTopicCount = (count: number) => {
-    setTopicCount(count);
-  };
-
-  const handleDashboardCount = (count: number) => {
-    setDashboardCount(count);
-  };
-
-  const handlePipelineCount = (count: number) => {
-    setPipelineCount(count);
-  };
-
-  const handleDbtModelCount = (count: number) => {
-    setDbtModelCount(count);
-  };
-
-  const handleMlModelCount = (count: number) => {
-    setMlModelCount(count);
-  };
-
-  const handlePathChange = (path: string) => {
-    AppState.updateExplorePageTab(path);
-  };
-
-  /**
-   * on filter change , change the route
-   * @param filterData - filter object
-   */
-  const handleFilterChange = (filterData: FilterObject) => {
-    const params = prepareQueryParams(filterData, initialFilter);
-
-    const explorePath = getExplorePathWithSearch(searchQuery, tab);
-
-    history.push({
-      pathname: explorePath,
-      search: params,
-    });
-  };
-
-  const fetchCounts = () => {
-    const entities = [
-      SearchIndex.TABLE,
-      SearchIndex.TOPIC,
-      SearchIndex.DASHBOARD,
-      SearchIndex.PIPELINE,
-      SearchIndex.MLMODEL,
-    ];
-
-    const entityCounts = entities.map((entity) =>
-      searchData(
-        searchText,
-        0,
-        0,
-        getFilterString(initialFilter),
-        emptyValue,
-        emptyValue,
-        entity,
-        showDeleted,
-        true
-      )
+  const handleSearchIndexChange: (nSearchIndex: ExploreSearchIndex) => void = (
+    nSearchIndex
+  ) => {
+    history.push(
+      getExplorePath({
+        tab: tabsInfo[nSearchIndex].path,
+        extraParameters: { page: '1' },
+        isPersistFilters: false,
+      })
     );
-
-    Promise.allSettled(entityCounts)
-      .then(
-        ([
-          table,
-          topic,
-          dashboard,
-          pipeline,
-          mlmodel,
-        ]: PromiseSettledResult<SearchResponse>[]) => {
-          setTableCount(
-            table.status === 'fulfilled'
-              ? getTotalEntityCountByType(
-                  table.value.data.aggregations?.['sterms#EntityType']
-                    ?.buckets as Bucket[]
-                )
-              : 0
-          );
-          setTopicCount(
-            topic.status === 'fulfilled'
-              ? getTotalEntityCountByType(
-                  topic.value.data.aggregations?.['sterms#EntityType']
-                    ?.buckets as Bucket[]
-                )
-              : 0
-          );
-          setDashboardCount(
-            dashboard.status === 'fulfilled'
-              ? getTotalEntityCountByType(
-                  dashboard.value.data.aggregations?.['sterms#EntityType']
-                    ?.buckets as Bucket[]
-                )
-              : 0
-          );
-          setPipelineCount(
-            pipeline.status === 'fulfilled'
-              ? getTotalEntityCountByType(
-                  pipeline.value.data.aggregations?.['sterms#EntityType']
-                    ?.buckets as Bucket[]
-                )
-              : 0
-          );
-          setMlModelCount(
-            mlmodel.status === 'fulfilled'
-              ? getTotalEntityCountByType(
-                  mlmodel.value.data.aggregations?.['sterms#EntityType']
-                    ?.buckets as Bucket[]
-                )
-              : 0
-          );
-        }
-      )
-      .catch((err: AxiosError) => {
-        showErrorToast(
-          err,
-          jsonData['api-error-messages']['fetch-entity-count-error']
-        );
-      });
+    setAdvancedSearchQueryFilter(undefined);
   };
 
-  const fetchData = (value: SearchDataFunctionType[]) => {
-    const promiseValue = value.map((d) => {
-      return searchData(
-        d.queryString,
-        d.from,
-        d.size,
-        d.filters,
-        d.sortField,
-        d.sortOrder,
-        d.searchIndex,
-        showDeleted
-      );
+  const handlePostFilterChange: ExploreProps['onChangePostFilter'] = (
+    postFilter
+  ) => {
+    history.push({
+      search: Qs.stringify({ ...parsedSearch, postFilter, page: 1 }),
     });
-
-    Promise.all(promiseValue)
-      .then(
-        ([
-          resSearchResults,
-          resAggServiceType,
-          resAggTier,
-          resAggTag,
-          resAggDatabase,
-          resAggDatabaseSchema,
-          resAggServiceName,
-        ]: Array<SearchResponse>) => {
-          setError('');
-          setSearchResult({
-            resSearchResults,
-            resAggServiceType,
-            resAggTier,
-            resAggTag,
-            resAggDatabase,
-            resAggDatabaseSchema,
-            resAggServiceName,
-          });
-        }
-      )
-      .catch((err: AxiosError) => {
-        setError(err.response?.data?.responseMessage);
-      });
   };
+
+  const handleShowDeletedChange: ExploreProps['onChangeShowDeleted'] = (
+    showDeleted
+  ) => {
+    history.push({
+      search: Qs.stringify({ ...parsedSearch, showDeleted, page: 1 }),
+    });
+  };
+
+  const searchIndex = useMemo(() => {
+    const tabInfo = Object.entries(tabsInfo).find(
+      ([, tabInfo]) => tabInfo.path === tab
+    );
+    if (isNil(tabInfo)) {
+      return SearchIndex.TABLE;
+    }
+
+    return tabInfo[0] as ExploreSearchIndex;
+  }, [tab]);
 
   useEffect(() => {
-    fetchCounts();
-  }, [searchText, showDeleted, initialFilter]);
+    handleSearchIndexChange(searchIndex);
+  }, [searchIndex, searchQueryParam]);
+
+  const page = useMemo(() => {
+    const pageParam = parsedSearch.page;
+    if (!isString(pageParam) || isNaN(Number.parseInt(pageParam))) {
+      return 1;
+    }
+
+    return Number.parseInt(pageParam);
+  }, [parsedSearch.page]);
+
+  useEffect(() => {
+    handlePageChange(page);
+  }, [page]);
+
+  const showDeleted = useMemo(() => {
+    const showDeletedParam = parsedSearch.showDeleted;
+
+    return showDeletedParam === 'true';
+  }, [parsedSearch.showDeleted]);
+
+  const combinedQueryFilter = useMemo(
+    () =>
+      // Both query filter objects have type as Record<string, unknown>
+      // Here unknown will not allow us to directly access the properties
+      // That is why I first did typecast it into QueryFilterInterface type to access the properties.
+      getCombinedQueryFilterObject(
+        elasticsearchQueryFilter as unknown as QueryFilterInterface,
+        (advancesSearchQueryFilter as unknown as QueryFilterInterface) ??
+          queryFilter
+      ),
+    [elasticsearchQueryFilter, advancesSearchQueryFilter, queryFilter]
+  );
+
+  useDeepCompareEffect(() => {
+    setIsLoading(true);
+    Promise.all([
+      searchQuery({
+        query: searchQueryParam,
+        searchIndex,
+        queryFilter: combinedQueryFilter,
+        sortField: sortValue,
+        sortOrder,
+        pageNumber: page,
+        pageSize: PAGE_SIZE,
+        includeDeleted: showDeleted,
+      })
+        .then((res) => res)
+        .then((res) => setSearchResults(res)),
+      Promise.all(
+        [
+          SearchIndex.TABLE,
+          SearchIndex.TOPIC,
+          SearchIndex.DASHBOARD,
+          SearchIndex.PIPELINE,
+          SearchIndex.MLMODEL,
+          SearchIndex.CONTAINER,
+        ].map((index) =>
+          searchQuery({
+            query: searchQueryParam,
+            pageNumber: 0,
+            pageSize: 0,
+            queryFilter: combinedQueryFilter,
+            searchIndex: index,
+            includeDeleted: showDeleted,
+            trackTotalHits: true,
+            fetchSource: false,
+          })
+        )
+      ).then(
+        ([
+          tableResponse,
+          topicResponse,
+          dashboardResponse,
+          pipelineResponse,
+          mlmodelResponse,
+          containerResponse,
+        ]) => {
+          setSearchHitCounts({
+            [SearchIndex.TABLE]: tableResponse.hits.total.value,
+            [SearchIndex.TOPIC]: topicResponse.hits.total.value,
+            [SearchIndex.DASHBOARD]: dashboardResponse.hits.total.value,
+            [SearchIndex.PIPELINE]: pipelineResponse.hits.total.value,
+            [SearchIndex.MLMODEL]: mlmodelResponse.hits.total.value,
+            [SearchIndex.CONTAINER]: containerResponse.hits.total.value,
+          });
+        }
+      ),
+    ])
+      .catch((err) => {
+        showErrorToast(err);
+      })
+      .finally(() => setIsLoading(false));
+  }, [
+    searchIndex,
+    searchQueryParam,
+    sortValue,
+    sortOrder,
+    showDeleted,
+    advancesSearchQueryFilter,
+    elasticsearchQueryFilter,
+    queryFilter,
+    page,
+  ]);
+
+  const handleAdvanceSearchQueryFilterChange = useCallback(
+    (filter?: Record<string, unknown>) => {
+      handlePageChange(1);
+      setAdvancedSearchQueryFilter(filter);
+    },
+    [setAdvancedSearchQueryFilter]
+  );
 
   useEffect(() => {
     AppState.updateExplorePageTab(tab);
   }, [tab]);
 
-  useEffect(() => {
-    setSearchResult(undefined);
-    fetchData([
-      {
-        queryString: searchText,
-        from: INITIAL_FROM,
-        size: PAGE_SIZE,
-        filters: getFilterString(initialFilter),
-        sortField: initialSortField,
-        sortOrder: INITIAL_SORT_ORDER,
-        searchIndex: getCurrentIndex(tab),
-      },
-      {
-        queryString: searchText,
-        from: INITIAL_FROM,
-        size: ZERO_SIZE,
-        filters: getFilterString(initialFilter),
-        sortField: initialSortField,
-        sortOrder: INITIAL_SORT_ORDER,
-        searchIndex: getCurrentIndex(tab),
-      },
-      {
-        queryString: searchText,
-        from: INITIAL_FROM,
-        size: ZERO_SIZE,
-        filters: getFilterString(initialFilter),
-        sortField: initialSortField,
-        sortOrder: INITIAL_SORT_ORDER,
-        searchIndex: getCurrentIndex(tab),
-      },
-      {
-        queryString: searchText,
-        from: INITIAL_FROM,
-        size: ZERO_SIZE,
-        filters: getFilterString(initialFilter),
-        sortField: initialSortField,
-        sortOrder: INITIAL_SORT_ORDER,
-        searchIndex: getCurrentIndex(tab),
-      },
-    ]);
-  }, []);
-
   return (
-    <Fragment>
-      <PageContainerV1>
-        <Explore
-          error={error}
-          fetchCount={fetchCounts}
-          fetchData={fetchData}
-          handleFilterChange={handleFilterChange}
-          handlePathChange={handlePathChange}
-          handleSearchText={handleSearchText}
-          initialFilter={initialFilter}
-          isFilterSelected={!isEmpty(searchFilter) || !isEmpty(initialFilter)}
-          searchFilter={searchFilter}
-          searchQuery={searchQuery}
-          searchResult={searchResult}
-          searchText={searchText}
-          showDeleted={showDeleted}
-          sortValue={initialSortField}
-          tab={tab}
-          tabCounts={{
-            table: tableCount,
-            topic: topicCount,
-            dashboard: dashboardCount,
-            pipeline: pipelineCount,
-            dbtModel: dbtModelCount,
-            mlModel: mlModelCount,
-          }}
-          updateDashboardCount={handleDashboardCount}
-          updateDbtModelCount={handleDbtModelCount}
-          updateMlModelCount={handleMlModelCount}
-          updatePipelineCount={handlePipelineCount}
-          updateTableCount={handleTableCount}
-          updateTopicCount={handleTopicCount}
-          onShowDeleted={(checked) => setShowDeleted(checked)}
-        />
-      </PageContainerV1>
-    </Fragment>
+    <PageContainerV1>
+      <Explore
+        loading={isLoading}
+        page={page}
+        postFilter={postFilter}
+        searchIndex={searchIndex}
+        searchResults={searchResults}
+        showDeleted={showDeleted}
+        sortOrder={sortOrder}
+        sortValue={sortValue}
+        tabCounts={searchHitCounts}
+        onChangeAdvancedSearchQueryFilter={handleAdvanceSearchQueryFilterChange}
+        onChangePage={handlePageChange}
+        onChangePostFilter={handlePostFilterChange}
+        onChangeSearchIndex={handleSearchIndexChange}
+        onChangeShowDeleted={handleShowDeletedChange}
+        onChangeSortOder={(sort) => {
+          handlePageChange(1);
+          setSortOrder(sort);
+        }}
+        onChangeSortValue={(sort) => {
+          handlePageChange(1);
+          setSortValue(sort);
+        }}
+      />
+    </PageContainerV1>
   );
 };
 
-export default ExplorePage;
+export default withAdvanceSearch(ExplorePage);

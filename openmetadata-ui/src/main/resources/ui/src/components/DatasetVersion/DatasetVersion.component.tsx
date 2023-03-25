@@ -1,5 +1,5 @@
 /*
- *  Copyright 2021 Collate
+ *  Copyright 2022 Collate.
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
@@ -12,11 +12,14 @@
  */
 
 import classNames from 'classnames';
+import PageContainer from 'components/containers/PageContainer';
+
 import { cloneDeep, isEqual, isUndefined } from 'lodash';
 import { ExtraInfo } from 'Models';
 import React, { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { FQN_SEPARATOR_CHAR } from '../../constants/char.constants';
-import { EntityField } from '../../constants/feed.constants';
+import { EntityField } from '../../constants/Feeds.constants';
 import { FqnPart } from '../../enums/entity.enum';
 import { OwnerType } from '../../enums/user.enum';
 import {
@@ -37,10 +40,9 @@ import { TagLabelWithStatus } from '../../utils/EntityVersionUtils.interface';
 import Description from '../common/description/Description';
 import EntityPageInfo from '../common/entityPageInfo/EntityPageInfo';
 import TabsPane from '../common/TabsPane/TabsPane';
-import PageContainer from '../containers/PageContainer';
 import EntityVersionTimeLine from '../EntityVersionTimeLine/EntityVersionTimeLine';
 import Loader from '../Loader/Loader';
-import SchemaTab from '../SchemaTab/SchemaTab.component';
+import VersionTable from '../VersionTable/VersionTable.component';
 import { DatasetVersionProp } from './DatasetVersion.interface';
 
 const DatasetVersion: React.FC<DatasetVersionProp> = ({
@@ -56,6 +58,7 @@ const DatasetVersion: React.FC<DatasetVersionProp> = ({
   backHandler,
   versionHandler,
 }: DatasetVersionProp) => {
+  const { t } = useTranslation();
   const [changeDescription, setChangeDescription] = useState<ChangeDescription>(
     currentVersionData.changeDescription as ChangeDescription
   );
@@ -160,7 +163,7 @@ const DatasetVersion: React.FC<DatasetVersionProp> = ({
   };
 
   const updatedColumns = (): Table['columns'] => {
-    const colList = cloneDeep(currentVersionData.columns);
+    const colList = cloneDeep((currentVersionData as Table).columns);
     const columnsDiff = getDiffByFieldName(
       EntityField.COLUMNS,
       changeDescription
@@ -336,10 +339,10 @@ const DatasetVersion: React.FC<DatasetVersionProp> = ({
     [
       ...(getTagsDiff(oldTags, newTags) ?? []),
       ...(currentVersionData.tags ?? []),
-    ].forEach((elem: TagLabelWithStatus) => {
+    ].forEach((elem: TagLabel) => {
       if (!flag[elem.tagFQN as string]) {
         flag[elem.tagFQN as string] = true;
-        uniqueTags.push(elem);
+        uniqueTags.push(elem as TagLabelWithStatus);
       }
     });
 
@@ -354,7 +357,7 @@ const DatasetVersion: React.FC<DatasetVersionProp> = ({
 
   const tabs = [
     {
-      name: 'Schema',
+      name: t('label.schema'),
       icon: {
         alt: 'schema',
         name: 'icon-schema',
@@ -406,16 +409,16 @@ const DatasetVersion: React.FC<DatasetVersionProp> = ({
                   </div>
 
                   <div className="tw-col-span-full">
-                    <SchemaTab
-                      isReadOnly
+                    <VersionTable
                       columnName={getPartialNameFromTableFQN(
                         datasetFQN,
                         [FqnPart.Column],
                         FQN_SEPARATOR_CHAR
                       )}
                       columns={updatedColumns()}
-                      joins={currentVersionData.joins as ColumnJoins[]}
-                      tableConstraints={[]}
+                      joins={
+                        (currentVersionData as Table).joins as ColumnJoins[]
+                      }
                     />
                   </div>
                 </div>

@@ -1,5 +1,5 @@
 /*
- *  Copyright 2021 Collate
+ *  Copyright 2022 Collate.
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
@@ -11,15 +11,16 @@
  *  limitations under the License.
  */
 
-import { Empty, Switch } from 'antd';
-import { AxiosError, AxiosResponse } from 'axios';
+import { Button, Space, Switch } from 'antd';
+import { AxiosError } from 'axios';
 import classNames from 'classnames';
 import { Operation } from 'fast-json-patch';
 import { isEqual, isUndefined } from 'lodash';
 import React, { FC, Fragment, RefObject, useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
+import { getAllFeeds } from 'rest/feedsAPI';
 import AppState from '../../../AppState';
-import { getAllFeeds } from '../../../axiosAPIs/feedsAPI';
-import { confirmStateInitialValue } from '../../../constants/feed.constants';
+import { confirmStateInitialValue } from '../../../constants/Feeds.constants';
 import { observerOptions } from '../../../constants/Mydata.constants';
 import { FeedFilter } from '../../../enums/mydata.enum';
 import {
@@ -32,6 +33,7 @@ import { useInfiniteScroll } from '../../../hooks/useInfiniteScroll';
 import jsonData from '../../../jsons/en';
 import { getEntityField } from '../../../utils/FeedUtils';
 import { showErrorToast } from '../../../utils/ToastUtils';
+import ErrorPlaceHolder from '../../common/error-with-placeholder/ErrorPlaceHolder';
 import Loader from '../../Loader/Loader';
 import { ConfirmState } from '../ActivityFeedCard/ActivityFeedCard.interface';
 import ActivityFeedEditor from '../ActivityFeedEditor/ActivityFeedEditor';
@@ -40,6 +42,7 @@ import DeleteConfirmationModal from '../DeleteConfirmationModal/DeleteConfirmati
 import ActivityThread from './ActivityThread';
 import ActivityThreadList from './ActivityThreadList';
 import { ActivityThreadPanelBodyProp } from './ActivityThreadPanel.interface';
+import AnnouncementThreads from './AnnouncementThreads';
 
 const ActivityThreadPanelBody: FC<ActivityThreadPanelBodyProp> = ({
   threadLink,
@@ -52,6 +55,7 @@ const ActivityThreadPanelBody: FC<ActivityThreadPanelBodyProp> = ({
   showHeader = true,
   threadType,
 }) => {
+  const { t } = useTranslation();
   const [threads, setThreads] = useState<Thread[]>([]);
   const [selectedThread, setSelectedThread] = useState<Thread>();
   const [selectedThreadId, setSelectedThreadId] = useState<string>('');
@@ -78,12 +82,14 @@ const ActivityThreadPanelBody: FC<ActivityThreadPanelBodyProp> = ({
 
   const isTaskClosed = isEqual(taskStatus, ThreadTaskStatus.Closed);
 
+  const isAnnouncementType = threadType === ThreadType.Announcement;
+
   const getThreads = (after?: string) => {
     const status = isTaskType ? taskStatus : undefined;
     setIsThreadLoading(true);
     getAllFeeds(threadLink, after, threadType, FeedFilter.ALL, status)
-      .then((res: AxiosResponse) => {
-        const { data, paging: pagingObj } = res.data;
+      .then((res) => {
+        const { data, paging: pagingObj } = res;
         setThreads((prevData) => {
           if (after) {
             return [...prevData, ...data];
@@ -116,7 +122,11 @@ const ActivityThreadPanelBody: FC<ActivityThreadPanelBodyProp> = ({
 
   const onPostDelete = () => {
     if (confirmationState.postId && confirmationState.threadId) {
-      deletePostHandler?.(confirmationState.threadId, confirmationState.postId);
+      deletePostHandler?.(
+        confirmationState.threadId,
+        confirmationState.postId,
+        confirmationState.isThread
+      );
     }
     onDiscard();
     loadNewThreads();
@@ -223,11 +233,15 @@ const ActivityThreadPanelBody: FC<ActivityThreadPanelBodyProp> = ({
   return (
     <Fragment>
       <div id="thread-panel-body">
-        {showHeader && isConversationType ? (
+        {showHeader && isConversationType && (
           <FeedPanelHeader
             className="tw-px-4 tw-shadow-sm"
             entityField={entityField as string}
-            noun={isConversationType ? 'Conversations' : 'Tasks'}
+            noun={
+              isConversationType
+                ? t('label.conversation-plural')
+                : t('label.task-plural')
+            }
             onCancel={() => onCancel && onCancel()}
             onShowNewConversation={
               threads.length > 0 && isUndefined(selectedThread)
@@ -235,20 +249,26 @@ const ActivityThreadPanelBody: FC<ActivityThreadPanelBodyProp> = ({
                 : undefined
             }
           />
-        ) : (
-          <div className="tw-flex tw-justify-end tw-mr-2 tw-mt-2">
-            <Switch onChange={onSwitchChange} />
-            <span className="tw-ml-1">Closed Tasks</span>
-          </div>
+        )}
+        {isTaskType && (
+          <Space
+            align="center"
+            className="w-full justify-end p-r-xs m-t-xs"
+            size={4}>
+            <Switch size="small" onChange={onSwitchChange} />
+            <span className="tw-ml-1">{t('label.closed-task-plural')}</span>
+          </Space>
         )}
 
         {!isUndefined(selectedThread) ? (
           <Fragment>
-            <p
-              className="tw-py-3 tw-cursor-pointer link-text tw-pl-5"
+            <Button
+              className="tw-mb-3 tw-ml-2"
+              size="small"
+              type="link"
               onClick={onBack}>
-              {'< Back'}
-            </p>
+              {t('label.back')}
+            </Button>
             <ActivityThread
               className="tw-pb-4 tw-pl-5 tw-pr-2"
               postFeed={postFeed}
@@ -261,38 +281,62 @@ const ActivityThreadPanelBody: FC<ActivityThreadPanelBodyProp> = ({
           <Fragment>
             {showNewConversation || isEqual(threads.length, 0) ? (
               <Fragment>
-                {isConversationType ? (
+                {isConversationType && (
                   <Fragment>
                     <p className="tw-ml-9 tw-mr-2 tw-mb-2 tw-mt-1">
-                      You are starting a new conversation
+                      {t('message.new-conversation')}
                     </p>
                     <ActivityFeedEditor
                       buttonClass="tw-mr-4"
                       className="tw-ml-5 tw-mr-2"
-                      placeHolder="Enter a message"
+                      placeHolder={t('message.enter-a-field', {
+                        field: t('label.message-lowercase'),
+                      })}
                       onSave={onPostThread}
                     />
                   </Fragment>
-                ) : (
-                  <Empty
-                    className="ant-empty-tasks"
-                    description={
-                      isTaskClosed ? 'No Closed Tasks' : 'No Open Tasks'
-                    }
-                  />
+                )}
+                {isTaskType && (
+                  <ErrorPlaceHolder>
+                    <p>
+                      {isTaskClosed
+                        ? t('message.no-closed-task')
+                        : t('message.no-open-task')}
+                    </p>
+                  </ErrorPlaceHolder>
+                )}
+                {isAnnouncementType && (
+                  <ErrorPlaceHolder>
+                    <p data-testid="announcement-error">
+                      {t('message.no-announcement-message')}
+                    </p>
+                  </ErrorPlaceHolder>
                 )}
               </Fragment>
             ) : null}
-            <ActivityThreadList
-              className={classNames({ 'tw-p-4': !className }, className)}
-              postFeed={postFeed}
-              selectedThreadId={selectedThreadId}
-              threads={threads}
-              updateThreadHandler={onUpdateThread}
-              onConfirmation={onConfirmation}
-              onThreadIdSelect={onThreadIdSelect}
-              onThreadSelect={onThreadSelect}
-            />
+            {isAnnouncementType ? (
+              <AnnouncementThreads
+                className={classNames({ 'tw-p-4': !className }, className)}
+                postFeed={postFeed}
+                selectedThreadId={selectedThreadId}
+                threads={threads}
+                updateThreadHandler={onUpdateThread}
+                onConfirmation={onConfirmation}
+                onThreadIdSelect={onThreadIdSelect}
+                onThreadSelect={onThreadSelect}
+              />
+            ) : (
+              <ActivityThreadList
+                className={classNames({ 'tw-p-4': !className }, className)}
+                postFeed={postFeed}
+                selectedThreadId={selectedThreadId}
+                threads={threads}
+                updateThreadHandler={onUpdateThread}
+                onConfirmation={onConfirmation}
+                onThreadIdSelect={onThreadIdSelect}
+                onThreadSelect={onThreadSelect}
+              />
+            )}
             <div
               data-testid="observer-element"
               id="observer-element"
@@ -302,12 +346,11 @@ const ActivityThreadPanelBody: FC<ActivityThreadPanelBodyProp> = ({
           </Fragment>
         )}
       </div>
-      {confirmationState.state && (
-        <DeleteConfirmationModal
-          onDelete={onPostDelete}
-          onDiscard={onDiscard}
-        />
-      )}
+      <DeleteConfirmationModal
+        visible={confirmationState.state}
+        onDelete={onPostDelete}
+        onDiscard={onDiscard}
+      />
     </Fragment>
   );
 };

@@ -1,5 +1,5 @@
 /*
- *  Copyright 2021 Collate
+ *  Copyright 2022 Collate.
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
@@ -13,6 +13,7 @@
 
 import { HTMLAttributes } from 'react';
 import { ReactionOperation } from '../../../enums/reactions.enum';
+import { AnnouncementDetails } from '../../../generated/api/feed/createThread';
 import {
   Post,
   TaskDetails,
@@ -25,6 +26,7 @@ export interface ConfirmState {
   state: boolean;
   threadId: string | undefined;
   postId: string | undefined;
+  isThread: boolean;
 }
 export interface ActivityFeedCardProp extends HTMLAttributes<HTMLDivElement> {
   feed: Post;
@@ -38,6 +40,7 @@ export interface ActivityFeedCardProp extends HTMLAttributes<HTMLDivElement> {
   isFooterVisible?: boolean;
   isThread?: boolean;
   taskDetails?: TaskDetails;
+  announcementDetails?: AnnouncementDetails;
   onThreadSelect?: (id: string) => void;
   onConfirmation?: (data: ConfirmState) => void;
   updateThreadHandler: ThreadUpdatedFunc;
@@ -54,13 +57,16 @@ export interface FeedHeaderProp
 }
 export interface FeedBodyProp
   extends HTMLAttributes<HTMLDivElement>,
-    Pick<ActivityFeedCardProp, 'isThread'> {
+    Pick<ActivityFeedCardProp, 'isThread' | 'announcementDetails'> {
   message: string;
   reactions: Post['reactions'];
   onReactionSelect: (
     reactionType: ReactionType,
     reactionOperation: ReactionOperation
   ) => void;
+  isEditPost: boolean;
+  onPostUpdate: (message: string) => void;
+  onCancelPostUpdate: () => void;
 }
 export interface FeedFooterProp
   extends HTMLAttributes<HTMLDivElement>,

@@ -1,5 +1,5 @@
 /*
- *  Copyright 2021 Collate
+ *  Copyright 2022 Collate.
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
@@ -11,11 +11,17 @@
  *  limitations under the License.
  */
 
-import { findByTestId, findByText, render } from '@testing-library/react';
-import { LeafNodes } from 'Models';
+import {
+  findAllByText,
+  findByTestId,
+  findByText,
+  render,
+} from '@testing-library/react';
 import React from 'react';
 import { MemoryRouter } from 'react-router-dom';
 import { Mlmodel } from '../../generated/entity/data/mlmodel';
+import { Paging } from '../../generated/type/paging';
+import { LeafNodes } from '../EntityLineage/EntityLineage.interface';
 import MlModelDetailComponent from './MlModelDetail.component';
 
 const mockData = {
@@ -152,11 +158,22 @@ const mockProp = {
     lineageLeafNodes: {} as LeafNodes,
     isNodeLoading: { id: undefined, state: false },
   },
-};
+  onExtensionUpdate: jest.fn(),
+  entityThread: [],
+  isEntityThreadLoading: false,
+  paging: {} as Paging,
+  feedCount: 2,
+  fetchFeedHandler: jest.fn(),
+  postFeedHandler: jest.fn(),
+  deletePostHandler: jest.fn(),
 
-jest.mock('../ManageTab/ManageTab.component', () => {
-  return jest.fn().mockReturnValue(<p data-testid="manage">ManageTab</p>);
-});
+  updateThreadHandler: jest.fn(),
+  entityFieldThreadCount: [],
+  entityFieldTaskCount: [],
+  createThread: jest.fn(),
+  version: '0.1',
+  versionHandler: jest.fn(),
+};
 
 jest.mock('../common/description/Description', () => {
   return jest.fn().mockReturnValue(<p>Description</p>);
@@ -182,10 +199,20 @@ jest.mock('../common/TabsPane/TabsPane', () => {
   return jest.fn().mockReturnValue(<p data-testid="tabs">Tabs</p>);
 });
 
+jest.mock('../ActivityFeed/ActivityFeedList/ActivityFeedList.tsx', () => {
+  return jest.fn().mockReturnValue(<p>ActivityFeedList</p>);
+});
+
+jest.mock('../ActivityFeed/ActivityThreadPanel/ActivityThreadPanel', () => {
+  return jest.fn().mockReturnValue(<p>ActivityThreadPanel</p>);
+});
+
 jest.mock('../../utils/CommonUtils', () => {
   return {
     getEntityName: jest.fn().mockReturnValue('entityName'),
     getEntityPlaceHolder: jest.fn().mockReturnValue('entityPlaceholder'),
+    getOwnerValue: jest.fn().mockReturnValue('Owner'),
+    getEmptyPlaceholder: jest.fn().mockReturnValue(<p>ErrorPlaceHolder</p>),
   };
 });
 
@@ -195,6 +222,12 @@ jest.mock('../../utils/TableUtils', () => {
     getTierTags: jest.fn().mockReturnValue(undefined),
   };
 });
+
+jest.mock('../common/CustomPropertyTable/CustomPropertyTable', () => ({
+  CustomPropertyTable: jest
+    .fn()
+    .mockReturnValue(<p>CustomPropertyTable.component</p>),
+}));
 
 describe('Test MlModel entity detail component', () => {
   it('Should render detail component', async () => {
@@ -219,8 +252,34 @@ describe('Test MlModel entity detail component', () => {
   });
 
   it('Should render hyper parameter and ml store table for details tab', async () => {
+    const mockPropDetails = {
+      ...mockProp,
+      mlModelDetail: {
+        ...mockProp.mlModelDetail,
+        mlHyperParameters: [],
+        mlStore: undefined,
+      },
+    };
     const { container } = render(
-      <MlModelDetailComponent {...mockProp} activeTab={2} />,
+      <MlModelDetailComponent {...mockPropDetails} activeTab={3} />,
+      {
+        wrapper: MemoryRouter,
+      }
+    );
+
+    const detailContainer = await findByTestId(container, 'mlmodel-details');
+    const emptyTablePlaceholder = await findAllByText(
+      container,
+      'ErrorPlaceHolder'
+    );
+
+    expect(detailContainer).toBeInTheDocument();
+    expect(emptyTablePlaceholder).toHaveLength(2);
+  });
+
+  it('Should render no data placeholder hyper parameter and ml store details tab', async () => {
+    const { container } = render(
+      <MlModelDetailComponent {...mockProp} activeTab={3} />,
       {
         wrapper: MemoryRouter,
       }
@@ -241,7 +300,7 @@ describe('Test MlModel entity detail component', () => {
 
   it('Should render lineage tab', async () => {
     const { container } = render(
-      <MlModelDetailComponent {...mockProp} activeTab={3} />,
+      <MlModelDetailComponent {...mockProp} activeTab={4} />,
       {
         wrapper: MemoryRouter,
       }
@@ -252,18 +311,44 @@ describe('Test MlModel entity detail component', () => {
     expect(detailContainer).toBeInTheDocument();
   });
 
-  it('Should render manage component for manage tab', async () => {
+  it('Check if active tab is custom properties', async () => {
     const { container } = render(
-      <MlModelDetailComponent {...mockProp} activeTab={4} />,
+      <MlModelDetailComponent {...mockProp} activeTab={5} />,
       {
         wrapper: MemoryRouter,
       }
     );
+    const customProperties = await findByText(
+      container,
+      'CustomPropertyTable.component'
+    );
 
+    expect(customProperties).toBeInTheDocument();
+  });
+
+  it('Soft deleted mlmodel should be visible', async () => {
+    const { container } = render(
+      <MlModelDetailComponent
+        {...mockProp}
+        mlModelDetail={{ ...mockData, deleted: true } as Mlmodel}
+      />,
+      {
+        wrapper: MemoryRouter,
+      }
+    );
     const detailContainer = await findByTestId(container, 'mlmodel-details');
-    const manageTab = await findByTestId(container, 'manage');
+    const entityInfo = await findByText(container, /EntityPageInfo/i);
+    const entityTabs = await findByTestId(container, 'tabs');
+    const entityFeatureList = await findByText(
+      container,
+      /MlModelFeaturesList/i
+    );
+    const entityDescription = await findByText(container, /Description/i);
 
     expect(detailContainer).toBeInTheDocument();
-    expect(manageTab).toBeInTheDocument();
+    expect(entityInfo).toBeInTheDocument();
+    expect(entityTabs).toBeInTheDocument();
+    expect(entityFeatureList).toBeInTheDocument();
+    expect(entityDescription).toBeInTheDocument();
   });
 });

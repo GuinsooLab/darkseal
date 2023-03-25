@@ -1,5 +1,5 @@
 /*
- *  Copyright 2021 Collate
+ *  Copyright 2022 Collate.
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
@@ -11,16 +11,23 @@
  *  limitations under the License.
  */
 
-import { Popover } from 'antd';
+import Icon from '@ant-design/icons';
+import { Popover, Space, Typography } from 'antd';
 import { isEqual } from 'lodash';
 import React from 'react';
+import { useTranslation } from 'react-i18next';
+import { ReactComponent as IconTaskClose } from '../../../assets/svg/complete.svg';
+import { ReactComponent as IconTaskOpen } from '../../../assets/svg/in-progress.svg';
 import { ThreadTaskStatus } from '../../../generated/entity/feed/thread';
-import SVGIcons, { Icons } from '../../../utils/SvgUtils';
+import './Badge.less';
 
 const TaskBadge = ({ status }: { status: ThreadTaskStatus }) => {
+  const { t } = useTranslation();
   const isTaskOpen = isEqual(status, ThreadTaskStatus.Open);
 
-  const popoverContent = isTaskOpen ? 'Status: open' : 'Status: closed';
+  const popoverContent = isTaskOpen
+    ? `${t('label.status')}: ${t('label.open-lowercase')}`
+    : `${t('label.status')}: ${t('label.closed-lowercase')}`;
 
   return (
     <Popover
@@ -29,23 +36,16 @@ const TaskBadge = ({ status }: { status: ThreadTaskStatus }) => {
       overlayClassName="ant-popover-task-status"
       trigger="hover"
       zIndex={9999}>
-      <span
-        className="tw-rounded tw-px-2  tw-absolute tw-left-4 tw--top-3 tw-flex"
-        style={{
-          background: '#F1EDFD',
-          border: '1px solid #C6B5F6',
-          boxShadow: '0px 1px 2px rgba(0, 0, 0, 0.06)',
-          borderRadius: '2px',
-          color: '#1e61f0',
-          fontSize: '12px',
-        }}>
-        <SVGIcons
+      <Space align="center" className="task-badge" size={4}>
+        <Icon
           alt="task-status"
-          icon={isTaskOpen ? Icons.TASK_OPEN : Icons.TASK_CLOSED}
-          width="12px"
+          component={isTaskOpen ? IconTaskOpen : IconTaskClose}
+          style={{ fontSize: '12px' }}
         />
-        <span className="tw-pl-1">Task</span>
-      </span>
+        <Typography.Text className="text-primary">
+          {t('label.task')}
+        </Typography.Text>
+      </Space>
     </Popover>
   );
 };

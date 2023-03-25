@@ -1,5 +1,5 @@
 /*
- *  Copyright 2021 Collate
+ *  Copyright 2022 Collate.
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
@@ -11,21 +11,26 @@
  *  limitations under the License.
  */
 
-import { AxiosError, AxiosResponse } from 'axios';
+import { AxiosError } from 'axios';
+import {
+  OperationPermission,
+  ResourceEntity,
+} from 'components/PermissionProvider/PermissionProvider.interface';
 import cryptoRandomString from 'crypto-random-string-with-promisify-polyfill';
+import { ObjectStoreServiceType } from 'generated/entity/data/container';
+import { t } from 'i18next';
 import {
   Bucket,
   DynamicFormFieldType,
-  DynamicObj,
-  ServiceCollection,
-  ServiceData,
   ServicesData,
   ServiceTypes,
 } from 'Models';
 import React from 'react';
-import { getEntityCount } from '../axiosAPIs/miscAPI';
-import { getServiceDetails, getServices } from '../axiosAPIs/serviceAPI';
+import { getEntityCount } from 'rest/miscAPI';
+import { GlobalSettingOptions } from '../constants/GlobalSettings.constants';
 import {
+  addDBTIngestionGuide,
+  addLineageIngestionGuide,
   addMetadataIngestionGuide,
   addProfilerIngestionGuide,
   addServiceGuide,
@@ -35,36 +40,52 @@ import {
 import {
   AIRBYTE,
   AIRFLOW,
-  arrServiceTypes,
+  AMAZON_S3,
+  AMUNDSEN,
   ATHENA,
+  ATLAS,
   AZURESQL,
   BIGQUERY,
   CLICKHOUSE,
+  DAGSTER,
   DASHBOARD_DEFAULT,
   DATABASE_DEFAULT,
   DATABRICK,
+  DATALAKE,
   DEFAULT_SERVICE,
   DELTALAKE,
+  DOMO,
   DRUID,
   DYNAMODB,
+  FIVETRAN,
+  GCS,
   GLUE,
   HIVE,
   IBMDB2,
   KAFKA,
+  KINESIS,
+  LOGO,
   LOOKER,
   MARIADB,
   METABASE,
   MLFLOW,
+  MODE,
   MSSQL,
+  MS_AZURE,
   MYSQL,
+  NIFI,
   ORACLE,
+  PINOT,
   PIPELINE_DEFAULT,
   POSTGRES,
   POWERBI,
   PRESTO,
   PULSAR,
+  QUICKSIGHT,
   REDASH,
+  REDPANDA,
   REDSHIFT,
+  SAGEMAKER,
   SALESFORCE,
   SCIKIT,
   serviceTypes,
@@ -76,17 +97,35 @@ import {
   TOPIC_DEFAULT,
   TRINO,
   VERTICA,
-} from '../constants/services.const';
+} from '../constants/Services.constant';
+import { PROMISE_STATE } from '../enums/common.enum';
 import { ServiceCategory } from '../enums/service.enum';
-import { ConnectionType } from '../generated/api/services/ingestionPipelines/testServiceConnection';
 import { Database } from '../generated/entity/data/database';
 import { MlModelServiceType } from '../generated/entity/data/mlmodel';
-import { DashboardServiceType } from '../generated/entity/services/dashboardService';
+import {
+  DashboardService,
+  DashboardServiceType,
+} from '../generated/entity/services/dashboardService';
 import { DatabaseServiceType } from '../generated/entity/services/databaseService';
-import { PipelineType as IngestionPipelineType } from '../generated/entity/services/ingestionPipelines/ingestionPipeline';
-import { MessagingServiceType } from '../generated/entity/services/messagingService';
-import { PipelineServiceType } from '../generated/entity/services/pipelineService';
-import { ServiceResponse } from '../interface/service.interface';
+import {
+  IngestionPipeline,
+  PipelineType as IngestionPipelineType,
+} from '../generated/entity/services/ingestionPipelines/ingestionPipeline';
+import {
+  MessagingService,
+  MessagingServiceType,
+} from '../generated/entity/services/messagingService';
+import { MetadataServiceType } from '../generated/entity/services/metadataService';
+import { MlmodelService } from '../generated/entity/services/mlmodelService';
+import {
+  PipelineService,
+  PipelineServiceType,
+} from '../generated/entity/services/pipelineService';
+import { ServiceType } from '../generated/entity/services/serviceType';
+import { ServicesType } from '../interface/service.interface';
+import { getEntityDeleteMessage, pluralize } from './CommonUtils';
+import { getDashboardURL } from './DashboardServiceUtils';
+import { getBrokers } from './MessagingServiceUtils';
 import { showErrorToast } from './ToastUtils';
 
 export const serviceTypeLogo = (type: string) => {
@@ -127,6 +166,9 @@ export const serviceTypeLogo = (type: string) => {
     case DatabaseServiceType.Glue:
       return GLUE;
 
+    case DatabaseServiceType.DomoDatabase:
+      return DOMO;
+
     case DatabaseServiceType.MariaDB:
       return MARIADB;
 
@@ -163,11 +205,23 @@ export const serviceTypeLogo = (type: string) => {
     case DatabaseServiceType.DeltaLake:
       return DELTALAKE;
 
+    case DatabaseServiceType.PinotDB:
+      return PINOT;
+
+    case DatabaseServiceType.Datalake:
+      return DATALAKE;
+
     case MessagingServiceType.Kafka:
       return KAFKA;
 
     case MessagingServiceType.Pulsar:
       return PULSAR;
+
+    case MessagingServiceType.Redpanda:
+      return REDPANDA;
+
+    case MessagingServiceType.Kinesis:
+      return KINESIS;
 
     case DashboardServiceType.Superset:
       return SUPERSET;
@@ -187,17 +241,61 @@ export const serviceTypeLogo = (type: string) => {
     case DashboardServiceType.PowerBI:
       return POWERBI;
 
+    case DashboardServiceType.QuickSight:
+      return QUICKSIGHT;
+
+    case DashboardServiceType.DomoDashboard:
+      return DOMO;
+    case DashboardServiceType.Mode:
+      return MODE;
+
     case PipelineServiceType.Airflow:
       return AIRFLOW;
 
     case PipelineServiceType.Airbyte:
       return AIRBYTE;
 
+    case PipelineServiceType.Dagster:
+      return DAGSTER;
+
+    case PipelineServiceType.Fivetran:
+      return FIVETRAN;
+
+    case PipelineServiceType.GluePipeline:
+      return GLUE;
+
+    case PipelineServiceType.Nifi:
+      return NIFI;
+
+    case PipelineServiceType.DomoPipeline:
+      return DOMO;
+
     case MlModelServiceType.Mlflow:
       return MLFLOW;
 
     case MlModelServiceType.Sklearn:
       return SCIKIT;
+    case MlModelServiceType.SageMaker:
+      return SAGEMAKER;
+
+    case MetadataServiceType.Amundsen:
+      return AMUNDSEN;
+
+    case MetadataServiceType.Atlas:
+      return ATLAS;
+
+    case MetadataServiceType.OpenMetadata:
+      return LOGO;
+
+    case ObjectStoreServiceType.Azure:
+      return MS_AZURE;
+
+    case ObjectStoreServiceType.S3:
+      return AMAZON_S3;
+
+    case ObjectStoreServiceType.Gcs:
+      return GCS;
+
     default: {
       let logo;
       if (serviceTypes.messagingServices.includes(type)) {
@@ -241,73 +339,8 @@ export const getFrequencyTime = (isoDate: string): string => {
   return `${day}D-${hour}H-${minute}M`;
 };
 
-const getAllServiceList = (
-  allServiceCollectionArr: Array<ServiceCollection>,
-  limit?: number
-): Promise<Array<ServiceResponse>> => {
-  // fetch services of all individual collection
-  return new Promise<Array<ServiceResponse>>((resolve, reject) => {
-    if (allServiceCollectionArr.length) {
-      let promiseArr = [];
-      promiseArr = allServiceCollectionArr.map((obj) => {
-        return getServices(obj.value, limit);
-      });
-      Promise.allSettled(promiseArr)
-        .then((result: PromiseSettledResult<AxiosResponse>[]) => {
-          if (result.length) {
-            let serviceArr = [];
-            serviceArr = result.map((service) =>
-              service.status === 'fulfilled'
-                ? service.value?.data
-                : { data: [], paging: { total: 0 } }
-            );
-            resolve(serviceArr);
-          } else {
-            resolve([]);
-          }
-        })
-        .catch((err) => reject(err));
-    } else {
-      resolve([]);
-    }
-  });
-};
-
-export const getAllServices = (
-  onlyVisibleServices = true,
-  limit?: number
-): Promise<Array<ServiceResponse>> => {
-  return new Promise<Array<ServiceResponse>>((resolve, reject) => {
-    getServiceDetails().then((res: AxiosResponse) => {
-      let allServiceCollectionArr: Array<ServiceCollection> = [];
-      if (res.data.data?.length) {
-        const arrServiceCat: Array<{ name: string; value: string }> =
-          res.data.data.map((service: ServiceData) => {
-            return {
-              name: service.collection.name,
-              value: service.collection.name,
-            };
-          });
-
-        if (onlyVisibleServices) {
-          allServiceCollectionArr = arrServiceCat.filter((service) =>
-            arrServiceTypes.includes(service.name as ServiceTypes)
-          );
-        } else {
-          allServiceCollectionArr = arrServiceCat;
-        }
-      }
-      getAllServiceList(allServiceCollectionArr, limit)
-        .then((resAll) => resolve(resAll))
-        .catch((err) => reject(err));
-    });
-  });
-};
-
-export const getServiceCategoryFromType = (
-  type: string
-): ServiceTypes | undefined => {
-  let serviceCategory;
+export const getServiceCategoryFromType = (type: string): ServiceTypes => {
+  let serviceCategory: ServiceTypes = 'databaseServices';
   for (const category in serviceTypes) {
     if (serviceTypes[category as ServiceTypes].includes(type)) {
       serviceCategory = category as ServiceTypes;
@@ -351,7 +384,7 @@ export const getTotalEntityCountByService = (buckets: Array<Bucket> = []) => {
   return entityCounts;
 };
 
-export const getKeyValuePair = (obj: DynamicObj) => {
+export const getKeyValuePair = (obj: Record<string, string>) => {
   return Object.entries(obj).map((v) => {
     return {
       key: v[0],
@@ -361,7 +394,7 @@ export const getKeyValuePair = (obj: DynamicObj) => {
 };
 
 export const getKeyValueObject = (arr: DynamicFormFieldType[]) => {
-  const keyValuePair: DynamicObj = {};
+  const keyValuePair: Record<string, string> = {};
 
   arr.forEach((obj) => {
     if (obj.key && obj.value) {
@@ -415,20 +448,19 @@ export const servicePageTabs = (entity: string) => [
     path: entity.toLowerCase(),
   },
   {
-    name: 'Ingestions',
+    name: t('label.ingestion-plural'),
     path: 'ingestions',
   },
   {
-    name: 'Connection',
+    name: t('label.connection'),
     path: 'connection',
-  },
-  {
-    name: 'Manage',
-    path: 'manage',
   },
 ];
 
-export const getCurrentServiceTab = (tab: string) => {
+export const getCurrentServiceTab = (
+  tab: string,
+  serviceName: ServiceTypes
+) => {
   let currentTab;
   switch (tab) {
     case 'ingestions':
@@ -441,14 +473,9 @@ export const getCurrentServiceTab = (tab: string) => {
 
       break;
 
-    case 'manage':
-      currentTab = 4;
-
-      break;
-
     case 'entity':
     default:
-      currentTab = 1;
+      currentTab = serviceName === ServiceCategory.METADATA_SERVICES ? 2 : 1;
 
       break;
   }
@@ -485,8 +512,18 @@ export const getServiceIngestionStepGuide = (
 
         break;
       }
+      case IngestionPipelineType.Lineage: {
+        guide = addLineageIngestionGuide.find((item) => item.step === step);
+
+        break;
+      }
       case IngestionPipelineType.Profiler: {
         guide = addProfilerIngestionGuide.find((item) => item.step === step);
+
+        break;
+      }
+      case IngestionPipelineType.Dbt: {
+        guide = addDBTIngestionGuide.find((item) => item.step === step);
 
         break;
       }
@@ -506,10 +543,16 @@ export const getServiceIngestionStepGuide = (
 
   const getTitle = (title: string) => {
     const update = showDeployTitle
-      ? title.replace('Added', 'Updated & Deployed')
-      : title.replace('Added', 'Updated');
+      ? title.replace(
+          t('label.added'),
+          `${t('label.updated')} & ${t('label.deployed')}`
+        )
+      : title.replace(t('label.added'), t('label.updated'));
     const newTitle = showDeployTitle
-      ? title.replace('Added', 'Added & Deployed')
+      ? title.replace(
+          t('label.added'),
+          `${t('label.added')} & ${t('label.deployed')}`
+        )
       : title;
 
     return isUpdated ? update : newTitle;
@@ -524,12 +567,12 @@ export const getServiceIngestionStepGuide = (
             {isIngestion
               ? getFormattedGuideText(
                   guide.description,
-                  '<Ingestion Pipeline Name>',
+                  `<${t('label.ingestion-pipeline-name')}>`,
                   `${ingestionName}`
                 )
               : getFormattedGuideText(
                   guide.description,
-                  '<Service Name>',
+                  `<${t('label.service-name')}>`,
                   serviceName
                 )}
           </div>
@@ -543,7 +586,13 @@ export const getIngestionName = (
   serviceName: string,
   type: IngestionPipelineType
 ) => {
-  if (type === IngestionPipelineType.Profiler) {
+  if (
+    [
+      IngestionPipelineType.Profiler,
+      IngestionPipelineType.Metadata,
+      IngestionPipelineType.Dbt,
+    ].includes(type)
+  ) {
     return `${serviceName}_${type}_${cryptoRandomString({
       length: 8,
       type: 'alphanumeric',
@@ -554,20 +603,26 @@ export const getIngestionName = (
 };
 
 export const shouldTestConnection = (serviceType: string) => {
-  return serviceType !== DatabaseServiceType.SampleData;
+  return (
+    serviceType !== DatabaseServiceType.CustomDatabase &&
+    serviceType !== MessagingServiceType.CustomMessaging &&
+    serviceType !== DashboardServiceType.CustomDashboard &&
+    serviceType !== MlModelServiceType.CustomMlModel &&
+    serviceType !== PipelineServiceType.CustomPipeline
+  );
 };
 
 export const getTestConnectionType = (serviceCat: ServiceCategory) => {
   switch (serviceCat) {
     case ServiceCategory.MESSAGING_SERVICES:
-      return ConnectionType.Messaging;
+      return ServiceType.Messaging;
     case ServiceCategory.DASHBOARD_SERVICES:
-      return ConnectionType.Dashboard;
+      return ServiceType.Dashboard;
     case ServiceCategory.PIPELINE_SERVICES:
-      return ConnectionType.Pipeline;
+      return ServiceType.Pipeline;
     case ServiceCategory.DATABASE_SERVICES:
     default:
-      return ConnectionType.Database;
+      return ServiceType.Database;
   }
 };
 
@@ -575,20 +630,20 @@ export const getServiceCreatedLabel = (serviceCategory: ServiceCategory) => {
   let serviceCat;
   switch (serviceCategory) {
     case ServiceCategory.DATABASE_SERVICES:
-      serviceCat = 'database';
+      serviceCat = t('label.database-lowercase');
 
       break;
     case ServiceCategory.MESSAGING_SERVICES:
-      serviceCat = 'messaging';
+      serviceCat = t('label.messaging-lowercase');
 
       break;
     case ServiceCategory.DASHBOARD_SERVICES:
-      serviceCat = 'dashboard';
+      serviceCat = t('label.dashboard-lowercase');
 
       break;
 
     case ServiceCategory.PIPELINE_SERVICES:
-      serviceCat = 'pipeline';
+      serviceCat = t('label.pipeline-lowercase');
 
       break;
     default:
@@ -597,7 +652,7 @@ export const getServiceCreatedLabel = (serviceCategory: ServiceCategory) => {
       break;
   }
 
-  return [serviceCat, 'service'].join(' ');
+  return [serviceCat, t('label.service-lowercase')].join(' ');
 };
 
 export const setServiceSchemaCount = (
@@ -612,8 +667,8 @@ export const setServiceSchemaCount = (
     .then((results) => {
       let count = 0;
       results.forEach((result) => {
-        if (result.status === 'fulfilled') {
-          count += result.value.data?.paging?.total || 0;
+        if (result.status === PROMISE_STATE.FULFILLED) {
+          count += result.value?.paging?.total || 0;
         }
       });
       callback(count);
@@ -633,11 +688,258 @@ export const setServiceTableCount = (
     .then((results) => {
       let count = 0;
       results.forEach((result) => {
-        if (result.status === 'fulfilled') {
-          count += result.value.data?.paging?.total || 0;
+        if (result.status === PROMISE_STATE.FULFILLED) {
+          count += result.value?.paging?.total || 0;
         }
       });
       callback(count);
     })
     .catch((err: AxiosError) => showErrorToast(err));
+};
+
+export const getOptionalFields = (
+  service: ServicesType,
+  serviceName: ServiceCategory
+): JSX.Element => {
+  switch (serviceName) {
+    case ServiceCategory.MESSAGING_SERVICES: {
+      const messagingService = service as MessagingService;
+
+      return (
+        <div className="tw-mb-1 tw-truncate" data-testid="additional-field">
+          <label className="tw-mb-0">{t('label.broker-plural')}:</label>
+          <span
+            className=" tw-ml-1 tw-font-normal tw-text-grey-body"
+            data-testid="brokers">
+            {getBrokers(messagingService.connection?.config)}
+          </span>
+        </div>
+      );
+    }
+    case ServiceCategory.DASHBOARD_SERVICES: {
+      const dashboardService = service as DashboardService;
+
+      return (
+        <div className="tw-mb-1 tw-truncate" data-testid="additional-field">
+          <label className="tw-mb-0">{t('label.url-uppercase')}:</label>
+          <span
+            className=" tw-ml-1 tw-font-normal tw-text-grey-body"
+            data-testid="dashboard-url">
+            {getDashboardURL(dashboardService.connection?.config)}
+          </span>
+        </div>
+      );
+    }
+    case ServiceCategory.PIPELINE_SERVICES: {
+      const pipelineService = service as PipelineService;
+
+      return (
+        <div className="tw-mb-1 tw-truncate" data-testid="additional-field">
+          <label className="tw-mb-0">{t('label.url-uppercase')}:</label>
+          <span
+            className=" tw-ml-1 tw-font-normal tw-text-grey-body"
+            data-testid="pipeline-url">
+            {pipelineService.connection?.config?.hostPort || '--'}
+          </span>
+        </div>
+      );
+    }
+
+    case ServiceCategory.ML_MODEL_SERVICES: {
+      const mlmodel = service as MlmodelService;
+
+      return (
+        <>
+          <div className="tw-mb-1 tw-truncate" data-testid="additional-field">
+            <label className="tw-mb-0">{t('label.registry')}:</label>
+            <span
+              className=" tw-ml-1 tw-font-normal tw-text-grey-body"
+              data-testid="pipeline-url">
+              {mlmodel.connection?.config?.registryUri || '--'}
+            </span>
+          </div>
+          <div className="tw-mb-1 tw-truncate" data-testid="additional-field">
+            <label className="tw-mb-0">{t('label.tracking')}:</label>
+            <span
+              className=" tw-ml-1 tw-font-normal tw-text-grey-body"
+              data-testid="pipeline-url">
+              {mlmodel.connection?.config?.trackingUri || '--'}
+            </span>
+          </div>
+        </>
+      );
+    }
+    default: {
+      return <></>;
+    }
+  }
+};
+
+export const getDeleteEntityMessage = (
+  serviceName: string,
+  instanceCount: number,
+  schemaCount: number,
+  tableCount: number
+) => {
+  const service = serviceName?.slice(0, -1);
+
+  switch (serviceName) {
+    case ServiceCategory.DATABASE_SERVICES:
+      return getEntityDeleteMessage(
+        service || t('label.service'),
+        `${pluralize(instanceCount, t('label.database'))}, ${pluralize(
+          schemaCount,
+          t('label.schema')
+        )} ${t('label.and-lowercase')} ${pluralize(
+          tableCount,
+          t('label.table')
+        )}`
+      );
+
+    case ServiceCategory.MESSAGING_SERVICES:
+      return getEntityDeleteMessage(
+        service || t('label.service'),
+        pluralize(instanceCount, t('label.topic'))
+      );
+
+    case ServiceCategory.DASHBOARD_SERVICES:
+      return getEntityDeleteMessage(
+        service || t('label.service'),
+        pluralize(instanceCount, t('label.dashboard'))
+      );
+
+    case ServiceCategory.PIPELINE_SERVICES:
+      return getEntityDeleteMessage(
+        service || t('label.service'),
+        pluralize(instanceCount, t('label.pipeline'))
+      );
+
+    case ServiceCategory.METADATA_SERVICES:
+      return getEntityDeleteMessage(
+        service || t('label.service'),
+        pluralize(instanceCount, t('label.metadata'))
+      );
+
+    case ServiceCategory.OBJECT_STORE_SERVICES:
+      return getEntityDeleteMessage(
+        service || t('label.service'),
+        pluralize(instanceCount, t('label.container'))
+      );
+
+    default:
+      return;
+  }
+};
+
+export const getServiceRouteFromServiceType = (type: ServiceTypes) => {
+  if (type === 'messagingServices') {
+    return GlobalSettingOptions.MESSAGING;
+  }
+  if (type === 'dashboardServices') {
+    return GlobalSettingOptions.DASHBOARDS;
+  }
+  if (type === 'pipelineServices') {
+    return GlobalSettingOptions.PIPELINES;
+  }
+  if (type === 'mlmodelServices') {
+    return GlobalSettingOptions.MLMODELS;
+  }
+  if (type === 'metadataServices') {
+    return GlobalSettingOptions.METADATA;
+  }
+  if (type === 'objectstoreServices') {
+    return GlobalSettingOptions.OBJECT_STORES;
+  }
+
+  return GlobalSettingOptions.DATABASES;
+};
+
+export const getResourceEntityFromServiceCategory = (
+  category: string | ServiceCategory
+) => {
+  switch (category) {
+    case 'dashboards':
+    case ServiceCategory.DASHBOARD_SERVICES:
+      return ResourceEntity.DASHBOARD_SERVICE;
+
+    case 'databases':
+    case ServiceCategory.DATABASE_SERVICES:
+      return ResourceEntity.DATABASE_SERVICE;
+
+    case 'mlModels':
+    case ServiceCategory.ML_MODEL_SERVICES:
+      return ResourceEntity.ML_MODEL_SERVICE;
+
+    case 'messaging':
+    case ServiceCategory.MESSAGING_SERVICES:
+      return ResourceEntity.MESSAGING_SERVICE;
+
+    case 'pipelines':
+    case ServiceCategory.PIPELINE_SERVICES:
+      return ResourceEntity.PIPELINE_SERVICE;
+
+    case 'metadata':
+    case ServiceCategory.METADATA_SERVICES:
+      return ResourceEntity.METADATA_SERVICE;
+
+    case 'objectStores':
+    case ServiceCategory.OBJECT_STORE_SERVICES:
+      return ResourceEntity.OBJECT_STORE_SERVICE;
+  }
+
+  return ResourceEntity.DATABASE_SERVICE;
+};
+
+export const getCountLabel = (serviceName: ServiceTypes) => {
+  switch (serviceName) {
+    case ServiceCategory.DASHBOARD_SERVICES:
+      return t('label.dashboard-plural');
+    case ServiceCategory.MESSAGING_SERVICES:
+      return t('label.topic-plural');
+    case ServiceCategory.PIPELINE_SERVICES:
+      return t('label.pipeline-plural');
+    case ServiceCategory.ML_MODEL_SERVICES:
+      return t('label.ml-model-plural');
+    case ServiceCategory.OBJECT_STORE_SERVICES:
+      return t('label.container-plural');
+    case ServiceCategory.DATABASE_SERVICES:
+    default:
+      return t('label.database-plural');
+  }
+};
+
+export const getServicePageTabs = (
+  serviceName: ServiceTypes,
+  instanceCount: number,
+  ingestions: IngestionPipeline[],
+  servicePermission: OperationPermission
+) => {
+  const tabs = [];
+
+  if (serviceName !== ServiceCategory.METADATA_SERVICES) {
+    tabs.push({
+      name: getCountLabel(serviceName),
+      isProtected: false,
+      position: 1,
+      count: instanceCount,
+    });
+  }
+
+  tabs.push(
+    {
+      name: t('label.ingestion-plural'),
+      isProtected: false,
+
+      position: 2,
+      count: ingestions.length,
+    },
+    {
+      name: t('label.connection'),
+      isProtected: !servicePermission.EditAll,
+      isHidden: !servicePermission.EditAll,
+      position: 3,
+    }
+  );
+
+  return tabs;
 };

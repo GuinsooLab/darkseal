@@ -1,5 +1,5 @@
 /*
- *  Copyright 2021 Collate
+ *  Copyright 2022 Collate.
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
@@ -11,23 +11,28 @@
  *  limitations under the License.
  */
 
-import { AxiosError, AxiosResponse } from 'axios';
+import { Button, Typography } from 'antd';
+import { AxiosError } from 'axios';
 import { CookieStorage } from 'cookie-storage';
-import { isEmpty } from 'lodash';
+import { isEmpty, isString } from 'lodash';
 import { observer } from 'mobx-react';
-import { Match } from 'Models';
+import Qs from 'qs';
 import React, { useEffect, useState } from 'react';
-import { Link, useHistory, useLocation, useRouteMatch } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
+import { Link, useHistory, useLocation } from 'react-router-dom';
+import { toast } from 'react-toastify';
+import { getVersion } from 'rest/miscAPI';
+import { extractDetailsFromToken } from 'utils/AuthProvider.util';
+import { getEntityName } from 'utils/EntityUtils';
 import appState from '../../AppState';
-import { useAuthContext } from '../../authentication/auth-provider/AuthProvider';
-import { getVersion } from '../../axiosAPIs/miscAPI';
+import { ReactComponent as IconDoc } from '../../assets/svg/doc.svg';
+import { ReactComponent as IconSlackGrey } from '../../assets/svg/slack-grey.svg';
+import { ReactComponent as IconVersionBlack } from '../../assets/svg/version-black.svg';
 import {
-  getExplorePathWithSearch,
+  getExplorePath,
   getTeamAndUserDetailsPath,
   getUserPath,
-  navLinkSettings,
   ROUTES,
-  SOCKET_EVENTS,
   TERM_ADMIN,
   TERM_USER,
 } from '../../constants/constants';
@@ -35,26 +40,25 @@ import {
   urlGitbookDocs,
   urlGithubRepo,
   urlJoinSlack,
-} from '../../constants/url.const';
+} from '../../constants/URL.constants';
 import { useAuth } from '../../hooks/authHooks';
 import jsonData from '../../jsons/en';
 import {
   addToRecentSearched,
-  getEntityName,
   getNonDeletedTeams,
 } from '../../utils/CommonUtils';
 import SVGIcons, { Icons } from '../../utils/SvgUtils';
 import { showErrorToast } from '../../utils/ToastUtils';
-import Ellipses from '../common/Ellipses/Ellipses';
+import { useAuthContext } from '../authentication/auth-provider/AuthProvider';
 import { COOKIE_VERSION } from '../Modals/WhatsNewModal/whatsNewData';
 import NavBar from '../nav-bar/NavBar';
-import { useWebSocketConnector } from '../web-scoket/web-scoket.provider';
 
 const cookieStorage = new CookieStorage();
 
 const Appbar: React.FC = (): JSX.Element => {
   const location = useLocation();
   const history = useHistory();
+  const { t } = useTranslation();
   const { isFirstTimeUser } = useAuth(location.pathname);
   const {
     isAuthDisabled,
@@ -63,84 +67,99 @@ const Appbar: React.FC = (): JSX.Element => {
     isTourRoute,
     onLogoutHandler,
   } = useAuthContext();
-  const match: Match | null = useRouteMatch({
-    path: ROUTES.EXPLORE_WITH_SEARCH,
-  });
-  const searchQuery = match?.params?.searchQuery;
+
+  const parsedQueryString = Qs.parse(
+    location.search.startsWith('?')
+      ? location.search.substr(1)
+      : location.search
+  );
+
+  const searchQuery = isString(parsedQueryString.search)
+    ? parsedQueryString.search
+    : '';
+
   const [searchValue, setSearchValue] = useState(searchQuery);
+
   const [isOpen, setIsOpen] = useState<boolean>(false);
   const [isFeatureModalOpen, setIsFeatureModalOpen] = useState<boolean>(false);
+  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+  // @ts-ignore
   const [version, setVersion] = useState<string>('');
-
-  const { socket } = useWebSocketConnector();
-  const [hasNotification, setHasNotification] = useState(false);
 
   const handleFeatureModal = (value: boolean) => {
     setIsFeatureModalOpen(value);
   };
 
   const handleSearchChange = (value: string) => {
+    console.debug(`handleSearchChange value=${value}`);
+
     setSearchValue(value);
+    value ? setIsOpen(true) : setIsOpen(false);
   };
 
   const supportLinks = [
     {
       name: (
         <span>
-          <span className="tw-text-grey-muted">{`Version ${
-            (version ? version : '?').split('-')[0]
-          }`}</span>
+          <span className="tw-text-grey-muted">{`${t('GitHub')}`}</span>
         </span>
       ),
       to: urlGithubRepo,
       isOpenNewTab: true,
       disabled: false,
       icon: (
-        <SVGIcons
-          alt="Version icon"
+        <IconVersionBlack
           className="tw-align-middle tw--mt-0.5 tw-mr-0.5"
-          icon={Icons.VERSION_BLACK}
-          width="12"
+          height={12}
+          name="Version icon"
+          width={12}
         />
       ),
     },
     {
-      name: `Docs`,
+      name: t('label.doc-plural'),
       to: urlGitbookDocs,
       isOpenNewTab: true,
       disabled: false,
       icon: (
-        <SVGIcons
-          alt="Doc icon"
+        <IconDoc
           className="tw-align-middle tw--mt-0.5 tw-mr-0.5"
-          icon={Icons.DOC}
-          width="12"
+          height={12}
+          name="Doc icon"
+          width={12}
         />
       ),
     },
     {
-      name: `API`,
-      to: ROUTES.SWAGGER,
-      disabled: false,
-      icon: (
-        <SVGIcons
-          alt="API icon"
-          className="tw-align-middle tw--mt-0.5 tw-mr-0.5"
-          icon={Icons.API}
-          width="12"
-        />
-      ),
-    },
-    {
-      name: `Slack`,
+      name: t('label.slack'),
       to: urlJoinSlack,
       disabled: false,
       isOpenNewTab: true,
       icon: (
+        <IconSlackGrey
+          className="tw-align-middle tw--mt-0.5 tw-mr-0.5"
+          height={12}
+          name="slack icon"
+          width={12}
+        />
+      ),
+    },
+    {
+      name: (
+        <Button
+          className="focus:no-underline hover:underline flex-shrink p-0"
+          data-testid="tutorial"
+          type="text"
+          onClick={() => history.push(ROUTES.TOUR)}>
+          {t('Tutorial')}
+        </Button>
+      ),
+      disabled: false,
+      icon: (
         <SVGIcons
-          alt="slack icon"
-          className="tw-align-middle tw-mr-0.5"
-          icon={Icons.SLACK_GREY}
+          alt="tour-con"
+          className="align-middle tw-mr-0.5"
+          icon={Icons.TOUR}
           width="12"
         />
       ),
@@ -152,9 +171,12 @@ const Appbar: React.FC = (): JSX.Element => {
       <div>
         <div className="tw-text-grey-muted tw-text-xs">{name}</div>
         {userRoleArr.map((userRole, i) => (
-          <Ellipses tooltip className="tw-font-medium" key={i}>
+          <Typography.Paragraph
+            className="ant-typography-ellipsis-custom font-normal"
+            ellipsis={{ tooltip: true }}
+            key={i}>
             {userRole}
-          </Ellipses>
+          </Typography.Paragraph>
         ))}
         <hr className="tw-my-1.5" />
       </div>
@@ -168,21 +190,6 @@ const Appbar: React.FC = (): JSX.Element => {
 
     return currentUser?.displayName || currentUser?.name || TERM_USER;
   };
-
-  useEffect(() => {
-    if (socket) {
-      socket.on(SOCKET_EVENTS.TASK_CHANNEL, (newActivity) => {
-        if (newActivity) {
-          setHasNotification(true);
-        }
-      });
-    }
-
-    return () => {
-      socket && socket.off(SOCKET_EVENTS.TASK_CHANNEL);
-      setHasNotification(false);
-    };
-  }, [socket]);
 
   const getUserData = () => {
     const currentUser = isAuthDisabled
@@ -201,15 +208,15 @@ const Appbar: React.FC = (): JSX.Element => {
 
     return (
       <div className="tw-max-w-xs" data-testid="greeting-text">
-        <Link to={getUserPath(currentUser?.name as string)}>
+        <Link
+          data-testid="user-name"
+          to={getUserPath(currentUser?.name as string)}>
           {' '}
-          <Ellipses
-            tooltip
-            className="tw-font-medium tw-cursor-pointer"
-            rows={1}
-            style={{ color: '#1e61f0' }}>
+          <Typography.Paragraph
+            className="ant-typography-ellipsis-custom font-medium cursor-pointer text-primary"
+            ellipsis={{ rows: 1, tooltip: true }}>
             {name}
-          </Ellipses>
+          </Typography.Paragraph>
         </Link>
         <hr className="tw-my-1.5" />
         {roles.length > 0 ? getUsersRoles(roles, 'Roles') : null}
@@ -218,13 +225,18 @@ const Appbar: React.FC = (): JSX.Element => {
           : null}
         {teams.length > 0 ? (
           <div>
-            <span className="tw-text-grey-muted tw-text-xs">Teams</span>
+            <span className="tw-text-grey-muted tw-text-xs">
+              {t('label.team-plural')}
+            </span>
             {teams.map((t, i) => (
-              <Ellipses tooltip className="tw-text-xs" key={i}>
+              <Typography.Paragraph
+                className="ant-typography-ellipsis-custom text-sm"
+                ellipsis={{ tooltip: true }}
+                key={i}>
                 <Link to={getTeamAndUserDetailsPath(t.name as string)}>
                   {t.displayName || t.name}
                 </Link>
-              </Ellipses>
+              </Typography.Paragraph>
             ))}
             <hr className="tw-mt-1.5" />
           </div>
@@ -242,7 +254,7 @@ const Appbar: React.FC = (): JSX.Element => {
       isText: true,
     },
     {
-      name: 'Logout',
+      name: t('label.logout'),
       to: '',
       disabled: false,
       method: onLogoutHandler,
@@ -252,16 +264,15 @@ const Appbar: React.FC = (): JSX.Element => {
   const searchHandler = (value: string) => {
     setIsOpen(false);
     addToRecentSearched(value);
-    history.push({
-      pathname: getExplorePathWithSearch(
-        value,
-        // this is for if user is searching from another page
-        location.pathname.startsWith(ROUTES.EXPLORE)
-          ? appState.explorePageTab
-          : 'tables'
-      ),
-      search: location.search,
-    });
+    if (location.pathname.startsWith(ROUTES.EXPLORE)) {
+      // Already on explore page, only push search change
+      history.push({
+        search: Qs.stringify({ ...parsedQueryString, search: value }),
+      });
+    } else {
+      // Outside Explore page
+      history.push(getExplorePath({ search: value }));
+    }
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -272,13 +283,13 @@ const Appbar: React.FC = (): JSX.Element => {
   };
 
   const handleOnclick = () => {
-    searchHandler(searchValue ?? '');
+    searchHandler(searchValue);
   };
 
   const fetchOMVersion = () => {
     getVersion()
-      .then((res: AxiosResponse) => {
-        setVersion(res.data.version);
+      .then((res) => {
+        setVersion(res.version);
       })
       .catch((err: AxiosError) => {
         showErrorToast(
@@ -309,6 +320,28 @@ const Appbar: React.FC = (): JSX.Element => {
     }
   }, [appState.userDetails, isAuthDisabled]);
 
+  useEffect(() => {
+    const handleDocumentVisibilityChange = () => {
+      if (
+        isProtectedRoute(location.pathname) &&
+        isTourRoute(location.pathname)
+      ) {
+        return;
+      }
+      const { isExpired, exp } = extractDetailsFromToken();
+      if (!document.hidden && isExpired) {
+        exp && toast.info(t('message.session-expired'));
+        onLogoutHandler();
+      }
+    };
+
+    addEventListener('focus', handleDocumentVisibilityChange);
+
+    return () => {
+      removeEventListener('focus', handleDocumentVisibilityChange);
+    };
+  }, []);
+
   return (
     <>
       {isProtectedRoute(location.pathname) &&
@@ -320,13 +353,11 @@ const Appbar: React.FC = (): JSX.Element => {
           handleOnClick={handleOnclick}
           handleSearchBoxOpen={setIsOpen}
           handleSearchChange={handleSearchChange}
-          hasNotification={hasNotification}
           isFeatureModalOpen={isFeatureModalOpen}
           isSearchBoxOpen={isOpen}
           pathname={location.pathname}
           profileDropdown={profileDropdown}
           searchValue={searchValue || ''}
-          settingDropdown={navLinkSettings}
           supportDropdown={supportLinks}
           username={getUserName()}
         />
