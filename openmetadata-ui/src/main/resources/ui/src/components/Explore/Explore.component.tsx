@@ -12,13 +12,13 @@
  */
 
 import {
-  SortAscendingOutlined,
-  SortDescendingOutlined,
-} from '@ant-design/icons';
-import { Button, Card, Col, Row, Space, Tabs } from 'antd';
+  faSortAmountDownAlt,
+  faSortAmountUpAlt,
+} from '@fortawesome/free-solid-svg-icons';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { Card, Col, Row, Tabs } from 'antd';
 import FacetFilter from 'components/common/facetfilter/FacetFilter';
 import SearchedData from 'components/searched-data/SearchedData';
-import { SORT_ORDER } from 'enums/common.enum';
 import unique from 'fork-ts-checker-webpack-plugin/lib/utils/array/unique';
 import {
   isEmpty,
@@ -31,7 +31,6 @@ import {
   toUpper,
 } from 'lodash';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { useTranslation } from 'react-i18next';
 import { useParams } from 'react-router-dom';
 import { ENTITY_PATH } from '../../constants/constants';
 import { tabsInfo } from '../../constants/explore.constants';
@@ -42,12 +41,12 @@ import { FacetFilterProps } from '../common/facetfilter/facetFilter.interface';
 import PageLayoutV1 from '../containers/PageLayoutV1';
 import Loader from '../Loader/Loader';
 import ExploreSkeleton from '../Skeleton/Explore/ExploreLeftPanelSkeleton.component';
-import { useAdvanceSearch } from './AdvanceSearchProvider/AdvanceSearchProvider.component';
+import { AdvancedSearchModal } from './AdvanceSearchModal.component';
 import AppliedFilterText from './AppliedFilterText/AppliedFilterText';
 import EntitySummaryPanel from './EntitySummaryPanel/EntitySummaryPanel.component';
 import {
   EntityDetailsObjectInterface,
-  EntityUnion,
+  EntityDetailsType,
   ExploreProps,
   ExploreQuickFilterField,
   ExploreSearchIndex,
@@ -60,6 +59,8 @@ import SortingDropDown from './SortingDropDown';
 const Explore: React.FC<ExploreProps> = ({
   searchResults,
   tabCounts,
+  advancedSearchJsonTree,
+  onChangeAdvancedSearchJsonTree,
   onChangeAdvancedSearchQueryFilter,
   postFilter,
   onChangePostFilter,
@@ -75,33 +76,25 @@ const Explore: React.FC<ExploreProps> = ({
   onChangePage = noop,
   loading,
 }) => {
-  const { t } = useTranslation();
   const { tab } = useParams<{ tab: string }>();
+  const [showAdvanceSearchModal, setShowAdvanceSearchModal] = useState(false);
 
   const [selectedQuickFilters, setSelectedQuickFilters] = useState<
     ExploreQuickFilterField[]
   >([] as ExploreQuickFilterField[]);
   const [showSummaryPanel, setShowSummaryPanel] = useState(false);
   const [entityDetails, setEntityDetails] =
-    useState<{ details: EntityUnion; entityType: string }>();
+    useState<{ details: EntityDetailsType; entityType: string }>();
 
-  const { toggleModal, sqlQuery } = useAdvanceSearch();
+  const [appliedFilterSQLFormat, setAppliedFilterSQLFormat] =
+    useState<string>('');
+
+  const handleAppliedFilterChange = (value: string) =>
+    setAppliedFilterSQLFormat(value);
 
   const handleClosePanel = () => {
     setShowSummaryPanel(false);
   };
-
-  const isAscSortOrder = useMemo(
-    () => sortOrder === SORT_ORDER.ASC,
-    [sortOrder]
-  );
-  const sortProps = useMemo(
-    () => ({
-      className: 'text-base text-primary',
-      'data-testid': 'last-updated',
-    }),
-    []
-  );
 
   const tabItems = useMemo(
     () =>
@@ -160,7 +153,7 @@ const Explore: React.FC<ExploreProps> = ({
   };
 
   const handleSummaryPanelDisplay = useCallback(
-    (details: EntityUnion, entityType: string) => {
+    (details: EntityDetailsType, entityType: string) => {
       setShowSummaryPanel(true);
       setEntityDetails({ details, entityType });
     },
@@ -231,7 +224,7 @@ const Explore: React.FC<ExploreProps> = ({
       searchResults?.hits?.hits[0]._index === searchIndex
     ) {
       handleSummaryPanelDisplay(
-        searchResults?.hits?.hits[0]._source as EntityUnion,
+        searchResults?.hits?.hits[0]._source as EntityDetailsType,
         tab
       );
     } else {
@@ -239,6 +232,11 @@ const Explore: React.FC<ExploreProps> = ({
       setEntityDetails(undefined);
     }
   }, [tab, searchResults]);
+
+  useEffect(() => {
+    // reset Applied Filter SQL Format on tab change
+    setAppliedFilterSQLFormat('');
+  }, [tab]);
 
   return (
     <PageLayoutV1
@@ -258,35 +256,43 @@ const Explore: React.FC<ExploreProps> = ({
             />
           </ExploreSkeleton>
         </Card>
-      }
-      pageTitle={t('label.explore')}>
+      }>
       <Tabs
         defaultActiveKey={defaultActiveTab}
         items={tabItems}
         size="small"
         tabBarExtraContent={
-          <Space align="center" size={4}>
+          <div className="tw-flex">
             <SortingDropDown
               fieldList={tabsInfo[searchIndex].sortingFields}
               handleFieldDropDown={onChangeSortValue}
               sortField={sortValue}
             />
-            <Button
-              className="p-0"
-              size="small"
-              type="text"
-              onClick={() =>
-                onChangeSortOder(
-                  isAscSortOrder ? SORT_ORDER.DESC : SORT_ORDER.ASC
-                )
-              }>
-              {isAscSortOrder ? (
-                <SortAscendingOutlined {...sortProps} />
+
+            <div className="tw-flex">
+              {sortOrder === 'asc' ? (
+                <button
+                  className="tw-mt-2"
+                  onClick={() => onChangeSortOder('desc')}>
+                  <FontAwesomeIcon
+                    className="tw-text-base tw-text-primary"
+                    data-testid="last-updated"
+                    icon={faSortAmountUpAlt}
+                  />
+                </button>
               ) : (
-                <SortDescendingOutlined {...sortProps} />
+                <button
+                  className="tw-mt-2"
+                  onClick={() => onChangeSortOder('asc')}>
+                  <FontAwesomeIcon
+                    className="tw-text-base tw-text-primary"
+                    data-testid="last-updated"
+                    icon={faSortAmountDownAlt}
+                  />
+                </button>
               )}
-            </Button>
-          </Space>
+            </div>
+          </div>
         }
         onChange={(tab) => {
           tab && onChangeSearchIndex(tab as ExploreSearchIndex);
@@ -301,15 +307,15 @@ const Explore: React.FC<ExploreProps> = ({
               <ExploreQuickFilters
                 fields={selectedQuickFilters}
                 index={searchIndex}
-                onAdvanceSearch={() => toggleModal(true)}
+                onAdvanceSearch={() => setShowAdvanceSearchModal(true)}
                 onFieldValueSelect={handleAdvanceFieldValueSelect}
               />
             </Col>
-            {sqlQuery && (
+            {appliedFilterSQLFormat && (
               <Col span={24}>
                 <AppliedFilterText
-                  filterText={sqlQuery}
-                  onEdit={() => toggleModal(true)}
+                  filterText={appliedFilterSQLFormat}
+                  onEdit={() => setShowAdvanceSearchModal(true)}
                 />
               </Col>
             )}
@@ -350,6 +356,15 @@ const Explore: React.FC<ExploreProps> = ({
           </Col>
         )}
       </Row>
+      <AdvancedSearchModal
+        jsonTree={advancedSearchJsonTree}
+        searchIndex={searchIndex}
+        visible={showAdvanceSearchModal}
+        onAppliedFilterChange={handleAppliedFilterChange}
+        onCancel={() => setShowAdvanceSearchModal(false)}
+        onChangeJsonTree={onChangeAdvancedSearchJsonTree}
+        onSubmit={onChangeAdvancedSearchQueryFilter}
+      />
     </PageLayoutV1>
   );
 };

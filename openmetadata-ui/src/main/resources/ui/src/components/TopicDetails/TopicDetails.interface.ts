@@ -20,6 +20,7 @@ import {
   TopicSampleData,
 } from '../../generated/entity/data/topic';
 import { Thread, ThreadType } from '../../generated/entity/feed/thread';
+import { EntityLineage } from '../../generated/type/entityLineage';
 import { EntityReference } from '../../generated/type/entityReference';
 import { Paging } from '../../generated/type/paging';
 import { SchemaType } from '../../generated/type/schema';
@@ -29,6 +30,13 @@ import {
   ThreadUpdatedFunc,
 } from '../../interface/feed.interface';
 import { TitleBreadcrumbProps } from '../common/title-breadcrumb/title-breadcrumb.interface';
+import {
+  Edge,
+  EdgeData,
+  LeafNodes,
+  LineagePos,
+  LoadingNodeState,
+} from '../EntityLineage/EntityLineage.interface';
 
 export interface TopicDetailsProps {
   topicFQN: string;
@@ -76,11 +84,20 @@ export interface TopicDetailsProps {
     isThread: boolean
   ) => void;
   updateThreadHandler: ThreadUpdatedFunc;
+  lineageTabData: {
+    loadNodeHandler: (node: EntityReference, pos: LineagePos) => void;
+    addLineageHandler: (edge: Edge) => Promise<void>;
+    removeLineageHandler: (data: EdgeData) => void;
+    entityLineageHandler: (lineage: EntityLineage) => void;
+    isLineageLoading?: boolean;
+    entityLineage: EntityLineage;
+    lineageLeafNodes: LeafNodes;
+    isNodeLoading: LoadingNodeState;
+  };
   onExtensionUpdate: (updatedTopic: Topic) => Promise<void>;
 }
 
 export interface TopicConfigObjectInterface {
-  Owner?: Record<string, string | JSX.Element | undefined>;
   Partitions: number;
   'Replication Factor'?: number;
   'Retention Size'?: number;

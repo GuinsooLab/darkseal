@@ -33,7 +33,6 @@ from metadata.generated.schema.entity.services.databaseService import (
 from metadata.generated.schema.metadataIngestion.workflow import (
     OpenMetadataWorkflowConfig,
 )
-from metadata.generated.schema.type.basic import FullyQualifiedEntityName
 from metadata.generated.schema.type.entityReference import EntityReference
 from metadata.ingestion.source.database.deltalake.metadata import DeltalakeSource
 
@@ -71,8 +70,7 @@ MOCK_DELTA_CONFIG = {
 
 MOCK_DATABASE_SERVICE = DatabaseService(
     id="85811038-099a-11ed-861d-0242ac120002",
-    name="local_databricks",
-    fullyQualifiedName="local_databricks",
+    name="delta",
     connection=DatabaseConnection(),
     serviceType=DatabaseServiceType.DeltaLake,
 )
@@ -162,7 +160,9 @@ class DeltaLakeUnitTest(TestCase):
         database_requests = list(self.delta.yield_database(database_name="default"))
         expected_database_request = CreateDatabaseRequest(
             name="default",
-            service=FullyQualifiedEntityName(__root__="local_databricks"),
+            service=EntityReference(
+                id="85811038-099a-11ed-861d-0242ac120002", type="databaseService"
+            ),
         )
 
         self.assertEqual(database_requests, [expected_database_request])
@@ -174,7 +174,10 @@ class DeltaLakeUnitTest(TestCase):
     def test_yield_database_schema(self):
         schema_requests = list(self.delta.yield_database_schema(schema_name="default"))
         expected_schema_request = CreateDatabaseSchemaRequest(
-            name="default", database="delta.default"
+            name="default",
+            database=EntityReference(
+                id="2004514B-A800-4D92-8442-14B2796F712E", type="database"
+            ),
         )
 
         self.assertEqual(schema_requests, [expected_schema_request])
@@ -203,7 +206,10 @@ class DeltaLakeUnitTest(TestCase):
             description="testing around",
             columns=expected_columns,
             tableConstraints=None,
-            databaseSchema=MOCK_DATABASE_SCHEMA.fullyQualifiedName,
+            databaseSchema=EntityReference(
+                id="92D36A9B-B1A9-4D0A-A00B-1B2ED137ABA5",
+                type="databaseSchema",
+            ),
             viewDefinition=None,
         )
 

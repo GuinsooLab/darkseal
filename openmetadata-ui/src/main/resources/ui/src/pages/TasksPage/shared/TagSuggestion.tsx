@@ -13,7 +13,6 @@
 
 import { Select } from 'antd';
 import { AxiosError } from 'axios';
-import { t } from 'i18next';
 import { isEmpty, isEqual } from 'lodash';
 import React, { useEffect, useState } from 'react';
 import { getTagSuggestions } from 'rest/miscAPI';
@@ -43,9 +42,7 @@ const TagSuggestion: React.FC<Props> = ({ onChange, selectedTags }) => {
     selectedTags.map((tag) => ({
       label: tag.tagFQN,
       value: tag.tagFQN,
-      'data-sourcetype': isEqual(tag.source, 'Classification')
-        ? 'tag'
-        : 'glossaryTerm',
+      'data-sourcetype': isEqual(tag.source, 'Tag') ? 'tag' : 'glossaryTerm',
     }));
 
   const [options, setOptions] = useState<SelectOption[]>([]);
@@ -83,7 +80,7 @@ const TagSuggestion: React.FC<Props> = ({ onChange, selectedTags }) => {
       labelType: LabelType.Manual,
       state: State.Suggested,
       source: isEqual(value['data-sourcetype'], 'tag')
-        ? TagSource.Classification
+        ? TagSource.Tag
         : TagSource.Glossary,
       tagFQN: value.value,
     }));
@@ -103,7 +100,7 @@ const TagSuggestion: React.FC<Props> = ({ onChange, selectedTags }) => {
       filterOption={false}
       mode="multiple"
       notFoundContent={null}
-      placeholder={t('label.select-to-search')}
+      placeholder="Search to Select"
       showArrow={false}
       value={!isEmpty(selectedOptions()) ? selectedOptions() : undefined}
       onChange={handleOnChange}

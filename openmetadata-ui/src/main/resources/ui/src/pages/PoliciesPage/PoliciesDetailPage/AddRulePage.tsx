@@ -18,13 +18,12 @@ import Loader from 'components/Loader/Loader';
 import { compare } from 'fast-json-patch';
 import { trim } from 'lodash';
 import React, { useEffect, useMemo, useState } from 'react';
-import { useTranslation } from 'react-i18next';
 import { useHistory, useParams } from 'react-router-dom';
 import { getPolicyByName, patchPolicy } from 'rest/rolesAPIV1';
-import { getEntityName } from 'utils/EntityUtils';
 import { GlobalSettingOptions } from '../../../constants/GlobalSettings.constants';
 import { Effect, Rule } from '../../../generated/api/policies/createPolicy';
 import { Policy } from '../../../generated/entity/policies/policy';
+import { getEntityName } from '../../../utils/CommonUtils';
 import {
   getPath,
   getPolicyWithFqnPath,
@@ -36,7 +35,6 @@ import RuleForm from '../RuleForm/RuleForm';
 const policiesPath = getPath(GlobalSettingOptions.POLICIES);
 
 const AddRulePage = () => {
-  const { t } = useTranslation();
   const history = useHistory();
   const { fqn } = useParams<{ fqn: string }>();
   const [isLoading, setLoading] = useState<boolean>(false);
@@ -53,11 +51,11 @@ const AddRulePage = () => {
   const breadcrumb = useMemo(
     () => [
       {
-        name: t('label.setting-plural'),
+        name: 'Settings',
         url: getSettingPath(),
       },
       {
-        name: t('label.policy-plural'),
+        name: 'Policies',
         url: policiesPath,
       },
       {
@@ -66,9 +64,7 @@ const AddRulePage = () => {
       },
 
       {
-        name: t('label.add-new-entity', {
-          entity: t('label.rule'),
-        }),
+        name: 'Add New Rule',
         url: '',
       },
     ],
@@ -123,7 +119,7 @@ const AddRulePage = () => {
           <Typography.Paragraph
             className="text-base"
             data-testid="add-rule-title">
-            {t('label.add-new-entity', { entity: t('label.rule') })}
+            Add New Rule
           </Typography.Paragraph>
           <Form
             data-testid="rule-form"
@@ -136,14 +132,14 @@ const AddRulePage = () => {
             <RuleForm ruleData={ruleData} setRuleData={setRuleData} />
             <Space align="center" className="w-full justify-end">
               <Button data-testid="cancel-btn" type="link" onClick={handleBack}>
-                {t('label.cancel')}
+                Cancel
               </Button>
               <Button
                 data-testid="submit-btn"
                 form="rule-form"
                 htmlType="submit"
                 type="primary">
-                {t('label.submit')}
+                Submit
               </Button>
             </Space>
           </Form>

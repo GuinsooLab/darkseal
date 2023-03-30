@@ -13,7 +13,6 @@
 
 import { Modal } from 'antd';
 import { debounce } from 'lodash';
-import Qs from 'qs';
 import { BaseSelectRef } from 'rc-select';
 import React, {
   FC,
@@ -24,7 +23,8 @@ import React, {
   useState,
 } from 'react';
 import { useHistory } from 'react-router-dom';
-import { getExplorePath, ROUTES } from '../../constants/constants';
+import AppState from '../../AppState';
+import { getExplorePathWithSearch, ROUTES } from '../../constants/constants';
 import { addToRecentSearched } from '../../utils/CommonUtils';
 import { isCommandKeyPress, Keys } from '../../utils/KeyboardUtil';
 import GlobalSearchSuggestions from './GlobalSearchSuggestions/GlobalSearchSuggestions';
@@ -77,20 +77,15 @@ const GlobalSearchProvider: FC<Props> = ({ children }: Props) => {
 
   const searchHandler = (value: string) => {
     addToRecentSearched(value);
-    if (location.pathname.startsWith(ROUTES.EXPLORE)) {
-      // Already on explore page, only push search change
-      const paramsObject: Record<string, unknown> = Qs.parse(
-        location.search.startsWith('?')
-          ? location.search.substr(1)
-          : location.search
-      );
-      history.push({
-        search: Qs.stringify({ ...paramsObject, search: value }),
-      });
-    } else {
-      // Outside Explore page
-      history.push(getExplorePath({ search: value }));
-    }
+    history.push({
+      pathname: getExplorePathWithSearch(
+        value,
+        location.pathname.startsWith(ROUTES.EXPLORE)
+          ? AppState.explorePageTab
+          : 'tables'
+      ),
+      search: location.search,
+    });
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {

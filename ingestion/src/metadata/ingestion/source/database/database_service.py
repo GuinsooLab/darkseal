@@ -56,10 +56,10 @@ from metadata.generated.schema.type.tagLabel import (
     TagLabel,
     TagSource,
 )
-from metadata.ingestion.api.source import Source
+from metadata.ingestion.api.source import Source, SourceStatus
 from metadata.ingestion.api.topology_runner import TopologyRunnerMixin
 from metadata.ingestion.models.ometa_classification import OMetaTagAndClassification
-from metadata.ingestion.models.table_metadata import DeleteTable, OMetaTableConstraints
+from metadata.ingestion.models.table_metadata import DeleteTable
 from metadata.ingestion.models.topology import (
     NodeStage,
     ServiceTopology,
@@ -79,7 +79,7 @@ class DataModelLink(BaseModel):
     Tmp model to handle data model ingestion
     """
 
-    table_entity: Table
+    fqn: FullyQualifiedEntityName
     datamodel: DataModel
 
 
@@ -119,7 +119,9 @@ class DatabaseServiceTopology(ServiceTopology):
             ),
         ],
         children=["database"],
-        post_process=["yield_view_lineage", "yield_table_constraints"],
+        post_process=[
+            "yield_view_lineage",
+        ],
     )
     database = TopologyNode(
         producer="get_database_names",
@@ -138,18 +140,18 @@ class DatabaseServiceTopology(ServiceTopology):
         producer="get_database_schema_names",
         stages=[
             NodeStage(
+                type_=DatabaseSchema,
+                context="database_schema",
+                processor="yield_database_schema",
+                consumer=["database_service", "database"],
+            ),
+            NodeStage(
                 type_=OMetaTagAndClassification,
                 context="tags",
                 processor="yield_tag_details",
                 ack_sink=False,
                 nullable=True,
                 cache_all=True,
-            ),
-            NodeStage(
-                type_=DatabaseSchema,
-                context="database_schema",
-                processor="yield_database_schema",
-                consumer=["database_service", "database"],
             ),
         ],
         children=["table"],
@@ -180,6 +182,25 @@ class DatabaseServiceTopology(ServiceTopology):
     )
 
 
+class SQLSourceStatus(SourceStatus):
+    """
+    Reports the source status after ingestion
+    """
+
+    success: List[str] = []
+    failures: List[str] = []
+    warnings: List[str] = []
+    filtered: List[str] = []
+
+    def scanned(self, record: str) -> None:
+        self.success.append(record)
+        logger.debug(f"Scanned [{record}]")
+
+    def filter(self, key: str, reason: str) -> None:
+        logger.debug(f"Filtered [{key}] due to {reason}")
+        self.filtered.append({key: reason})
+
+
 class DatabaseServiceSource(
     TopologyRunnerMixin, Source, ABC
 ):  # pylint: disable=too-many-public-methods
@@ -188,6 +209,7 @@ class DatabaseServiceSource(
     It implements the topology and context.
     """
 
+    status: SQLSourceStatus
     source_config: DatabaseServiceMetadataPipeline
     config: WorkflowSource
     metadata: OpenMetadata
@@ -203,6 +225,9 @@ class DatabaseServiceSource(
 
     def prepare(self):
         pass
+
+    def get_status(self) -> SourceStatus:
+        return self.status
 
     def get_services(self) -> Iterable[WorkflowSource]:
         yield self.config
@@ -284,15 +309,6 @@ class DatabaseServiceSource(
         Parses view definition to get lineage information
         """
 
-    def yield_table_constraints(self) -> Optional[Iterable[OMetaTableConstraints]]:
-        """
-        From topology.
-        process the table constraints of all tables
-        by default no need to process table constraints
-        specially for non SQA sources
-        """
-        yield from []
-
     @abstractmethod
     def yield_table(
         self, table_name_and_type: Tuple[str, TableType]
@@ -311,6 +327,8 @@ class DatabaseServiceSource(
         """
         From topology.
         Prepare a location request and pass it to the sink.
+
+        Also, update the self.inspector value to the current db.
         """
         return
 
@@ -345,7 +363,7 @@ class DatabaseServiceSource(
                 ),
                 labelType=LabelType.Automated,
                 state=State.Suggested,
-                source=TagSource.Classification,
+                source=TagSource.Tag,
             )
             for tag_and_category in self.context.tags or []
             if tag_and_category.fqn.__root__ == entity_fqn
@@ -411,10 +429,7 @@ class DatabaseServiceSource(
         )
         for table in database_state:
             if str(table.fullyQualifiedName.__root__) not in self.database_source_state:
-                yield DeleteTable(
-                    table=table,
-                    mark_deleted_tables=self.source_config.markDeletedTables,
-                )
+                yield DeleteTable(table=table)
 
     def fetch_all_schema_and_delete_tables(self):
         """

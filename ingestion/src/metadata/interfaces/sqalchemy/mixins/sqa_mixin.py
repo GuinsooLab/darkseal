@@ -15,11 +15,12 @@ supporting sqlalchemy abstraction layer
 """
 
 
-from typing import Optional
+from typing import Dict, Optional
 
 from sqlalchemy import Column, MetaData, inspect
 from sqlalchemy.orm import DeclarativeMeta
 
+from metadata.generated.schema.entity.data.table import PartitionProfilerConfig
 from metadata.generated.schema.entity.services.connections.database.snowflakeConnection import (
     SnowflakeType,
 )
@@ -27,11 +28,16 @@ from metadata.ingestion.source.connections import get_connection
 from metadata.ingestion.source.database.snowflake.queries import (
     SNOWFLAKE_SESSION_TAG_QUERY,
 )
-from metadata.profiler.orm.converter import ometa_to_sqa_orm
+from metadata.orm_profiler.orm.converter import ometa_to_sqa_orm
 
 
 class SQAInterfaceMixin:
     """SQLAlchemy inteface mixin grouping shared methods between sequential and threaded executor"""
+
+    @property
+    def table(self):
+        """OM Table entity"""
+        return self._table
 
     def _get_engine(self):
         """Get engine for database
@@ -79,6 +85,27 @@ class SQAInterfaceMixin:
                     query_tag=self.service_connection_config.queryTag
                 )
             )
+
+    def get_partition_details(
+        self, partition_config: Optional[PartitionProfilerConfig]
+    ) -> Optional[Dict]:
+        """From partition config, get the partition table for a table entity
+
+        Args:
+            partition_config: PartitionProfilerConfig object with some partition details
+
+        Returns:
+            dict or None: dictionary with all the elements constituting the a partition
+        """
+        if not partition_config:
+            return None
+
+        return {
+            "partition_field": partition_config.partitionColumnName,
+            "partition_values": partition_config.partitionValues,
+            "partition_interval_unit": partition_config.partitionIntervalUnit.value,
+            "partition_interval": partition_config.partitionInterval,
+        }
 
     def close(self):
         """close session"""

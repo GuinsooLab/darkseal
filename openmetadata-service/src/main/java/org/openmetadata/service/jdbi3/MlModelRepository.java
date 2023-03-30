@@ -13,11 +13,11 @@
 
 package org.openmetadata.service.jdbi3;
 
-import static org.openmetadata.common.utils.CommonUtil.listOrEmpty;
 import static org.openmetadata.common.utils.CommonUtil.nullOrEmpty;
 import static org.openmetadata.service.Entity.DASHBOARD;
 import static org.openmetadata.service.Entity.FIELD_FOLLOWERS;
 import static org.openmetadata.service.Entity.MLMODEL;
+import static org.openmetadata.service.Entity.MLMODEL_SERVICE;
 import static org.openmetadata.service.util.EntityUtil.entityReferenceMatch;
 import static org.openmetadata.service.util.EntityUtil.mlFeatureMatch;
 import static org.openmetadata.service.util.EntityUtil.mlHyperParameterMatch;
@@ -26,8 +26,8 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 import lombok.extern.slf4j.Slf4j;
-import org.openmetadata.schema.EntityInterface;
 import org.openmetadata.schema.entity.data.MlModel;
 import org.openmetadata.schema.entity.services.MlModelService;
 import org.openmetadata.schema.type.EntityReference;
@@ -38,6 +38,7 @@ import org.openmetadata.schema.type.MlHyperParameter;
 import org.openmetadata.schema.type.Relationship;
 import org.openmetadata.schema.type.TagLabel;
 import org.openmetadata.service.Entity;
+import org.openmetadata.service.exception.CatalogExceptionMessage;
 import org.openmetadata.service.resources.mlmodels.MlModelResource;
 import org.openmetadata.service.util.EntityUtil;
 import org.openmetadata.service.util.EntityUtil.Fields;
@@ -45,8 +46,8 @@ import org.openmetadata.service.util.FullyQualifiedName;
 
 @Slf4j
 public class MlModelRepository extends EntityRepository<MlModel> {
-  private static final String MODEL_UPDATE_FIELDS = "owner,dashboard,tags,extension,followers";
-  private static final String MODEL_PATCH_FIELDS = "owner,dashboard,tags,extension,followers";
+  private static final String MODEL_UPDATE_FIELDS = "owner,dashboard,tags,extension";
+  private static final String MODEL_PATCH_FIELDS = "owner,dashboard,tags,extension";
 
   public MlModelRepository(CollectionDAO dao) {
     super(
@@ -136,18 +137,25 @@ public class MlModelRepository extends EntityRepository<MlModel> {
 
     // Check that the dashboard exists
     if (mlModel.getDashboard() != null) {
-      mlModel.setDashboard(Entity.getEntityReference(mlModel.getDashboard(), Include.NON_DELETED));
+      daoCollection.dashboardDAO().findEntityReferenceById(mlModel.getDashboard().getId());
     }
   }
 
   @Override
   public void storeEntity(MlModel mlModel, boolean update) throws IOException {
-    // Relationships and fields such as service are derived and not stored as part of json
+    // Relationships and fields such as href are derived and not stored as part of json
+    EntityReference owner = mlModel.getOwner();
+    List<TagLabel> tags = mlModel.getTags();
     EntityReference dashboard = mlModel.getDashboard();
     EntityReference service = mlModel.getService();
-    mlModel.withService(null).withDashboard(null);
+
+    // Don't store owner, dashboard, href and tags as JSON. Build it on the fly based on relationships
+    mlModel.withService(null).withOwner(null).withDashboard(null).withHref(null).withTags(null);
+
     store(mlModel, update);
-    mlModel.withService(service).withDashboard(dashboard);
+
+    // Restore the relationships
+    mlModel.withService(service).withOwner(owner).withDashboard(dashboard).withTags(tags);
   }
 
   @Override
@@ -206,24 +214,18 @@ public class MlModelRepository extends EntityRepository<MlModel> {
     return new MlModelUpdater(original, updated, operation);
   }
 
-  @Override
-  public List<TagLabel> getAllTags(EntityInterface entity) {
-    List<TagLabel> allTags = new ArrayList<>();
-    MlModel mlModel = (MlModel) entity;
-    EntityUtil.mergeTags(allTags, mlModel.getTags());
-    for (MlFeature feature : listOrEmpty(mlModel.getMlFeatures())) {
-      EntityUtil.mergeTags(allTags, feature.getTags());
-      for (MlFeatureSource source : listOrEmpty(feature.getFeatureSources())) {
-        EntityUtil.mergeTags(allTags, source.getTags());
-      }
-    }
-    return allTags;
-  }
-
   private void populateService(MlModel mlModel) throws IOException {
-    MlModelService service = Entity.getEntity(mlModel.getService(), "", Include.NON_DELETED);
+    MlModelService service = getService(mlModel.getService().getId(), mlModel.getService().getType());
     mlModel.setService(service.getEntityReference());
     mlModel.setServiceType(service.getServiceType());
+  }
+
+  private MlModelService getService(UUID serviceId, String entityType) throws IOException {
+    if (entityType.equalsIgnoreCase(Entity.MLMODEL_SERVICE)) {
+      return daoCollection.mlModelServiceDAO().findEntityById(serviceId);
+    }
+    throw new IllegalArgumentException(
+        CatalogExceptionMessage.invalidServiceEntity(entityType, MLMODEL, MLMODEL_SERVICE));
   }
 
   private EntityReference getDashboard(MlModel mlModel) throws IOException {

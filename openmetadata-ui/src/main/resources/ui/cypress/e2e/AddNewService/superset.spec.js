@@ -35,10 +35,7 @@ describe('Superset Ingestion', () => {
     goToAddNewServicePage(SERVICE_TYPE.Dashboard);
 
     // Select Dashboard services
-    cy.get('[data-testid="service-category"]').should('be.visible').click();
-    cy.get('.ant-select-item-option-content')
-      .contains('Dashboard Services')
-      .click();
+    cy.get('[data-testid="service-category"]').select('dashboardServices');
 
     const connectionInput = () => {
       cy.get('#root_username').type(Cypress.env('supersetUsername'));

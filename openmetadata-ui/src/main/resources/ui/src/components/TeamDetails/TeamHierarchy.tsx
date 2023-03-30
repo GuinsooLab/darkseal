@@ -15,18 +15,16 @@ import { Modal, Table, Typography } from 'antd';
 import { ColumnsType } from 'antd/lib/table';
 import { ExpandableConfig } from 'antd/lib/table/interface';
 import { AxiosError } from 'axios';
-import { TeamType } from 'generated/api/teams/createTeam';
-import { isEmpty } from 'lodash';
+import { isArray, isEmpty } from 'lodash';
 import React, { FC, useCallback, useMemo, useState } from 'react';
 import { DndProvider } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 import { getTeamByName, updateTeam } from 'rest/teamsAPI';
-import { getEntityName } from 'utils/EntityUtils';
 import { TABLE_CONSTANTS } from '../../constants/Teams.constants';
 import { Team } from '../../generated/entity/teams/team';
-import { Transi18next } from '../../utils/CommonUtils';
+import { getEntityName } from '../../utils/CommonUtils';
 import { getTeamsWithFqnPath } from '../../utils/RouterUtils';
 import { getTableExpandableConfig } from '../../utils/TableUtils';
 import { getMovedTeamData } from '../../utils/TeamUtils';
@@ -51,7 +49,7 @@ const TeamHierarchy: FC<TeamHierarchyProps> = ({
   const columns: ColumnsType<Team> = useMemo(() => {
     return [
       {
-        title: t('label.team-plural'),
+        title: 'Teams',
         dataIndex: 'teams',
         key: 'teams',
         render: (_, record) => (
@@ -63,45 +61,33 @@ const TeamHierarchy: FC<TeamHierarchyProps> = ({
         ),
       },
       {
-        title: t('label.type'),
+        title: 'Type',
         dataIndex: 'teamType',
         key: 'teamType',
       },
       {
-        title: t('label.sub-team-plural'),
+        title: 'Sub Teams',
         dataIndex: 'childrenCount',
         key: 'subTeams',
         render: (childrenCount: number) => childrenCount ?? '--',
       },
       {
-        title: t('label.user-plural'),
+        title: 'Users',
         dataIndex: 'userCount',
         key: 'users',
         render: (userCount: number) => userCount ?? '--',
       },
       {
-        title: t('label.entity-count', {
-          entity: t('label.asset'),
-        }),
+        title: 'Asset Count',
         dataIndex: 'owns',
         key: 'owns',
         render: (owns) => owns.length,
       },
       {
-        title: t('label.description'),
+        title: 'Description',
         dataIndex: 'description',
-        width: 450,
         key: 'description',
-        render: (description: string) => (
-          <Typography.Paragraph
-            className="m-b-0"
-            ellipsis={{
-              rows: 2,
-            }}
-            title={description}>
-            {isEmpty(description) ? '--' : description}
-          </Typography.Paragraph>
-        ),
+        render: (description: string) => description || '--',
       },
     ];
   }, [data, onTeamExpand]);
@@ -111,15 +97,14 @@ const TeamHierarchy: FC<TeamHierarchyProps> = ({
       if (dragRecord.id === dropRecord.id) {
         return;
       }
-
-      if (dropRecord.teamType === TeamType.Group) {
-        showErrorToast(t('message.error-team-transfer-message'));
-
-        return;
+      let dropTeam: Team = dropRecord;
+      if (!isArray(dropTeam.children)) {
+        const res = await getTeamByName(dropTeam.name, ['parents'], 'all');
+        dropTeam = (res.parents?.[0] as Team) || currentTeam;
       }
       setMovedTeam({
         from: dragRecord,
-        to: dropRecord,
+        to: dropTeam,
       });
       setIsModalOpen(true);
     },
@@ -190,22 +175,18 @@ const TeamHierarchy: FC<TeamHierarchyProps> = ({
         centered
         destroyOnClose
         closable={false}
-        confirmLoading={isTableLoading}
         data-testid="confirmation-modal"
         okText={t('label.confirm')}
         open={isModalOpen}
-        title={t('label.move-the-entity', { entity: t('label.team') })}
+        title={t('label.move-the-team')}
         onCancel={() => setIsModalOpen(false)}
         onOk={handleChangeTeam}>
-        <Transi18next
-          i18nKey="message.entity-transfer-message"
-          renderElement={<strong />}
-          values={{
+        <Typography.Text>
+          {t('message.team-transfer-message', {
             from: movedTeam?.from?.name,
             to: movedTeam?.to?.name,
-            entity: t('label.team-lowercase'),
-          }}
-        />
+          })}
+        </Typography.Text>
       </Modal>
     </>
   );

@@ -31,13 +31,11 @@ from metadata.generated.schema.analytics.webAnalyticEventData import (
 from metadata.generated.schema.api.lineage.addLineage import AddLineageRequest
 from metadata.generated.schema.dataInsight.dataInsightChart import DataInsightChart
 from metadata.generated.schema.dataInsight.kpi.kpi import Kpi
-from metadata.generated.schema.entity.automations.workflow import Workflow
 from metadata.generated.schema.entity.classification.classification import (
     Classification,
 )
 from metadata.generated.schema.entity.classification.tag import Tag
 from metadata.generated.schema.entity.data.chart import Chart
-from metadata.generated.schema.entity.data.container import Container
 from metadata.generated.schema.entity.data.dashboard import Dashboard
 from metadata.generated.schema.entity.data.database import Database
 from metadata.generated.schema.entity.data.databaseSchema import DatabaseSchema
@@ -47,7 +45,6 @@ from metadata.generated.schema.entity.data.location import Location
 from metadata.generated.schema.entity.data.metrics import Metrics
 from metadata.generated.schema.entity.data.mlmodel import MlModel
 from metadata.generated.schema.entity.data.pipeline import Pipeline
-from metadata.generated.schema.entity.data.query import Query
 from metadata.generated.schema.entity.data.report import Report
 from metadata.generated.schema.entity.data.table import Table
 from metadata.generated.schema.entity.data.topic import Topic
@@ -63,14 +60,11 @@ from metadata.generated.schema.entity.services.ingestionPipelines.ingestionPipel
 from metadata.generated.schema.entity.services.messagingService import MessagingService
 from metadata.generated.schema.entity.services.metadataService import MetadataService
 from metadata.generated.schema.entity.services.mlmodelService import MlModelService
-from metadata.generated.schema.entity.services.objectstoreService import (
-    ObjectStoreService,
-)
 from metadata.generated.schema.entity.services.pipelineService import PipelineService
 from metadata.generated.schema.entity.services.storageService import StorageService
 from metadata.generated.schema.entity.teams.role import Role
 from metadata.generated.schema.entity.teams.team import Team
-from metadata.generated.schema.entity.teams.user import AuthenticationMechanism, User
+from metadata.generated.schema.entity.teams.user import User
 from metadata.generated.schema.tests.testCase import TestCase
 from metadata.generated.schema.tests.testDefinition import TestDefinition
 from metadata.generated.schema.tests.testSuite import TestSuite
@@ -91,8 +85,6 @@ from metadata.ingestion.ometa.mixins.ingestion_pipeline_mixin import (
 from metadata.ingestion.ometa.mixins.mlmodel_mixin import OMetaMlModelMixin
 from metadata.ingestion.ometa.mixins.patch_mixin import OMetaPatchMixin
 from metadata.ingestion.ometa.mixins.pipeline_mixin import OMetaPipelineMixin
-from metadata.ingestion.ometa.mixins.query_mixin import OMetaQueryMixin
-from metadata.ingestion.ometa.mixins.role_policy_mixin import OMetaRolePolicyMixin
 from metadata.ingestion.ometa.mixins.server_mixin import OMetaServerMixin
 from metadata.ingestion.ometa.mixins.service_mixin import OMetaServiceMixin
 from metadata.ingestion.ometa.mixins.table_mixin import OMetaTableMixin
@@ -115,20 +107,6 @@ logger = ometa_logger()
 # The naming convention is T for Entity Types and C for Create Types
 T = TypeVar("T", bound=BaseModel)
 C = TypeVar("C", bound=BaseModel)
-
-# Helps us dynamically load the Entity class path in the
-# generated module.
-MODULE_PATH = {
-    "policy": "policies",
-    "service": "services",
-    "tag": "classification",
-    "classification": "classification",
-    "test": "tests",
-    "user": "teams",
-    "role": "teams",
-    "team": "teams",
-    "workflow": "automations",
-}
 
 
 class MissingEntityTypeException(Exception):
@@ -167,8 +145,6 @@ class OpenMetadata(
     DataInsightMixin,
     OMetaIngestionPipelineMixin,
     OMetaUserMixin,
-    OMetaQueryMixin,
-    OMetaRolePolicyMixin,
     Generic[T, C],
 ):
     """
@@ -187,6 +163,11 @@ class OpenMetadata(
     entity_path = "entity"
     api_path = "api"
     data_path = "data"
+    policies_path = "policies"
+    services_path = "services"
+    teams_path = "teams"
+    classifications_path = "classification"
+    tests_path = "tests"
 
     def __init__(self, config: OpenMetadataConnection, raw_data: bool = False):
         self.config = config
@@ -298,9 +279,6 @@ class OpenMetadata(
         if issubclass(entity, Report):
             return "/reports"
 
-        if issubclass(entity, AuthenticationMechanism):
-            return "/users/auth-mechanism"
-
         if issubclass(
             entity,
             get_args(
@@ -337,26 +315,11 @@ class OpenMetadata(
         if issubclass(entity, get_args(Union[Role, self.get_create_entity_type(Role)])):
             return "/roles"
 
-        if issubclass(
-            entity, get_args(Union[Query, self.get_create_entity_type(Query)])
-        ):
-            return "/queries"
-
         if issubclass(entity, get_args(Union[Team, self.get_create_entity_type(Team)])):
             return "/teams"
 
         if issubclass(entity, get_args(Union[User, self.get_create_entity_type(User)])):
             return "/users"
-
-        if issubclass(
-            entity, get_args(Union[Container, self.get_create_entity_type(Container)])
-        ):
-            return "/containers"
-
-        if issubclass(
-            entity, get_args(Union[Workflow, self.get_create_entity_type(Workflow)])
-        ):
-            return "/automations/workflow"
 
         # Services Schemas
         if issubclass(
@@ -417,16 +380,6 @@ class OpenMetadata(
 
         if issubclass(
             entity,
-            get_args(
-                Union[
-                    ObjectStoreService, self.get_create_entity_type(ObjectStoreService)
-                ]
-            ),
-        ):
-            return "/services/objectstoreServices"
-
-        if issubclass(
-            entity,
             IngestionPipeline,
         ):
             return "/services/ingestionPipelines"
@@ -473,9 +426,27 @@ class OpenMetadata(
         it is found inside generated
         """
 
-        for key, value in MODULE_PATH.items():
-            if key in entity.__name__.lower():
-                return value
+        if "policy" in entity.__name__.lower():
+            return self.policies_path
+
+        if "service" in entity.__name__.lower():
+            return self.services_path
+
+        if (
+            "tag" in entity.__name__.lower()
+            or "classification" in entity.__name__.lower()
+        ):
+            return self.classifications_path
+
+        if "test" in entity.__name__.lower():
+            return self.tests_path
+
+        if (
+            "user" in entity.__name__.lower()
+            or "role" in entity.__name__.lower()
+            or "team" in entity.__name__.lower()
+        ):
+            return self.teams_path
 
         return self.data_path
 
@@ -592,6 +563,7 @@ class OpenMetadata(
         """
         Return entity by ID or None
         """
+
         return self._get(entity=entity, path=model_str(entity_id), fields=fields)
 
     def _get(
@@ -764,7 +736,7 @@ class OpenMetadata(
         """
         Run version api call. Return `true` if response is not None
         """
-        raw_version = self.client.get("/system/version")["version"]
+        raw_version = self.client.get("/version")["version"]
         return raw_version is not None
 
     def close(self):

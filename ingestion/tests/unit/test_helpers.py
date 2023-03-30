@@ -55,13 +55,13 @@ class TestHelpers(TestCase):
             tags=[
                 TagLabel(
                     tagFQN="Tier.Tier1",
-                    source=TagSource.Classification,
+                    source=TagSource.Tag,
                     labelType=LabelType.Automated,
                     state=State.Confirmed,
                 ),
                 TagLabel(
                     tagFQN="Foo.Bar",
-                    source=TagSource.Classification,
+                    source=TagSource.Tag,
                     labelType=LabelType.Automated,
                     state=State.Confirmed,
                 ),
@@ -77,7 +77,7 @@ class TestHelpers(TestCase):
             tags=[
                 TagLabel(
                     tagFQN="Foo.Bar",
-                    source=TagSource.Classification,
+                    source=TagSource.Tag,
                     labelType=LabelType.Automated,
                     state=State.Confirmed,
                 )

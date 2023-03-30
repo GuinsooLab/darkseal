@@ -92,7 +92,7 @@ public class DashboardResource extends EntityResource<Dashboard, DashboardReposi
   @Valid
   @Operation(
       operationId = "listDashboards",
-      summary = "List dashboards",
+      summary = "List Dashboards",
       tags = "dashboards",
       description =
           "Get a list of dashboards, optionally filtered by `service` it belongs to. Use `fields` "
@@ -146,7 +146,7 @@ public class DashboardResource extends EntityResource<Dashboard, DashboardReposi
       operationId = "listAllDashboardVersion",
       summary = "List dashboard versions",
       tags = "dashboards",
-      description = "Get a list of all the versions of a dashboard identified by `Id`",
+      description = "Get a list of all the versions of a dashboard identified by `id`",
       responses = {
         @ApiResponse(
             responseCode = "200",
@@ -156,7 +156,7 @@ public class DashboardResource extends EntityResource<Dashboard, DashboardReposi
   public EntityHistory listVersions(
       @Context UriInfo uriInfo,
       @Context SecurityContext securityContext,
-      @Parameter(description = "Id of the dashboard", schema = @Schema(type = "UUID")) @PathParam("id") UUID id)
+      @Parameter(description = "Dashboard Id", schema = @Schema(type = "string")) @PathParam("id") UUID id)
       throws IOException {
     return super.listVersionsInternal(securityContext, id);
   }
@@ -165,9 +165,9 @@ public class DashboardResource extends EntityResource<Dashboard, DashboardReposi
   @Path("/{id}")
   @Operation(
       operationId = "getDashboardByID",
-      summary = "Get a dashboard by Id",
+      summary = "Get a dashboard",
       tags = "dashboards",
-      description = "Get a dashboard by `Id`.",
+      description = "Get a dashboard by `id`.",
       responses = {
         @ApiResponse(
             responseCode = "200",
@@ -178,7 +178,7 @@ public class DashboardResource extends EntityResource<Dashboard, DashboardReposi
   public Dashboard get(
       @Context UriInfo uriInfo,
       @Context SecurityContext securityContext,
-      @Parameter(description = "Id of the dashboard", schema = @Schema(type = "UUID")) @PathParam("id") UUID id,
+      @PathParam("id") UUID id,
       @Parameter(
               description = "Fields requested in the returned resource",
               schema = @Schema(type = "string", example = FIELDS))
@@ -198,7 +198,7 @@ public class DashboardResource extends EntityResource<Dashboard, DashboardReposi
   @Path("/name/{fqn}")
   @Operation(
       operationId = "getDashboardByFQN",
-      summary = "Get a dashboard by fully qualified name",
+      summary = "Get a dashboard by name",
       tags = "dashboards",
       description = "Get a dashboard by fully qualified name.",
       responses = {
@@ -206,13 +206,11 @@ public class DashboardResource extends EntityResource<Dashboard, DashboardReposi
             responseCode = "200",
             description = "The dashboard",
             content = @Content(mediaType = "application/json", schema = @Schema(implementation = Dashboard.class))),
-        @ApiResponse(responseCode = "404", description = "Dashboard for instance {fqn} is not found")
+        @ApiResponse(responseCode = "404", description = "Dashboard for instance {id} is not found")
       })
   public Dashboard getByName(
       @Context UriInfo uriInfo,
-      @Parameter(description = "Fully qualified name of the dashboard", schema = @Schema(type = "string"))
-          @PathParam("fqn")
-          String fqn,
+      @PathParam("fqn") String fqn,
       @Context SecurityContext securityContext,
       @Parameter(
               description = "Fields requested in the returned resource",
@@ -248,7 +246,7 @@ public class DashboardResource extends EntityResource<Dashboard, DashboardReposi
   public Dashboard getVersion(
       @Context UriInfo uriInfo,
       @Context SecurityContext securityContext,
-      @Parameter(description = "Id of the dashboard", schema = @Schema(type = "UUID")) @PathParam("id") UUID id,
+      @Parameter(description = "Dashboard Id", schema = @Schema(type = "string")) @PathParam("id") UUID id,
       @Parameter(
               description = "Dashboard version number in the form `major`.`minor`",
               schema = @Schema(type = "string", example = "0.1 or 1.1"))
@@ -282,7 +280,7 @@ public class DashboardResource extends EntityResource<Dashboard, DashboardReposi
   @Path("/{id}")
   @Operation(
       operationId = "patchDashboard",
-      summary = "Update a dashboard",
+      summary = "Update a Dashboard",
       tags = "dashboards",
       description = "Update an existing dashboard using JsonPatch.",
       externalDocs = @ExternalDocumentation(description = "JsonPatch RFC", url = "https://tools.ietf.org/html/rfc6902"))
@@ -290,7 +288,7 @@ public class DashboardResource extends EntityResource<Dashboard, DashboardReposi
   public Response updateDescription(
       @Context UriInfo uriInfo,
       @Context SecurityContext securityContext,
-      @Parameter(description = "Id of the dashboard", schema = @Schema(type = "UUID")) @PathParam("id") UUID id,
+      @PathParam("id") UUID id,
       @RequestBody(
               description = "JsonPatch with array of operations",
               content =
@@ -366,9 +364,9 @@ public class DashboardResource extends EntityResource<Dashboard, DashboardReposi
   @Path("/{id}")
   @Operation(
       operationId = "deleteDashboard",
-      summary = "Delete a dashboard by Id",
+      summary = "Delete a Dashboard",
       tags = "dashboards",
-      description = "Delete a dashboard by `Id`.",
+      description = "Delete a dashboard by `id`.",
       responses = {
         @ApiResponse(responseCode = "200", description = "OK"),
         @ApiResponse(responseCode = "404", description = "Dashboard for instance {id} is not found")
@@ -380,7 +378,7 @@ public class DashboardResource extends EntityResource<Dashboard, DashboardReposi
           @QueryParam("hardDelete")
           @DefaultValue("false")
           boolean hardDelete,
-      @Parameter(description = "Id of the dashboard", schema = @Schema(type = "UUID")) @PathParam("id") UUID id)
+      @Parameter(description = "Dashboard Id", schema = @Schema(type = "UUID")) @PathParam("id") UUID id)
       throws IOException {
     return delete(uriInfo, securityContext, id, false, hardDelete);
   }
@@ -389,7 +387,7 @@ public class DashboardResource extends EntityResource<Dashboard, DashboardReposi
   @Path("/name/{fqn}")
   @Operation(
       operationId = "deleteDashboardByFQN",
-      summary = "Delete a dashboard by fully qualified name",
+      summary = "Delete a Dashboard",
       tags = "dashboards",
       description = "Delete a dashboard by `fullyQualifiedName`.",
       responses = {
@@ -403,9 +401,7 @@ public class DashboardResource extends EntityResource<Dashboard, DashboardReposi
           @QueryParam("hardDelete")
           @DefaultValue("false")
           boolean hardDelete,
-      @Parameter(description = "Fully qualified name of the dashboard", schema = @Schema(type = "string"))
-          @PathParam("fqn")
-          String fqn)
+      @Parameter(description = "Name of the Dashboard", schema = @Schema(type = "string")) @PathParam("fqn") String fqn)
       throws IOException {
     return deleteByName(uriInfo, securityContext, fqn, false, hardDelete);
   }
@@ -414,7 +410,7 @@ public class DashboardResource extends EntityResource<Dashboard, DashboardReposi
   @Path("/restore")
   @Operation(
       operationId = "restore",
-      summary = "Restore a soft deleted dashboard",
+      summary = "Restore a soft deleted dashboard.",
       tags = "dashboards",
       description = "Restore a soft deleted dashboard.",
       responses = {
@@ -431,8 +427,8 @@ public class DashboardResource extends EntityResource<Dashboard, DashboardReposi
 
   private Dashboard getDashboard(CreateDashboard create, String user) throws IOException {
     return copy(new Dashboard(), create, user)
-        .withService(getEntityReference(Entity.DASHBOARD_SERVICE, create.getService()))
-        .withCharts(getEntityReferences(Entity.CHART, create.getCharts()))
+        .withService(create.getService())
+        .withCharts(create.getCharts())
         .withDashboardUrl(create.getDashboardUrl())
         .withTags(create.getTags());
   }

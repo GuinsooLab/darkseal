@@ -12,7 +12,6 @@
  */
 
 import { Button, Space, Tooltip, Typography } from 'antd';
-import { t } from 'i18next';
 import { kebabCase } from 'lodash';
 import React from 'react';
 import { NO_PERMISSION_FOR_ACTION } from '../../constants/HelperTextUtil';
@@ -66,8 +65,7 @@ const SummaryDetail = ({
           )}
         </div>
         {showIcon ? (
-          <Tooltip
-            title={hasAccess ? t('label.edit') : NO_PERMISSION_FOR_ACTION}>
+          <Tooltip title={hasAccess ? 'Edit' : NO_PERMISSION_FOR_ACTION}>
             <Button
               className="cursor-pointer m--t-xss"
               data-testid="edit-button"
@@ -90,7 +88,7 @@ const SummaryDetail = ({
             size="small"
             type="link"
             onClick={onSave}>
-            {t('label.save')}
+            Save
           </Button>
         )}
       </Space>

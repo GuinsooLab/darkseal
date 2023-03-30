@@ -12,7 +12,6 @@
  */
 
 import { Button } from 'antd';
-import { t } from 'i18next';
 import React, { Fragment, FunctionComponent, useState } from 'react';
 import { DbtConfig } from '../../../generated/metadataIngestion/dbtPipeline';
 import {
@@ -35,8 +34,6 @@ interface Props extends DBTFormCommonProps, DbtConfigLocal {
   handleRunResultsFilePathChange: (value: string) => void;
   handleUpdateDescriptions: (value: boolean) => void;
   handleUpdateDBTClassification: (value: string) => void;
-  enableDebugLog: boolean;
-  handleEnableDebugLogCheck: (value: boolean) => void;
 }
 
 export const DBTLocalConfig: FunctionComponent<Props> = ({
@@ -54,8 +51,6 @@ export const DBTLocalConfig: FunctionComponent<Props> = ({
   handleUpdateDescriptions,
   dbtClassificationName,
   handleUpdateDBTClassification,
-  enableDebugLog,
-  handleEnableDebugLogCheck,
 }: Props) => {
   const [errors, setErrors] = useState<ErrorDbtLocal>();
 
@@ -85,10 +80,10 @@ export const DBTLocalConfig: FunctionComponent<Props> = ({
         <label
           className="tw-block tw-form-label tw-mb-1"
           htmlFor="catalog-file">
-          {t('label.dbt-catalog-file-path')}
+          dbt Catalog File Path
         </label>
         <p className="tw-text-grey-muted tw-mt-1 tw-mb-2 tw-text-xs">
-          {t('message.dbt-catalog-file-extract-path')}
+          dbt catalog file to extract dbt models with their column schemas.
         </p>
         <input
           className="tw-form-inputs tw-form-inputs-padding"
@@ -105,10 +100,11 @@ export const DBTLocalConfig: FunctionComponent<Props> = ({
         <label
           className="tw-block tw-form-label tw-mb-1"
           htmlFor="manifest-file">
-          {requiredField(t('message.dbt-manifest-file-path'))}
+          {requiredField('dbt Manifest File Path')}
         </label>
         <p className="tw-text-grey-muted tw-mt-1 tw-mb-2 tw-text-xs">
-          {t('message.dbt-manifest-file-path')}
+          dbt manifest file path to extract dbt models and associate with
+          tables.
         </p>
         <input
           className="tw-form-inputs tw-form-inputs-padding"
@@ -125,10 +121,10 @@ export const DBTLocalConfig: FunctionComponent<Props> = ({
         <label
           className="tw-block tw-form-label tw-mb-1"
           htmlFor="run-result-file">
-          {t('label.dbt-run-result-file-path')}
+          dbt Run Results File Path
         </label>
         <p className="tw-text-grey-muted tw-mt-1 tw-mb-2 tw-text-xs">
-          {t('message.dbt-result-file-path')}
+          dbt run results file path to extract the test results information.
         </p>
         <input
           className="tw-form-inputs tw-form-inputs-padding"
@@ -148,8 +144,6 @@ export const DBTLocalConfig: FunctionComponent<Props> = ({
         dbtClassificationName={dbtClassificationName}
         dbtUpdateDescriptions={dbtUpdateDescriptions}
         descriptionId="local-update-description"
-        enableDebugLog={enableDebugLog}
-        handleEnableDebugLogCheck={handleEnableDebugLogCheck}
         handleUpdateDBTClassification={handleUpdateDBTClassification}
         handleUpdateDescriptions={handleUpdateDescriptions}
       />

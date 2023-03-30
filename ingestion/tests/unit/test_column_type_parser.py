@@ -73,8 +73,8 @@ EXPTECTED_COLUMN_TYPE = [
     "SMALLINT",
     "LONGBLOB",
     "JSON",
-    "GEOMETRY",
-    "UNKNOWN",
+    "POINT",
+    "VARCHAR",
 ]
 root = os.path.dirname(__file__)
 

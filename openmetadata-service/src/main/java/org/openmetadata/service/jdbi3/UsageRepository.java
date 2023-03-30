@@ -47,6 +47,7 @@ import org.openmetadata.schema.type.UsageStats;
 import org.openmetadata.service.Entity;
 import org.openmetadata.service.exception.CatalogExceptionMessage;
 import org.openmetadata.service.exception.UnhandledServerException;
+import org.openmetadata.service.util.EntityUtil.Fields;
 import org.openmetadata.service.util.RestUtil;
 
 @Slf4j
@@ -108,7 +109,7 @@ public class UsageRepository {
 
   private RestUtil.PutResponse<?> addUsage(String method, String entityType, String entityId, DailyCount usage)
       throws IOException {
-    String fields = "usageSummary";
+    Fields fields = new Fields(List.of("usageSummary"));
     // If table usage was reported, add the usage count to schema and database
     String type = entityType.toLowerCase();
     switch (type) {
@@ -127,7 +128,7 @@ public class UsageRepository {
   }
 
   private RestUtil.PutResponse<?> tableEntityUsage(
-      String method, String fields, String entityId, String entityType, DailyCount usage) throws IOException {
+      String method, Fields fields, String entityId, String entityType, DailyCount usage) throws IOException {
     // we accept usage for deleted entities
     Table table = Entity.getEntity(Entity.TABLE, UUID.fromString(entityId), fields, Include.ALL);
     // Insert usage record
@@ -148,7 +149,7 @@ public class UsageRepository {
   }
 
   private RestUtil.PutResponse<?> dashboardEntityUsage(
-      String method, String fields, String entityId, String entityType, DailyCount usage) throws IOException {
+      String method, Fields fields, String entityId, String entityType, DailyCount usage) throws IOException {
     Dashboard dashboard = Entity.getEntity(Entity.DASHBOARD, UUID.fromString(entityId), fields, Include.ALL);
     insertToUsageRepository(method, entityId, entityType, usage);
     Dashboard updated = Entity.getEntity(Entity.DASHBOARD, UUID.fromString(entityId), fields, Include.ALL);
@@ -161,7 +162,7 @@ public class UsageRepository {
   }
 
   private RestUtil.PutResponse<?> chartEntityUsage(
-      String method, String fields, String entityId, String entityType, DailyCount usage) throws IOException {
+      String method, Fields fields, String entityId, String entityType, DailyCount usage) throws IOException {
     Chart chart = Entity.getEntity(Entity.CHART, UUID.fromString(entityId), fields, Include.ALL);
     insertToUsageRepository(method, entityId, entityType, usage);
     Chart updated = Entity.getEntity(Entity.CHART, UUID.fromString(entityId), fields, Include.ALL);
@@ -174,7 +175,7 @@ public class UsageRepository {
   }
 
   private RestUtil.PutResponse<?> mlModelEntityUsage(
-      String method, String fields, String entityId, String entityType, DailyCount usage) throws IOException {
+      String method, Fields fields, String entityId, String entityType, DailyCount usage) throws IOException {
     MlModel mlModel = Entity.getEntity(Entity.MLMODEL, UUID.fromString(entityId), fields, Include.ALL);
     insertToUsageRepository(method, entityId, entityType, usage);
     MlModel updated = Entity.getEntity(Entity.CHART, UUID.fromString(entityId), fields, Include.ALL);

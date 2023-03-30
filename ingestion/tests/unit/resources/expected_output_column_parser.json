@@ -124,8 +124,8 @@
       "dataType": "STRUCT"
     },
     {
-      "dataType": "UNKNOWN",
-      "dataTypeDisplay": "UNKNOWN",
+      "dataType": "VARCHAR",
+      "dataTypeDisplay": "VARCHAR",
       "dataLength": 1
     },
     {

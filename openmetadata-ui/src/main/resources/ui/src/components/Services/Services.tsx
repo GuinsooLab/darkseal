@@ -11,13 +11,10 @@
  *  limitations under the License.
  */
 
-import { Button, Card, Col, Row, Space, Tooltip } from 'antd';
-import { ERROR_PLACEHOLDER_TYPE } from 'enums/common.enum';
+import { Button as ButtonAntd, Card, Col, Row, Space, Tooltip } from 'antd';
 import { isEmpty } from 'lodash';
 import React, { Fragment, useCallback, useMemo } from 'react';
-import { useTranslation } from 'react-i18next';
 import { Link, useHistory } from 'react-router-dom';
-import { getEntityName } from 'utils/EntityUtils';
 import {
   getServiceDetailsPath,
   SERVICE_VIEW_CAP,
@@ -30,7 +27,11 @@ import { ServiceCategory } from '../../enums/service.enum';
 import { Operation } from '../../generated/entity/policies/policy';
 import { Paging } from '../../generated/type/paging';
 import { ServicesType } from '../../interface/service.interface';
-import { getServiceLogo, showPagination } from '../../utils/CommonUtils';
+import {
+  getEntityName,
+  getServiceLogo,
+  showPagination,
+} from '../../utils/CommonUtils';
 import { checkPermission } from '../../utils/PermissionsUtils';
 import { getAddServicePath } from '../../utils/RouterUtils';
 import {
@@ -38,9 +39,11 @@ import {
   getResourceEntityFromServiceCategory,
 } from '../../utils/ServiceUtils';
 import { useAuthContext } from '../authentication/auth-provider/AuthProvider';
+import { Button } from '../buttons/Button/Button';
 import ErrorPlaceHolder from '../common/error-with-placeholder/ErrorPlaceHolder';
 import NextPrevious from '../common/next-previous/NextPrevious';
 import RichTextEditorPreviewer from '../common/rich-text-editor/RichTextEditorPreviewer';
+import { leftPanelAntCardStyle } from '../containers/PageLayout';
 import PageHeader from '../header/PageHeader.component';
 import { usePermissionProvider } from '../PermissionProvider/PermissionProvider';
 
@@ -59,7 +62,6 @@ const Services = ({
   currentPage,
   onPageChange,
 }: ServicesProps) => {
-  const { t } = useTranslation();
   const { isAuthDisabled } = useAuthContext();
   const history = useHistory();
   const handleAddServiceClick = () => {
@@ -93,8 +95,6 @@ const Services = ({
         return PAGE_HEADERS.ML_MODELS_SERVICES;
       case ServiceCategory.PIPELINE_SERVICES:
         return PAGE_HEADERS.PIPELINES_SERVICES;
-      case ServiceCategory.OBJECT_STORE_SERVICES:
-        return PAGE_HEADERS.OBJECT_STORE_SERVICES;
       default:
         return PAGE_HEADERS.DATABASES_SERVICES;
     }
@@ -113,21 +113,18 @@ const Services = ({
                 placement="left"
                 title={
                   addServicePermission
-                    ? t('label.add-entity', {
-                        entity: t('label.service'),
-                      })
+                    ? 'Add Service'
                     : NO_PERMISSION_FOR_ACTION
                 }>
                 <Button
-                  className="m-b-xs"
+                  className="tw-h-8 tw-rounded tw-mb-2"
                   data-testid="add-service-button"
                   disabled={!addServicePermission && !isAuthDisabled}
-                  size="middle"
-                  type="primary"
+                  size="small"
+                  theme="primary"
+                  variant="contained"
                   onClick={handleAddServiceClick}>
-                  {t('label.add-new-entity', {
-                    entity: t('label.service'),
-                  })}
+                  Add New Service
                 </Button>
               </Tooltip>
             </Space>
@@ -136,7 +133,9 @@ const Services = ({
             <Row data-testid="data-container" gutter={[16, 16]}>
               {serviceData.map((service, index) => (
                 <Col key={index} lg={8} xl={6}>
-                  <Card className="w-full" size="small">
+                  <Card
+                    size="small"
+                    style={{ ...leftPanelAntCardStyle, height: '100%' }}>
                     <div
                       className="tw-flex tw-justify-between tw-text-grey-muted"
                       data-testid="service-card">
@@ -168,16 +167,14 @@ const Services = ({
                               />
                             ) : (
                               <span className="tw-no-description">
-                                {t('label.no-description')}
+                                No description
                               </span>
                             )}
                           </div>
                           {getOptionalFields(service, serviceName)}
                         </div>
                         <div className="" data-testid="service-type">
-                          <label className="tw-mb-0">{`${t(
-                            'label.type'
-                          )}:`}</label>
+                          <label className="tw-mb-0">Type:</label>
                           <span className=" tw-ml-1 tw-font-normal tw-text-grey-body">
                             {service.serviceType}
                           </span>
@@ -215,28 +212,23 @@ const Services = ({
                 placement="left"
                 title={
                   addServicePermission
-                    ? t('label.add-entity', {
-                        entity: t('label.service'),
-                      })
+                    ? 'Add Service'
                     : NO_PERMISSION_FOR_ACTION
                 }>
-                <Button
+                <ButtonAntd
                   ghost
                   data-testid="add-service-button"
                   disabled={!addServicePermission}
                   size="small"
                   type="primary"
                   onClick={handleAddServiceClick}>
-                  {t('label.add-new-entity', {
-                    entity: servicesDisplayName[serviceName],
-                  })}
-                </Button>
+                  Add new {servicesDisplayName[serviceName]}
+                </ButtonAntd>
               </Tooltip>
             }
-            classes="mt-24"
             doc={CONNECTORS_DOCS}
             heading={servicesDisplayName[serviceName]}
-            type={ERROR_PLACEHOLDER_TYPE.ADD}
+            type="ADD_DATA"
           />
         </Col>
       )}

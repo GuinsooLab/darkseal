@@ -13,8 +13,7 @@
 
 import { AxiosResponse } from 'axios';
 import { Operation } from 'fast-json-patch';
-import { CreateTestCase } from 'generated/api/tests/createTestCase';
-import { RestoreRequestType } from 'Models';
+import { CreateTestCase } from '../generated/api/tests/createTestCase';
 import { CreateTestSuite } from '../generated/api/tests/createTestSuite';
 import { TestCase, TestCaseResult } from '../generated/tests/testCase';
 import {
@@ -87,10 +86,7 @@ export const getListTestCaseResults = async (
 };
 
 export const createTestCase = async (data: CreateTestCase) => {
-  const response = await APIClient.post<
-    CreateTestCase,
-    AxiosResponse<TestCase>
-  >(testCaseUrl, data);
+  const response = await APIClient.post<TestCase>(testCaseUrl, data);
 
   return response.data;
 };
@@ -176,15 +172,6 @@ export const updateTestSuiteById = async (id: string, data: Operation[]) => {
     data,
     configOptions
   );
-
-  return response.data;
-};
-
-export const restoreTestSuite = async (id: string) => {
-  const response = await APIClient.put<
-    RestoreRequestType,
-    AxiosResponse<TestSuite>
-  >('/testSuite/restore', { id });
 
   return response.data;
 };

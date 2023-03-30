@@ -14,7 +14,6 @@
 package org.openmetadata.service.jdbi3;
 
 import static org.openmetadata.common.utils.CommonUtil.listOrEmpty;
-import static org.openmetadata.common.utils.CommonUtil.nullOrEmpty;
 import static org.openmetadata.service.Entity.FIELD_FOLLOWERS;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -22,12 +21,14 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.UUID;
 import org.openmetadata.schema.entity.data.Dashboard;
 import org.openmetadata.schema.entity.services.DashboardService;
 import org.openmetadata.schema.type.EntityReference;
-import org.openmetadata.schema.type.Include;
 import org.openmetadata.schema.type.Relationship;
+import org.openmetadata.schema.type.TagLabel;
 import org.openmetadata.service.Entity;
+import org.openmetadata.service.exception.CatalogExceptionMessage;
 import org.openmetadata.service.jdbi3.CollectionDAO.EntityRelationshipRecord;
 import org.openmetadata.service.resources.dashboards.DashboardResource;
 import org.openmetadata.service.util.EntityUtil;
@@ -35,8 +36,8 @@ import org.openmetadata.service.util.EntityUtil.Fields;
 import org.openmetadata.service.util.FullyQualifiedName;
 
 public class DashboardRepository extends EntityRepository<Dashboard> {
-  private static final String DASHBOARD_UPDATE_FIELDS = "owner,tags,charts,extension,followers";
-  private static final String DASHBOARD_PATCH_FIELDS = "owner,tags,charts,extension,followers";
+  private static final String DASHBOARD_UPDATE_FIELDS = "owner,tags,charts,extension";
+  private static final String DASHBOARD_PATCH_FIELDS = "owner,tags,charts,extension";
 
   public DashboardRepository(CollectionDAO dao) {
     super(
@@ -76,9 +77,17 @@ public class DashboardRepository extends EntityRepository<Dashboard> {
   }
 
   private void populateService(Dashboard dashboard) throws IOException {
-    DashboardService service = Entity.getEntity(dashboard.getService(), "", Include.NON_DELETED);
+    DashboardService service = getService(dashboard.getService().getId(), dashboard.getService().getType());
     dashboard.setService(service.getEntityReference());
     dashboard.setServiceType(service.getServiceType());
+  }
+
+  private DashboardService getService(UUID serviceId, String entityType) throws IOException {
+    if (entityType.equalsIgnoreCase(Entity.DASHBOARD_SERVICE)) {
+      return daoCollection.dashboardServiceDAO().findEntityById(serviceId);
+    }
+    throw new IllegalArgumentException(
+        CatalogExceptionMessage.invalidServiceEntity(entityType, Entity.DASHBOARD, Entity.DASHBOARD_SERVICE));
   }
 
   public void setService(Dashboard dashboard, EntityReference service) {
@@ -97,11 +106,18 @@ public class DashboardRepository extends EntityRepository<Dashboard> {
 
   @Override
   public void storeEntity(Dashboard dashboard, boolean update) throws JsonProcessingException {
-    // Relationships and fields such as service are not stored as part of json
+    // Relationships and fields such as href are derived and not stored as part of json
+    EntityReference owner = dashboard.getOwner();
+    List<TagLabel> tags = dashboard.getTags();
     EntityReference service = dashboard.getService();
-    dashboard.withService(null);
+
+    // Don't store owner, database, href and tags as JSON. Build it on the fly based on relationships
+    dashboard.withOwner(null).withHref(null).withTags(null).withService(null);
+
     store(dashboard, update);
-    dashboard.withService(service);
+
+    // Restore the relationships
+    dashboard.withOwner(owner).withTags(tags).withService(service);
   }
 
   @Override
@@ -141,12 +157,12 @@ public class DashboardRepository extends EntityRepository<Dashboard> {
    * we need to send fully populated object such that ElasticSearch index has all the details.
    */
   private List<EntityReference> getCharts(List<EntityReference> charts) throws IOException {
-    if (nullOrEmpty(charts)) {
+    if (charts == null) {
       return Collections.emptyList();
     }
     List<EntityReference> chartRefs = new ArrayList<>();
     for (EntityReference chart : charts) {
-      EntityReference chartRef = Entity.getEntityReference(chart, Include.NON_DELETED);
+      EntityReference chartRef = daoCollection.chartDAO().findEntityReferenceById(chart.getId());
       chartRefs.add(chartRef);
     }
     return chartRefs.isEmpty() ? null : chartRefs;

@@ -11,7 +11,7 @@
  *  limitations under the License.
  */
 
-import { CloseOutlined } from '@ant-design/icons';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { Button, Tooltip, Typography } from 'antd';
 import classNames from 'classnames';
 import ProfilePicture from 'components/common/ProfilePicture/ProfilePicture';
@@ -19,7 +19,6 @@ import { usePermissionProvider } from 'components/PermissionProvider/PermissionP
 import { ResourceEntity } from 'components/PermissionProvider/PermissionProvider.interface';
 import { capitalize } from 'lodash';
 import React, { Fragment, useMemo } from 'react';
-import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 import { NO_PERMISSION_FOR_ACTION } from '../../constants/HelperTextUtil';
 import { AssetsType, FqnPart } from '../../enums/entity.enum';
@@ -62,7 +61,6 @@ const UserCard = ({
   onRemove,
 }: Props) => {
   const { permissions } = usePermissionProvider();
-  const { t } = useTranslation();
 
   const editPermission = useMemo(() => {
     return checkPermission(Operation.EditAll, ResourceEntity.USER, permissions);
@@ -239,16 +237,17 @@ const UserCard = ({
         ) : (
           <div className="tw-flex-none">
             <Tooltip
-              title={
-                editPermission ? t('label.remove') : NO_PERMISSION_FOR_ACTION
-              }>
+              title={editPermission ? 'Remove' : NO_PERMISSION_FOR_ACTION}>
               <Button
                 className={classNames('tw-h-8 tw-rounded tw-mb-3')}
                 data-testid="remove"
                 disabled={!editPermission}
                 type="text"
                 onClick={() => onRemove?.(item.id as string)}>
-                <CloseOutlined className="tw-cursor-pointer tw-opacity-0 group-hover:tw-opacity-100" />
+                <FontAwesomeIcon
+                  className="tw-cursor-pointer tw-opacity-0 group-hover:tw-opacity-100"
+                  icon="remove"
+                />
               </Button>
             </Tooltip>
           </div>

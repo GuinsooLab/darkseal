@@ -31,8 +31,7 @@ const serviceName = `${serviceType}-ct-test-${uuid()}`;
 const tableName = 'order_items';
 const description = `This is ${serviceName} description`;
 const filterPattern = 'sales';
-const clearQuery = 'select pg_stat_statements_reset()';
-const selectQuery =
+const query =
   'SELECT * FROM sales.order_items oi INNER JOIN sales.orders o ON oi.order_id=o.order_id';
 
 describe('Postgres Ingestion', () => {
@@ -41,8 +40,7 @@ describe('Postgres Ingestion', () => {
   });
 
   it('Trigger select query', () => {
-    cy.postgreSQL(clearQuery);
-    cy.postgreSQL(selectQuery);
+    cy.postgreSQL(query);
   });
 
   it('add and ingest data', () => {
@@ -116,11 +114,7 @@ describe('Postgres Ingestion', () => {
 
     verifyResponseStatusCode('@getServices', 200);
     cy.intercept('/api/v1/services/ingestionPipelines?*').as('ingestionData');
-    interceptURL(
-      'GET',
-      '/api/v1/system/config/pipeline-service-client',
-      'airflow'
-    );
+    interceptURL('GET', '/api/v1/config/airflow', 'airflow');
     cy.get(`[data-testid="service-name-${serviceName}"]`)
       .should('exist')
       .click();
@@ -161,13 +155,13 @@ describe('Postgres Ingestion', () => {
     );
     visitEntityDetailsPage(tableName, serviceName, 'tables');
     verifyResponseStatusCode('@entityDetailsPage', 200);
-    interceptURL('GET', '/api/v1/queries?entityId=*', 'queriesTab');
+    interceptURL('GET', 'api/v1/tables/*/tableQuery', 'queriesTab');
     cy.get('[data-testid="Queries"]').should('be.visible').trigger('click');
     verifyResponseStatusCode('@queriesTab', 200);
     // Validate that the triggered query is visible in the queries container
     cy.get('[data-testid="queries-container"]')
       .should('be.visible')
-      .should('contain', selectQuery);
+      .should('contain', query);
     // Validate queries count is greater than 1
     cy.get('[data-testid="entity-summary-details"]')
       .invoke('text')

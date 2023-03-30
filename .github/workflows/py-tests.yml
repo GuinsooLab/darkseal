@@ -19,10 +19,6 @@ on:
       - 'openmetadata-docs/**'
   pull_request_target:
     types: [labeled, opened, synchronize, reopened]
-    paths:
-      - "ingestion/**"
-      - "openmetadata-service/**"
-      - "openmetadata-spec/src/main/resources/json/schema/**"
 
 permissions:
   contents: read
@@ -72,7 +68,7 @@ jobs:
 
     - name: Install Ubuntu dependencies
       run: |
-        sudo apt-get update && sudo apt-get install -y unixodbc-dev python3-venv librdkafka-dev gcc libsasl2-dev build-essential libssl-dev libffi-dev \
+        sudo apt-get install -y unixodbc-dev python3-venv librdkafka-dev gcc libsasl2-dev build-essential libssl-dev libffi-dev \
         unixodbc-dev libevent-dev python3-dev
 
     - name: Generate models
@@ -88,14 +84,10 @@ jobs:
         make install_all install_test
 
     - name: Start Server and Ingest Sample Data
-      uses: nick-fields/retry@v2.8.3
       env:
         INGESTION_DEPENDENCY: "mysql,elasticsearch"
-      with:
-        timeout_minutes: 30
-        max_attempts: 2
-        retry_on: error
-        command: ./docker/run_local_docker.sh -m no-ui
+      run: ./docker/run_local_docker.sh -m no-ui
+      timeout-minutes: 30
 
     - name: Run Python Tests
       if: ${{ matrix.py-version != '3.9' }}
@@ -114,16 +106,15 @@ jobs:
 
     - name: Clean Up
       run: |
-        cd ./docker/development
+        cd ./docker/local-metadata
         docker compose down --remove-orphans
         sudo rm -rf ${PWD}/docker-volume
 
+
       # we have to pass these args values since we are working with the 'pull_request_target' trigger
     - name: Push Results in PR to Sonar
-      id: push-to-sonar
+      uses: sonarsource/sonarcloud-github-action@master
       if: ${{ github.event_name == 'pull_request_target' && matrix.py-version == '3.9' }}
-      continue-on-error: true
-      uses: sonarsource/sonarcloud-github-action@master
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         SONAR_TOKEN: ${{ secrets.INGESTION_SONAR_SECRET }}
@@ -137,24 +128,11 @@ jobs:
           -Dsonar.scm.revision=${{ github.event.pull_request.head.sha }}
           -Dsonar.pullrequest.provider=github
 
-    # next two steps are for retrying "Push Results in PR to Sonar" step in case it fails
-    - name: Wait to retry 'Push Results in PR to Sonar'
-      if: ${{ github.event_name == 'pull_request_target' && matrix.py-version == '3.9' && steps.push-to-sonar.outcome != 'success' }}
-      run: sleep 20s
-      shell: bash
-
-    - name: Retry 'Push Results in PR to Sonar'
+    - name: Push Results to Sonar
       uses: sonarsource/sonarcloud-github-action@master
-      if: ${{ github.event_name == 'pull_request_target' && matrix.py-version == '3.9' && steps.push-to-sonar.outcome != 'success' }}
+      if: ${{ github.event_name == 'push' &&  matrix.py-version == '3.9' }}
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         SONAR_TOKEN: ${{ secrets.INGESTION_SONAR_SECRET }}
       with:
         projectBaseDir: ingestion/
-        args: >
-          -Dproject.settings=ingestion/sonar-project.properties
-          -Dsonar.pullrequest.key=${{ github.event.pull_request.number }}
-          -Dsonar.pullrequest.branch=${{ github.head_ref }}
-          -Dsonar.pullrequest.github.repository=OpenMetadata
-          -Dsonar.scm.revision=${{ github.event.pull_request.head.sha }}
-          -Dsonar.pullrequest.provider=github

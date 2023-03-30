@@ -11,23 +11,22 @@
  *  limitations under the License.
  */
 
-import PageContainerV1 from 'components/containers/PageContainerV1';
-import PageLayoutV1 from 'components/containers/PageLayoutV1';
+import { Layout } from 'antd';
 import React, { FC, HTMLAttributes } from 'react';
-import { useTranslation } from 'react-i18next';
+import { background, contentStyles } from '../TaskPage.styles';
 
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
 interface Props extends HTMLAttributes<HTMLDivElement> {}
 
 const TaskPageLayout: FC<Props> = ({ children }) => {
-  const { t } = useTranslation();
+  const { Content, Sider } = Layout;
 
   return (
-    <PageContainerV1>
-      <PageLayoutV1 center pageTitle={t('label.task')}>
-        {children}
-      </PageLayoutV1>
-    </PageContainerV1>
+    <Layout style={{ ...background, height: '100vh' }}>
+      <Sider data-testid="left-sider" style={background} width={180} />
+      <Content style={contentStyles}>{children}</Content>
+      <Sider data-testid="right-sider" style={background} width={180} />
+    </Layout>
   );
 };
 

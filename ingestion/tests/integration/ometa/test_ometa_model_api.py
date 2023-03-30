@@ -108,9 +108,7 @@ class OMetaModelTest(TestCase):
         )
 
         cls.create = CreateMlModelRequest(
-            name="test-model",
-            algorithm="algo",
-            service=cls.service_entity.fullyQualifiedName,
+            name="test-model", algorithm="algo", service=cls.service_reference
         )
 
         cls.entity = MlModel(
@@ -279,26 +277,34 @@ class OMetaModelTest(TestCase):
 
         create_db = CreateDatabaseRequest(
             name="test-db-ml",
-            service=service_entity.fullyQualifiedName,
+            service=EntityReference(id=service_entity.id, type="databaseService"),
         )
         create_db_entity = self.metadata.create_or_update(data=create_db)
 
+        db_reference = EntityReference(
+            id=create_db_entity.id, name="test-db-ml", type="database"
+        )
+
         create_schema = CreateDatabaseSchemaRequest(
             name="test-schema-ml",
-            database=create_db_entity.fullyQualifiedName,
+            database=db_reference,
         )
         create_schema_entity = self.metadata.create_or_update(data=create_schema)
 
+        schema_reference = EntityReference(
+            id=create_schema_entity.id, name="test-schema-ml", type="databaseSchema"
+        )
+
         create_table1 = CreateTableRequest(
             name="test-ml",
-            databaseSchema=create_schema_entity.fullyQualifiedName,
+            databaseSchema=schema_reference,
             columns=[Column(name="education", dataType=DataType.STRING)],
         )
         table1_entity = self.metadata.create_or_update(data=create_table1)
 
         create_table2 = CreateTableRequest(
             name="another_test-ml",
-            databaseSchema=create_schema_entity.fullyQualifiedName,
+            databaseSchema=schema_reference,
             columns=[Column(name="age", dataType=DataType.INT)],
         )
         table2_entity = self.metadata.create_or_update(data=create_table2)
@@ -350,7 +356,7 @@ class OMetaModelTest(TestCase):
                 MlHyperParameter(name="random", value="hello"),
             ],
             target="myTarget",
-            service=self.service_entity.fullyQualifiedName,
+            service=self.service_reference,
         )
 
         res: MlModel = self.metadata.create_or_update(data=model)

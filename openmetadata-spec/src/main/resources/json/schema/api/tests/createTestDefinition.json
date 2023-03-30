@@ -21,7 +21,8 @@
     },
     "owner": {
       "description": "Owner of this TestCase definition.",
-      "$ref": "../../type/entityReference.json"
+      "$ref": "../../type/entityReference.json",
+      "default": null
     },
     "entityType": {
       "$ref": "../../tests/testDefinition.json#/definitions/entityType"

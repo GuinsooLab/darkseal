@@ -16,13 +16,14 @@ import { RecentlySearchedData } from 'Models';
 import React, { FunctionComponent, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
-import { getExplorePath } from '../../constants/constants';
+import { getExplorePathWithSearch } from '../../constants/constants';
 import {
   getRecentlySearchedData,
   removeRecentSearchTerm,
 } from '../../utils/CommonUtils';
 import SVGIcons, { Icons } from '../../utils/SvgUtils';
 
+import { leftPanelAntCardStyle } from '../containers/PageLayout';
 import EntityListSkeleton from '../Skeleton/MyData/EntityListSkeleton/EntityListSkeleton.component';
 import { DEFAULT_SKELETON_DATA_LENGTH } from '../Skeleton/SkeletonUtils/Skeleton.utils';
 
@@ -47,7 +48,7 @@ const RecentSearchedTermsAntd: FunctionComponent = () => {
   return (
     <>
       <Card
-        className="panel-shadow-color"
+        style={leftPanelAntCardStyle}
         title={t('label.recent-search-term-plural')}>
         <EntityListSkeleton
           dataLength={
@@ -73,7 +74,7 @@ const RecentSearchedTermsAntd: FunctionComponent = () => {
                       <div className="tw-flex tw-justify-between">
                         <Link
                           className="tw-font-medium"
-                          to={getExplorePath({ search: item.term })}>
+                          to={getExplorePathWithSearch(item.term)}>
                           <Button
                             className="tw-text-grey-body hover:tw-text-primary-hover hover:tw-underline"
                             data-testid={`search-term-${item.term}`}

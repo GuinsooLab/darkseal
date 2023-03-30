@@ -11,11 +11,9 @@
  *  limitations under the License.
  */
 
-import { Space } from 'antd';
 import classNames from 'classnames';
 import React, { Fragment } from 'react';
 import { Link } from 'react-router-dom';
-import { ReactComponent as IconExternalLink } from '../../assets/svg/external-link.svg';
 import { useAuth } from '../../hooks/authHooks';
 import SVGIcons from '../../utils/SvgUtils';
 import { useAuthContext } from '../authentication/auth-provider/AuthProvider';
@@ -64,7 +62,7 @@ const AnchorDropDownList = ({ dropDownList, setIsOpen }: DropDownListProp) => {
                       item.method && item.method();
                       setIsOpen && setIsOpen(false);
                     }}>
-                    <Space className="p-x-xs" size={4}>
+                    <div className="tw-flex tw-gap-1 tw-px-2">
                       {item.icon && item.icon}
                       {item.icon ? (
                         <button className="tw-text-grey-body">
@@ -87,11 +85,11 @@ const AnchorDropDownList = ({ dropDownList, setIsOpen }: DropDownListProp) => {
                           {item.isOpenNewTab ? (
                             <span className="tw-flex">
                               <span className="tw-mr-1">{item.name}</span>
-                              <IconExternalLink
+                              <SVGIcons
+                                alt="external-link"
                                 className="tw-align-middle"
-                                height={16}
-                                name="external-link"
-                                width={16}
+                                icon="external-link"
+                                width="16px"
                               />
                             </span>
                           ) : (
@@ -99,7 +97,7 @@ const AnchorDropDownList = ({ dropDownList, setIsOpen }: DropDownListProp) => {
                           )}
                         </>
                       )}
-                    </Space>
+                    </div>
                   </Link>
                 )}
               </div>

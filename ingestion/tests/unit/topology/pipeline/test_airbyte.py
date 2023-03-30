@@ -32,7 +32,6 @@ from metadata.generated.schema.entity.services.pipelineService import (
 from metadata.generated.schema.metadataIngestion.workflow import (
     OpenMetadataWorkflowConfig,
 )
-from metadata.generated.schema.type.basic import FullyQualifiedEntityName
 from metadata.generated.schema.type.entityReference import EntityReference
 from metadata.ingestion.models.pipeline_status import OMetaPipelineStatus
 from metadata.ingestion.source.pipeline.airbyte.metadata import (
@@ -125,13 +124,14 @@ EXPECTED_CREATED_PIPELINES = CreatePipelineRequest(
             taskUrl=f"{MOCK_CONNECTION_URI_PATH}/status",
         )
     ],
-    service=FullyQualifiedEntityName(__root__="airbyte_source"),
+    service=EntityReference(
+        id="85811038-099a-11ed-861d-0242ac120002", type="pipelineService"
+    ),
 )
 
 MOCK_PIPELINE_SERVICE = PipelineService(
     id="85811038-099a-11ed-861d-0242ac120002",
     name="airbyte_source",
-    fullyQualifiedName=FullyQualifiedEntityName(__root__="airbyte_source"),
     connection=PipelineConnection(),
     serviceType=PipelineServiceType.Airbyte,
 )
@@ -161,7 +161,7 @@ class AirbyteUnitTest(TestCase):
     @patch(
         "metadata.ingestion.source.pipeline.pipeline_service.PipelineServiceSource.test_connection"
     )
-    @patch("metadata.ingestion.source.pipeline.airbyte.connection.get_connection")
+    @patch("metadata.ingestion.source.pipeline.airbyte.metadata.AirbyteClient")
     def __init__(self, methodName, airbyte_client, test_connection) -> None:
         super().__init__(methodName)
         test_connection.return_value = False

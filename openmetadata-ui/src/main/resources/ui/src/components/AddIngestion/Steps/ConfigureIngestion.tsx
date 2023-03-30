@@ -11,7 +11,7 @@
  *  limitations under the License.
  */
 
-import { Button, Form, InputNumber, Select, Typography } from 'antd';
+import { Form, InputNumber, Select, Typography } from 'antd';
 import { isNil } from 'lodash';
 import React, { Fragment, useMemo, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -22,6 +22,7 @@ import { ServiceCategory } from '../../../enums/service.enum';
 import { ProfileSampleType } from '../../../generated/entity/data/table';
 import { PipelineType } from '../../../generated/entity/services/ingestionPipelines/ingestionPipeline';
 import { getSeparator } from '../../../utils/CommonUtils';
+import { Button } from '../../buttons/Button/Button';
 import FilterPattern from '../../common/FilterPattern/FilterPattern';
 import RichTextEditor from '../../common/rich-text-editor/RichTextEditor';
 import { EditorContentRef } from '../../common/rich-text-editor/RichTextEditor.interface';
@@ -84,8 +85,6 @@ const ConfigureIngestion = ({
     timeoutSeconds,
     topicFilterPattern,
     useFqnFilter,
-    processPii,
-    overrideOwner,
   } = useMemo(
     () => ({
       chartFilterPattern: data.chartFilterPattern,
@@ -122,8 +121,6 @@ const ConfigureIngestion = ({
       timeoutSeconds: data.timeoutSeconds,
       topicFilterPattern: data.topicFilterPattern,
       useFqnFilter: data.useFqnFilter,
-      processPii: data.processPii,
-      overrideOwner: data.overrideOwner,
     }),
     [data]
   );
@@ -158,17 +155,21 @@ const ConfigureIngestion = ({
     handleProfileSample(undefined);
   };
 
-  const handleDashBoardServiceNames = (inputValue: string[]) => {
-    if (inputValue) {
+  const handleDashBoardServiceNames = (inputValue: string) => {
+    const separator = ',';
+
+    const databaseNames = inputValue.includes(separator)
+      ? inputValue.split(separator)
+      : Array(inputValue);
+
+    if (databaseNames) {
       onChange({
-        databaseServiceNames: inputValue,
+        databaseServiceNames: databaseNames,
       });
     }
   };
 
   const handleEnableDebugLogCheck = () => toggleField('enableDebugLog');
-
-  const handleOverrideOwner = () => toggleField('overrideOwner');
 
   const handleIncludeLineage = () => toggleField('includeLineage');
 
@@ -183,8 +184,6 @@ const ConfigureIngestion = ({
   const handleMarkDeletedTables = () => toggleField('markDeletedTables');
 
   const handleFqnFilter = () => toggleField('useFqnFilter');
-
-  const handleProcessPii = () => toggleField('processPii');
 
   const handleQueryLogDuration = handleValueParseInt('queryLogDuration');
 
@@ -230,25 +229,6 @@ const ConfigureIngestion = ({
         </div>
         <p className="tw-text-grey-muted tw-mt-3">
           {t('message.enable-debug-logging')}
-        </p>
-        {getSeparator('')}
-      </Field>
-    );
-  };
-
-  const getOverrideOwnerToggle = () => {
-    return (
-      <Field>
-        <div className="tw-flex tw-gap-1">
-          <label>{t('label.override-current-owner')}</label>
-          <ToggleSwitchV1
-            checked={overrideOwner}
-            handleCheck={handleOverrideOwner}
-            testId="enabled-override-owner"
-          />
-        </div>
-        <p className="tw-text-grey-muted tw-mt-3">
-          {t('message.enable-override-owner')}
         </p>
         {getSeparator('')}
       </Field>
@@ -314,11 +294,7 @@ const ConfigureIngestion = ({
   const getThreadCount = () => {
     return (
       <div>
-        <label>
-          {t('label.entity-count', {
-            entity: t('label.thread'),
-          })}
-        </label>
+        <label>{t('label.thread-count')}</label>
         <p className="tw-text-grey-muted tw-mt-1 tw-mb-2 tw-text-sm">
           {t('message.thread-count-message')}
         </p>
@@ -479,25 +455,6 @@ const ConfigureIngestion = ({
     );
   };
 
-  const getProcessPiiTogglesForProfiler = () => {
-    return (
-      <Field>
-        <div className="tw-flex tw-gap-1">
-          <label>{t('label.auto-tag-pii-uppercase')}</label>
-          <ToggleSwitchV1
-            checked={processPii}
-            handleCheck={handleProcessPii}
-            testId="include-lineage"
-          />
-        </div>
-        <p className="tw-text-grey-muted tw-mt-3">
-          {t('message.process-pii-sensitive-column-message-profiler')}
-        </p>
-        {getSeparator('')}
-      </Field>
-    );
-  };
-
   const getDashboardDBServiceName = () => {
     return (
       <Field>
@@ -507,17 +464,14 @@ const ConfigureIngestion = ({
         <p className="tw-text-grey-muted tw-mt-1 tw-mb-2 tw-text-sm">
           {t('message.database-service-name-message')}
         </p>
-        <Select
-          allowClear
+        <input
+          className="tw-form-inputs tw-form-inputs-padding"
           data-testid="name"
           id="name"
-          mode="tags"
-          placeholder={t('label.add-entity', {
-            entity: t('label.database-service-name'),
-          })}
-          style={{ width: '100%' }}
+          name="name"
+          type="text"
           value={databaseServiceNames}
-          onChange={handleDashBoardServiceNames}
+          onChange={(e) => handleDashBoardServiceNames(e.target.value)}
         />
         {getSeparator('')}
       </Field>
@@ -605,7 +559,6 @@ const ConfigureIngestion = ({
             {getSeparator('')}
             {getDashboardDBServiceName()}
             {getDebugLogToggle()}
-            {getOverrideOwnerToggle()}
           </Fragment>
         );
 
@@ -858,7 +811,6 @@ const ConfigureIngestion = ({
           })
         )}
         {getDebugLogToggle()}
-        {getProcessPiiTogglesForProfiler()}
         <div>
           <Field>
             <label className="tw-block tw-form-label tw-mb-1" htmlFor="name">
@@ -911,19 +863,22 @@ const ConfigureIngestion = ({
       layout="vertical">
       {getIngestionPipelineFields()}
 
-      <Field className="d-flex justify-end">
+      <Field className="tw-flex tw-justify-end">
         <Button
-          className="m-r-xs"
+          className="tw-mr-2"
           data-testid="back-button"
-          type="link"
+          size="regular"
+          theme="primary"
+          variant="text"
           onClick={onCancel}>
           <span>{t('label.cancel')}</span>
         </Button>
 
         <Button
-          className="font-medium p-x-md p-y-xxs h-auto rounded-6"
           data-testid="next-button"
-          type="primary"
+          size="regular"
+          theme="primary"
+          variant="contained"
           onClick={handleNext}>
           <span>{t('label.next')}</span>
         </Button>

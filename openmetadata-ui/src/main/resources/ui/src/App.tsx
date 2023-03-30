@@ -11,8 +11,20 @@
  *  limitations under the License.
  */
 
+import { library } from '@fortawesome/fontawesome-svg-core';
+import {
+  faCheck,
+  faCheckCircle,
+  faCheckSquare,
+  faChevronDown,
+  faChevronRight,
+  faChevronUp,
+  faEllipsisV,
+  faPlus,
+  faSearch,
+  faTimes,
+} from '@fortawesome/free-solid-svg-icons';
 import Appbar from 'components/app-bar/Appbar';
-import ApplicationConfigProvider from 'components/ApplicationConfigProvider/ApplicationConfigProvider';
 import {
   AuthProvider,
   useAuthContext,
@@ -25,16 +37,15 @@ import WebSocketProvider from 'components/web-scoket/web-scoket.provider';
 import WebAnalyticsProvider from 'components/WebAnalytics/WebAnalyticsProvider';
 import { TOAST_OPTIONS } from 'constants/Toasts.constants';
 import React, { FunctionComponent, useEffect } from 'react';
-import { HelmetProvider } from 'react-helmet-async';
 import { I18nextProvider } from 'react-i18next';
 import { BrowserRouter as Router, useLocation } from 'react-router-dom';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.min.css';
-import SVGIcons, { Icons } from './utils/SvgUtils';
-import { ROUTES } from './constants/constants';
-import i18n from 'utils/i18next/LocalUtil';
 import { useAnalytics } from 'use-analytics';
+import i18n from 'utils/i18next/LocalUtil';
+import { ROUTES } from './constants/constants';
 import { isProtectedRoute } from './utils/AuthProvider.util';
+import SVGIcons, { Icons } from './utils/SvgUtils';
 
 const AppNavs = () => {
   const location = useLocation();
@@ -55,14 +66,13 @@ const AppNavs = () => {
       // track page view on route change
       analytics.page();
     }
-    console.log(isAuthenticated);
-    console.log(isProtectedRoute(location.pathname));
   }, [location.pathname]);
 
   return (
     <div
       className="nav-apps"
       hidden={!(isAuthenticated && isProtectedRoute(location.pathname))}>
+      {/* eslint-disable-next-line react/jsx-no-undef */}
       <SVGIcons
         alt="Darkseal Logo"
         icon={Icons.LOGO}
@@ -131,6 +141,19 @@ const AppNavs = () => {
 };
 
 const App: FunctionComponent = () => {
+  library.add(
+    faTimes,
+    faCheck,
+    faSearch,
+    faPlus,
+    faCheckSquare,
+    faCheckCircle,
+    faChevronDown,
+    faChevronRight,
+    faChevronUp,
+    faEllipsisV
+  );
+
   return (
     <div className="main-container">
       <div className="content-wrapper" data-testid="content-wrapper">
@@ -138,21 +161,17 @@ const App: FunctionComponent = () => {
           <I18nextProvider i18n={i18n}>
             <ErrorBoundry>
               <AuthProvider childComponentType={AppRouter}>
-                <ApplicationConfigProvider>
-                  <HelmetProvider>
-                    <WebAnalyticsProvider>
-                      <PermissionProvider>
-                        <WebSocketProvider>
-                          <AppNavs />
-                          <GlobalSearchProvider>
-                            <Appbar />
-                            <AppRouter />
-                          </GlobalSearchProvider>
-                        </WebSocketProvider>
-                      </PermissionProvider>
-                    </WebAnalyticsProvider>
-                  </HelmetProvider>
-                </ApplicationConfigProvider>
+                <WebAnalyticsProvider>
+                  <PermissionProvider>
+                    <WebSocketProvider>
+                      <AppNavs />
+                      <GlobalSearchProvider>
+                        <Appbar />
+                        <AppRouter />
+                      </GlobalSearchProvider>
+                    </WebSocketProvider>
+                  </PermissionProvider>
+                </WebAnalyticsProvider>
               </AuthProvider>
             </ErrorBoundry>
           </I18nextProvider>

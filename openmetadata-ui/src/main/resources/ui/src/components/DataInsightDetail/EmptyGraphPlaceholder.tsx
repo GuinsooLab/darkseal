@@ -11,8 +11,7 @@
  *  limitations under the License.
  */
 
-import { DATA_INSIGHT_DOCS } from 'constants/docs.constants';
-import { ERROR_PLACEHOLDER_TYPE, SIZE } from 'enums/common.enum';
+import { Typography } from 'antd';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import ErrorPlaceHolder from '../common/error-with-placeholder/ErrorPlaceHolder';
@@ -21,12 +20,10 @@ export const EmptyGraphPlaceholder = () => {
   const { t } = useTranslation();
 
   return (
-    <ErrorPlaceHolder
-      classes="m-t-lg"
-      doc={DATA_INSIGHT_DOCS}
-      heading={t('label.data-insight')}
-      size={SIZE.MEDIUM}
-      type={ERROR_PLACEHOLDER_TYPE.ADD}
-    />
+    <ErrorPlaceHolder>
+      <Typography.Text type="secondary">
+        {t('message.no-data-available')}
+      </Typography.Text>
+    </ErrorPlaceHolder>
   );
 };

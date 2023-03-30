@@ -38,24 +38,24 @@ export const LEFT_PANEL_DETAILS = {
     testid: '[data-testid="test-suite"]',
     url: `${BASE_URL}/test-suites`,
   },
-  containers: {
-    testid: '[data-testid="containers"]',
-    url: `${BASE_URL}/explore/containers`,
+  services: {
+    testid: '[data-testid="service"]',
+    url: `${BASE_URL}/settings/services/databases`,
   },
-  glossaries: {
-    testid: '[data-testid="glossaries"]',
-    url: `${BASE_URL}/glossary`,
+  users: {
+    testid: '[data-testid="user"]',
+    url: `${BASE_URL}/settings/members/users`,
   },
-  glossaryTerms: {
-    testid: '[data-testid="glossary-terms"]',
-    url: `${BASE_URL}/glossary`,
+  teams: {
+    testid: '[data-testid="terms"]',
+    url: `${BASE_URL}/settings/members/teams`,
   },
 };
 
 export const NAVBAR_DETAILS = {
   explore: {
     testid: '[data-testid="appbar-item-explore"]',
-    url: `${BASE_URL}/explore/tables?page=1`,
+    url: `${BASE_URL}/explore/tables/?page=1`,
   },
   quality: {
     testid: '[data-testid="appbar-item-data-quality"]',

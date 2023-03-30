@@ -160,7 +160,7 @@ public class TopicResource extends EntityResource<Topic, TopicRepository> {
   public EntityHistory listVersions(
       @Context UriInfo uriInfo,
       @Context SecurityContext securityContext,
-      @Parameter(description = "Id of the topic", schema = @Schema(type = "UUID")) @PathParam("id") UUID id)
+      @Parameter(description = "Topic Id", schema = @Schema(type = "string")) @PathParam("id") UUID id)
       throws IOException {
     return super.listVersionsInternal(securityContext, id);
   }
@@ -168,7 +168,7 @@ public class TopicResource extends EntityResource<Topic, TopicRepository> {
   @GET
   @Path("/{id}")
   @Operation(
-      summary = "Get a topic by id",
+      summary = "Get a topic",
       tags = "topics",
       description = "Get a topic by `id`.",
       responses = {
@@ -180,7 +180,7 @@ public class TopicResource extends EntityResource<Topic, TopicRepository> {
       })
   public Topic get(
       @Context UriInfo uriInfo,
-      @Parameter(description = "Id of the topic", schema = @Schema(type = "UUID")) @PathParam("id") UUID id,
+      @PathParam("id") UUID id,
       @Context SecurityContext securityContext,
       @Parameter(
               description = "Fields requested in the returned resource",
@@ -201,7 +201,7 @@ public class TopicResource extends EntityResource<Topic, TopicRepository> {
   @Path("/name/{fqn}")
   @Operation(
       operationId = "getTopicByFQN",
-      summary = "Get a topic by fully qualified name",
+      summary = "Get a topic by name",
       tags = "topics",
       description = "Get a topic by fully qualified name.",
       responses = {
@@ -209,12 +209,11 @@ public class TopicResource extends EntityResource<Topic, TopicRepository> {
             responseCode = "200",
             description = "The topic",
             content = @Content(mediaType = "application/json", schema = @Schema(implementation = Topic.class))),
-        @ApiResponse(responseCode = "404", description = "Topic for instance {fqn} is not found")
+        @ApiResponse(responseCode = "404", description = "Topic for instance {id} is not found")
       })
   public Topic getByName(
       @Context UriInfo uriInfo,
-      @Parameter(description = "Fully qualified name of the topic", schema = @Schema(type = "string")) @PathParam("fqn")
-          String fqn,
+      @PathParam("fqn") String fqn,
       @Context SecurityContext securityContext,
       @Parameter(
               description = "Fields requested in the returned resource",
@@ -250,7 +249,7 @@ public class TopicResource extends EntityResource<Topic, TopicRepository> {
   public Topic getVersion(
       @Context UriInfo uriInfo,
       @Context SecurityContext securityContext,
-      @Parameter(description = "Id of the topic", schema = @Schema(type = "UUID")) @PathParam("id") UUID id,
+      @Parameter(description = "Topic Id", schema = @Schema(type = "string")) @PathParam("id") UUID id,
       @Parameter(
               description = "Topic version number in the form `major`.`minor`",
               schema = @Schema(type = "string", example = "0.1 or 1.1"))
@@ -291,7 +290,7 @@ public class TopicResource extends EntityResource<Topic, TopicRepository> {
   public Response updateDescription(
       @Context UriInfo uriInfo,
       @Context SecurityContext securityContext,
-      @Parameter(description = "Id of the topic", schema = @Schema(type = "UUID")) @PathParam("id") UUID id,
+      @PathParam("id") UUID id,
       @RequestBody(
               description = "JsonPatch with array of operations",
               content =
@@ -340,7 +339,7 @@ public class TopicResource extends EntityResource<Topic, TopicRepository> {
   public Topic addSampleData(
       @Context UriInfo uriInfo,
       @Context SecurityContext securityContext,
-      @Parameter(description = "Id of the topic", schema = @Schema(type = "UUID")) @PathParam("id") UUID id,
+      @Parameter(description = "Id of the topic", schema = @Schema(type = "string")) @PathParam("id") UUID id,
       @Valid TopicSampleData sampleData)
       throws IOException {
     OperationContext operationContext = new OperationContext(entityType, MetadataOperation.EDIT_SAMPLE_DATA);
@@ -387,19 +386,21 @@ public class TopicResource extends EntityResource<Topic, TopicRepository> {
   public Response deleteFollower(
       @Context UriInfo uriInfo,
       @Context SecurityContext securityContext,
-      @Parameter(description = "Id of the topic", schema = @Schema(type = "UUID")) @PathParam("id") UUID id,
+      @Parameter(description = "Id of the topic", schema = @Schema(type = "string")) @PathParam("id") String id,
       @Parameter(description = "Id of the user being removed as follower", schema = @Schema(type = "string"))
           @PathParam("userId")
           String userId)
       throws IOException {
-    return dao.deleteFollower(securityContext.getUserPrincipal().getName(), id, UUID.fromString(userId)).toResponse();
+    return dao.deleteFollower(
+            securityContext.getUserPrincipal().getName(), UUID.fromString(id), UUID.fromString(userId))
+        .toResponse();
   }
 
   @DELETE
   @Path("/{id}")
   @Operation(
       operationId = "deleteTopic",
-      summary = "Delete a topic by id",
+      summary = "Delete a topic",
       tags = "topics",
       description = "Delete a topic by `id`.",
       responses = {
@@ -413,7 +414,7 @@ public class TopicResource extends EntityResource<Topic, TopicRepository> {
           @QueryParam("hardDelete")
           @DefaultValue("false")
           boolean hardDelete,
-      @Parameter(description = "Id of the topic", schema = @Schema(type = "UUID")) @PathParam("id") UUID id)
+      @Parameter(description = "Topic Id", schema = @Schema(type = "UUID")) @PathParam("id") UUID id)
       throws IOException {
     return delete(uriInfo, securityContext, id, false, hardDelete);
   }
@@ -422,7 +423,7 @@ public class TopicResource extends EntityResource<Topic, TopicRepository> {
   @Path("/name/{fqn}")
   @Operation(
       operationId = "deleteTopicByFQN",
-      summary = "Delete a topic by fully qualified name",
+      summary = "Delete a topic",
       tags = "topics",
       description = "Delete a topic by `fullyQualifiedName`.",
       responses = {
@@ -436,8 +437,7 @@ public class TopicResource extends EntityResource<Topic, TopicRepository> {
           @QueryParam("hardDelete")
           @DefaultValue("false")
           boolean hardDelete,
-      @Parameter(description = "Fully qualified name of the topic", schema = @Schema(type = "string")) @PathParam("fqn")
-          String fqn)
+      @Parameter(description = "Name of the topic", schema = @Schema(type = "string")) @PathParam("fqn") String fqn)
       throws IOException {
     return deleteByName(uriInfo, securityContext, fqn, false, hardDelete);
   }
@@ -446,7 +446,7 @@ public class TopicResource extends EntityResource<Topic, TopicRepository> {
   @Path("/restore")
   @Operation(
       operationId = "restore",
-      summary = "Restore a soft deleted topic",
+      summary = "Restore a soft deleted topic.",
       tags = "topics",
       description = "Restore a soft deleted topic.",
       responses = {
@@ -463,7 +463,7 @@ public class TopicResource extends EntityResource<Topic, TopicRepository> {
 
   private Topic getTopic(CreateTopic create, String user) throws IOException {
     return copy(new Topic(), create, user)
-        .withService(getEntityReference(Entity.MESSAGING_SERVICE, create.getService()))
+        .withService(create.getService())
         .withPartitions(create.getPartitions())
         .withMessageSchema(create.getMessageSchema())
         .withCleanupPolicies(create.getCleanupPolicies())

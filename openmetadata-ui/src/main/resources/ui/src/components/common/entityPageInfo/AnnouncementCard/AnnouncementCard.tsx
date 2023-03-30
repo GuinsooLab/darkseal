@@ -12,7 +12,6 @@
  */
 
 import { Button, Card, Space, Typography } from 'antd';
-import { t } from 'i18next';
 import React, { FC } from 'react';
 import { Thread } from '../../../../generated/entity/feed/thread';
 import SVGIcons, { Icons } from '../../../../utils/SvgUtils';
@@ -49,9 +48,7 @@ const AnnouncementCard: FC<Props> = ({ onClick, announcement }) => {
             size="small"
             type="link"
             onClick={onClick}>
-            {t('label.read-type', {
-              type: t('label.more-lowercase'),
-            })}
+            Read more
           </Button>
         </div>
       </Space>

@@ -45,8 +45,8 @@ from metadata.generated.schema.metadataIngestion.workflow import (
     OpenMetadataWorkflowConfig,
 )
 from metadata.generated.schema.tests.testCase import TestCase
+from metadata.generated.schema.tests.testDefinition import TestDefinition
 from metadata.generated.schema.tests.testSuite import TestSuite
-from metadata.generated.schema.type.basic import FullyQualifiedEntityName
 from metadata.ingestion.api.parser import parse_workflow_config_gracefully
 from metadata.ingestion.api.processor import ProcessorStatus
 from metadata.ingestion.ometa.client_utils import create_ometa_client
@@ -57,7 +57,7 @@ from metadata.interfaces.datalake.datalake_test_suite_interface import (
     DataLakeTestSuiteInterface,
 )
 from metadata.interfaces.sqalchemy.sqa_test_suite_interface import SQATestSuiteInterface
-from metadata.profiler.api.models import ProfileSampleConfig
+from metadata.orm_profiler.api.models import ProfileSampleConfig
 from metadata.test_suite.api.models import TestCaseDefinition, TestSuiteProcessorConfig
 from metadata.test_suite.runner.core import DataTestsRunner
 from metadata.utils import entity_link
@@ -82,6 +82,7 @@ class TestSuiteWorkflow(WorkflowStatusMixin):
 
         Attributes:
             config: OM workflow configuration object
+            source_config: TestSuitePipeline object
         """
         self.config = config
 
@@ -181,14 +182,14 @@ class TestSuiteWorkflow(WorkflowStatusMixin):
                     service_connection_config.catalog = entity_fqn.split(".")[1]
             return service_connection_config
 
-        logger.error(f"Could not retrieve connection details for entity {entity_link}")
+        logger.error(f"Could not retrive connection details for entity {entity_link}")
         raise ValueError()
 
     def _get_table_entity_from_test_case(self, entity_fqn: str):
         """given an entityLink return the table entity
 
         Args:
-            entity_fqn: entity fqn for the test case
+            entity_link: entity link for the test case
         """
         return self.metadata.get_by_name(
             entity=Table,
@@ -266,7 +267,7 @@ class TestSuiteWorkflow(WorkflowStatusMixin):
         return DataLakeTestSuiteInterface(
             service_connection_config=service_connection_config,
             ometa_client=self.client,
-            df=ometa_to_dataframe(
+            data_frame=ometa_to_dataframe(
                 service_connection_config.configSource,
                 get_connection(service_connection_config).client,
                 table_entity,
@@ -297,7 +298,8 @@ class TestSuiteWorkflow(WorkflowStatusMixin):
         self,
     ) -> List[TestSuite]:
         """
-        For the CLI workflow we'll have n testSuite in the processor.config.testSuites
+        Fro the CLI workflow we'll have n testSuite in the
+        processor.config.testSuites
         """
         test_suite_entities = []
         test_suites = self.processor_config.testSuites or []
@@ -384,11 +386,12 @@ class TestSuiteWorkflow(WorkflowStatusMixin):
                         CreateTestCaseRequest(
                             name=test_case_to_create.name,
                             entityLink=test_case_to_create.entityLink,
-                            testDefinition=FullyQualifiedEntityName(
-                                __root__=test_case_to_create.testDefinitionName
+                            testDefinition=self.metadata.get_entity_reference(
+                                entity=TestDefinition,
+                                fqn=test_case_to_create.testDefinitionName,
                             ),
-                            testSuite=FullyQualifiedEntityName(
-                                __root__=test_suite.name
+                            testSuite=self.metadata.get_entity_reference(
+                                entity=TestSuite, fqn=test_suite.name
                             ),
                             parameterValues=list(test_case_to_create.parameterValues)
                             if test_case_to_create.parameterValues

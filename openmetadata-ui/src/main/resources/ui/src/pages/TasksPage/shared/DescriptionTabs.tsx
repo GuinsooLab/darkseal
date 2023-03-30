@@ -18,7 +18,6 @@ import RichTextEditorPreviewer from 'components/common/rich-text-editor/RichText
 import { Change } from 'diff';
 import { isEqual } from 'lodash';
 import React, { useState } from 'react';
-import { useTranslation } from 'react-i18next';
 import { getDescriptionDiff } from '../../../utils/TasksUtils';
 import { DiffView } from './DiffView';
 
@@ -37,7 +36,6 @@ export const DescriptionTabs = ({
   placeHolder,
   onChange,
 }: Props) => {
-  const { t } = useTranslation();
   const { TabPane } = Tabs;
 
   const [diffs, setDiffs] = useState<Change[]>([]);
@@ -72,9 +70,7 @@ export const DescriptionTabs = ({
               markdown={description}
             />
           ) : (
-            <span className="tw-no-description tw-p-2">
-              {t('label.no-entity', { entity: t('label.description') })}
-            </span>
+            <span className="tw-no-description tw-p-2">No description </span>
           )}
         </div>
       </TabPane>
@@ -89,7 +85,7 @@ export const DescriptionTabs = ({
           className="tw-my-0"
           height="208px"
           initialValue={suggestion}
-          placeHolder={placeHolder ?? t('label.update-description')}
+          placeHolder={placeHolder ?? 'Update description'}
           ref={markdownRef}
           onTextChange={onChange}
         />

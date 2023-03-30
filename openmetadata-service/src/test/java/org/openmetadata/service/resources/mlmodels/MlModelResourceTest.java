@@ -116,10 +116,7 @@ public class MlModelResourceTest extends EntityResourceTest<MlModel, CreateMlMod
     DASHBOARD_REFERENCE = DASHBOARD.getEntityReference();
 
     CreateTable createTable =
-        new CreateTable()
-            .withName("myTable")
-            .withDatabaseSchema(DATABASE_SCHEMA.getFullyQualifiedName())
-            .withColumns(COLUMNS);
+        new CreateTable().withName("myTable").withDatabaseSchema(DATABASE_SCHEMA_REFERENCE).withColumns(COLUMNS);
 
     TableResourceTest tableResourceTest = new TableResourceTest();
     TABLE = tableResourceTest.createAndCheckEntity(createTable, ADMIN_AUTH_HEADERS);
@@ -147,7 +144,7 @@ public class MlModelResourceTest extends EntityResourceTest<MlModel, CreateMlMod
 
   @Test
   void post_MlModelWithDashboard_200_ok(TestInfo test) throws IOException {
-    CreateMlModel create = createRequest(test).withDashboard(DASHBOARD.getFullyQualifiedName());
+    CreateMlModel create = createRequest(test).withDashboard(DASHBOARD_REFERENCE);
     createAndCheckEntity(create, ADMIN_AUTH_HEADERS);
   }
 
@@ -190,16 +187,19 @@ public class MlModelResourceTest extends EntityResourceTest<MlModel, CreateMlMod
     ChangeDescription change = getChangeDescription(model.getVersion());
     fieldAdded(change, "dashboard", DASHBOARD_REFERENCE);
     updateAndCheckEntity(
-        request.withDashboard(DASHBOARD.getFullyQualifiedName()), Status.OK, ADMIN_AUTH_HEADERS, MINOR_UPDATE, change);
+        request.withDashboard(DASHBOARD_REFERENCE), Status.OK, ADMIN_AUTH_HEADERS, MINOR_UPDATE, change);
   }
 
   @Test
   void put_MlModelAddInvalidDashboard_200(TestInfo test) {
     CreateMlModel request = createRequest(test);
+    // Create a made up dashboard reference by picking up a random UUID
+    EntityReference dashboard = new EntityReference().withId(UUID.randomUUID()).withType("dashboard");
+
     assertResponse(
-        () -> createEntity(request.withDashboard("invalidDashboard"), ADMIN_AUTH_HEADERS),
+        () -> createEntity(request.withDashboard(dashboard), ADMIN_AUTH_HEADERS),
         Status.NOT_FOUND,
-        String.format("dashboard instance for %s not found", "invalidDashboard"));
+        String.format("dashboard instance for %s not found", dashboard.getId()));
   }
 
   @Test
@@ -233,10 +233,7 @@ public class MlModelResourceTest extends EntityResourceTest<MlModel, CreateMlMod
   @Test
   void put_MlModelAddMlFeatures_200(TestInfo test) throws IOException {
     CreateMlModel request =
-        new CreateMlModel()
-            .withName(getEntityName(test))
-            .withAlgorithm(ALGORITHM)
-            .withService(MLFLOW_REFERENCE.getName());
+        new CreateMlModel().withName(getEntityName(test)).withAlgorithm(ALGORITHM).withService(MLFLOW_REFERENCE);
     MlModel model = createAndCheckEntity(request, ADMIN_AUTH_HEADERS);
     ChangeDescription change = getChangeDescription(model.getVersion());
     fieldAdded(change, "mlFeatures", ML_FEATURES);
@@ -311,10 +308,7 @@ public class MlModelResourceTest extends EntityResourceTest<MlModel, CreateMlMod
   @Test
   void put_MlModelAddMlHyperParams_200(TestInfo test) throws IOException {
     CreateMlModel request =
-        new CreateMlModel()
-            .withName(getEntityName(test))
-            .withAlgorithm(ALGORITHM)
-            .withService(MLFLOW_REFERENCE.getName());
+        new CreateMlModel().withName(getEntityName(test)).withAlgorithm(ALGORITHM).withService(MLFLOW_REFERENCE);
     MlModel model = createAndCheckEntity(request, ADMIN_AUTH_HEADERS);
     ChangeDescription change = getChangeDescription(model.getVersion());
     fieldAdded(change, "mlHyperParameters", ML_HYPERPARAMS);
@@ -370,8 +364,8 @@ public class MlModelResourceTest extends EntityResourceTest<MlModel, CreateMlMod
         .withAlgorithm(ALGORITHM)
         .withMlFeatures(ML_FEATURES)
         .withMlHyperParameters(ML_HYPERPARAMS)
-        .withDashboard(DASHBOARD.getFullyQualifiedName())
-        .withService(MLFLOW_REFERENCE.getFullyQualifiedName());
+        .withDashboard(DASHBOARD_REFERENCE)
+        .withService(MLFLOW_REFERENCE);
   }
 
   @Override
@@ -431,7 +425,7 @@ public class MlModelResourceTest extends EntityResourceTest<MlModel, CreateMlMod
   public void validateCreatedEntity(MlModel createdEntity, CreateMlModel createRequest, Map<String, String> authHeaders)
       throws HttpResponseException {
     assertEquals(createRequest.getAlgorithm(), createdEntity.getAlgorithm());
-    assertReference(createRequest.getDashboard(), createdEntity.getDashboard());
+    assertEquals(createRequest.getDashboard(), createdEntity.getDashboard());
     assertListProperty(createRequest.getMlFeatures(), createdEntity.getMlFeatures(), assertMlFeature);
     assertListProperty(createRequest.getMlHyperParameters(), createdEntity.getMlHyperParameters(), assertMlHyperParam);
 
@@ -464,7 +458,7 @@ public class MlModelResourceTest extends EntityResourceTest<MlModel, CreateMlMod
     } else if (fieldName.contains("dashboard")) {
       EntityReference expectedDashboard = (EntityReference) expected;
       EntityReference actualDashboard = JsonUtils.readValue(actual.toString(), EntityReference.class);
-      assertEquals(expectedDashboard.getId(), actualDashboard.getId());
+      assertEquals(expectedDashboard, actualDashboard);
     } else if (fieldName.contains("server")) {
       URI expectedServer = (URI) expected;
       URI actualServer = URI.create(actual.toString());

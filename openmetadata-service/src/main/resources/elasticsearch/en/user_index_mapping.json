@@ -39,19 +39,10 @@
         "type": "text"
       },
       "email": {
-        "type": "text",
-        "fields": {
-          "keyword": {
-            "type": "keyword",
-            "ignore_above": 256
-          }
-        }
+        "type": "text"
       },
       "isAdmin": {
-        "type": "boolean"
-      },
-      "isBot": {
-        "type": "boolean"
+        "type": "text"
       },
       "teams": {
         "properties": {

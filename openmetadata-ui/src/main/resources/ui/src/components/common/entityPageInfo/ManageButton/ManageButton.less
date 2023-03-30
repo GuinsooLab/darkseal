@@ -11,7 +11,7 @@
  *  limitations under the License.
  */
 
-@manage-button-bg-primary: #004AB3FF;
+@manage-button-bg-primary: #004ab3;
 @manage-dropdown-bg-primary: #dae8f3;
 @white: #ffffff;
 
@@ -26,27 +26,16 @@
   border: none;
   background-color: @manage-dropdown-bg-primary;
   padding: 0;
-  border-radius: 4px;
-  width: 24px;
-  display: flex;
-  justify-content: center;
 
   .ant-btn {
-    padding: 0 4px;
+    padding: 0 8px 0 8px;
   }
 }
 
 .manage-dropdown-button:hover,
 .manage-dropdown-button:focus {
-  .ant-btn {
-    .manage-dropdown-icon {
-      color: @manage-button-bg-primary;
-      opacity: 0.5;
-    }
-  }
   .manage-dropdown-icon {
     color: @white;
-    font-weight: 600;
   }
   background-color: @manage-button-bg-primary;
 }

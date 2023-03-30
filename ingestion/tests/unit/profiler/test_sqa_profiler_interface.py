@@ -38,17 +38,16 @@ from metadata.generated.schema.entity.services.connections.database.sqliteConnec
     SQLiteConnection,
     SQLiteScheme,
 )
-from metadata.profiler.metrics.core import (
+from metadata.interfaces.profiler_protocol import ProfilerInterfaceArgs
+from metadata.interfaces.sqalchemy.sqa_profiler_interface import SQAProfilerInterface
+from metadata.orm_profiler.metrics.core import (
     ComposedMetric,
     MetricTypes,
     QueryMetric,
     StaticMetric,
 )
-from metadata.profiler.metrics.static.row_count import RowCount
-from metadata.profiler.profiler.default import get_default_metrics
-from metadata.profiler.profiler.interface.sqlalchemy.sqa_profiler_interface import (
-    SQAProfilerInterface,
-)
+from metadata.orm_profiler.metrics.static.row_count import RowCount
+from metadata.orm_profiler.profiler.default import get_default_metrics
 
 
 class User(declarative_base()):
@@ -80,13 +79,11 @@ class SQAInterfaceTest(TestCase):
             SQAProfilerInterface, "_convert_table_to_orm_object", return_value=User
         ):
             self.sqa_profiler_interface = SQAProfilerInterface(
-                sqlite_conn,
-                None,
-                table_entity,
-                None,
-                None,
-                None,
-                None,
+                profiler_interface_args=ProfilerInterfaceArgs(
+                    service_connection_config=sqlite_conn,
+                    table_entity=table_entity,
+                    ometa_client=None,
+                )
             )
         self.table = User
 
@@ -120,13 +117,11 @@ class SQAInterfaceTestMultiThread(TestCase):
         SQAProfilerInterface, "_convert_table_to_orm_object", return_value=User
     ):
         sqa_profiler_interface = SQAProfilerInterface(
-            sqlite_conn,
-            None,
-            table_entity,
-            None,
-            None,
-            None,
-            None,
+            profiler_interface_args=ProfilerInterfaceArgs(
+                service_connection_config=sqlite_conn,
+                table_entity=table_entity,
+                ometa_client=None,
+            )
         )
 
     @classmethod
@@ -204,18 +199,15 @@ class SQAInterfaceTestMultiThread(TestCase):
                         self.table,
                     )
                 )
-            window_metrics.append(
-                (
-                    [
-                        metric
-                        for metric in self.window_metrics
-                        if metric.is_window_metric()
-                    ],
-                    MetricTypes.Window,
-                    col,
-                    self.table,
+            for window_metric in self.window_metrics:
+                window_metrics.append(
+                    (
+                        window_metric,
+                        MetricTypes.Window,
+                        col,
+                        self.table,
+                    )
                 )
-            )
 
         all_metrics = [*table_metrics, *column_metrics, *query_metrics, *window_metrics]
 
@@ -250,7 +242,7 @@ class SQAInterfaceTestMultiThread(TestCase):
             profile for profile in profile_request.columnProfile if profile.name == "id"
         ][0]
         assert name_column_profile.nullCount == 0
-        assert id_column_profile.median == 1.0
+        assert id_column_profile.median == 1.5
 
     @classmethod
     def tearDownClass(cls) -> None:

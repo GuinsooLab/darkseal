@@ -91,8 +91,14 @@ class OMetaTestSuiteTest(TestCase):
             CreateTestCaseRequest(
                 name="testCaseForIntegration",
                 entityLink="<#E::table::sample_data.ecommerce_db.shopify.dim_address>",
-                testSuite=cls.test_suite.fullyQualifiedName,
-                testDefinition=cls.test_definition.fullyQualifiedName,
+                testSuite=cls.metadata.get_entity_reference(
+                    entity=TestSuite,
+                    fqn=cls.test_suite.fullyQualifiedName.__root__,
+                ),
+                testDefinition=cls.metadata.get_entity_reference(
+                    entity=TestDefinition,
+                    fqn=cls.test_definition.fullyQualifiedName.__root__,
+                ),
                 parameterValues=[TestCaseParameterValue(name="foo", value=10)],
             )
         )

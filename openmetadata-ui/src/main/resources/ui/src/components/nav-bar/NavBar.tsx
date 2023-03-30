@@ -11,17 +11,13 @@
  *  limitations under the License.
  */
 
-import { Badge, Dropdown, Image, Input, Select, Space, Tooltip } from 'antd';
-import { CookieStorage } from 'cookie-storage';
-import i18next from 'i18next';
+import { Badge, Dropdown, Image, Input, Space, Tooltip } from 'antd';
 import { debounce, toString } from 'lodash';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useHistory } from 'react-router-dom';
-import { refreshPage } from 'utils/CommonUtils';
 import AppState from '../../AppState';
 import Logo from '../../assets/svg/logo-monogram.svg';
-
 import {
   NOTIFICATION_READ_TIMER,
   SOCKET_EVENTS,
@@ -36,10 +32,6 @@ import {
   prepareFeedLink,
 } from '../../utils/FeedUtils';
 import {
-  languageSelectOptions,
-  SupportedLocales,
-} from '../../utils/i18next/i18nextUtil';
-import {
   inPageSearchOptions,
   isInPageSearchAllowed,
 } from '../../utils/RouterUtils';
@@ -53,8 +45,6 @@ import LegacyDropDown from '../dropdown/DropDown';
 import NotificationBox from '../NotificationBox/NotificationBox.component';
 import { useWebSocketConnector } from '../web-scoket/web-scoket.provider';
 import { NavBarProps } from './NavBar.interface';
-
-const cookieStorage = new CookieStorage();
 
 const NavBar = ({
   supportDropdown,
@@ -88,10 +78,6 @@ const NavBar = ({
   const profilePicture = useMemo(
     () => currentUser?.profile?.images?.image512,
     [currentUser]
-  );
-
-  const [language, setLanguage] = useState(
-    cookieStorage.getItem('i18next') || SupportedLocales.English
   );
 
   const { socket } = useWebSocketConnector();
@@ -159,19 +145,15 @@ const NavBar = ({
     let path: string;
     switch (type) {
       case 'Task':
-        body = t('message.user-assign-new-task', {
-          user: createdBy,
-        });
+        body = `${createdBy} assigned you a new task.`;
         path = getTaskDetailPath(toString(id)).pathname;
 
         break;
       case 'Conversation':
-        body = t('message.user-mentioned-in-comment', {
-          user: createdBy,
-        });
+        body = `${createdBy} mentioned you in a comment.`;
         path = prepareFeedLink(entityType as string, entityFQN as string);
     }
-    const notification = new Notification('Notification From Darkseal', {
+    const notification = new Notification('Notification From Metadata', {
       body: body,
       icon: Logo,
     });
@@ -234,12 +216,6 @@ const NavBar = ({
     }
   }, [profilePicture]);
 
-  const handleLanguageChange = useCallback((langCode: string) => {
-    setLanguage(langCode);
-    i18next.changeLanguage(langCode);
-    refreshPage();
-  }, []);
-
   const handleOnImageError = useCallback(() => {
     setIsImgUrlValid(false);
   }, []);
@@ -263,18 +239,19 @@ const NavBar = ({
         }}>
         <div className="tw-flex tw-items-center tw-flex-row tw-justify-between tw-flex-nowrap tw-px-6">
           <div className="tw-flex tw-items-center tw-flex-row tw-justify-between tw-flex-nowrap">
-            <Space className="tw-ml-16 flex-none" size={16} />
+            <Space className="tw-ml-5 flex-none" size={16} />
           </div>
           <div
             className="tw-flex-none tw-relative tw-justify-items-center tw-ml-16"
             data-testid="appbar-item">
             <Input
               autoComplete="off"
-              className="tw-relative search-grey hover:tw-outline-none focus:tw-outline-none tw-pl-2 tw-pt-2 tw-pb-1.5 tw-ml-4 tw-z-41 rounded-4"
+              className="tw-relative search-grey hover:tw-outline-none focus:tw-outline-none tw-pl-2 tw-pt-2 tw-pb-1.5 tw-ml-4 tw-z-41"
               data-testid="searchBox"
               id="searchBox"
               placeholder={t('message.search-for-entity-types')}
               style={{
+                borderRadius: '0.24rem',
                 boxShadow: 'none',
                 height: '37px',
                 marginLeft: '200px',
@@ -323,13 +300,7 @@ const NavBar = ({
               ))}
           </div>
           <Space className="tw-ml-auto">
-            <Space size={16}>
-              <Select
-                bordered={false}
-                options={languageSelectOptions}
-                value={language}
-                onChange={handleLanguageChange}
-              />
+            <Space size={24}>
               <button className="focus:tw-no-underline hover:tw-underline tw-flex-shrink-0 ">
                 <Dropdown
                   destroyPopupOnHide

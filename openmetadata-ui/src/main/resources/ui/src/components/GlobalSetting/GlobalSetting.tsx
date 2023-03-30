@@ -12,7 +12,6 @@
  */
 
 import React from 'react';
-import { useTranslation } from 'react-i18next';
 
 import PageLayoutV1 from '../containers/PageLayoutV1';
 import GlobalSettingRouter from '../router/GlobalSettingRouter';
@@ -20,13 +19,10 @@ import './GlobalSetting.less';
 import GlobalSettingLeftPanel from './GlobalSettingLeftPanel';
 
 const GlobalSetting = () => {
-  const { t } = useTranslation();
-
   return (
     <PageLayoutV1
       className="tw-h-full tw-px-6"
-      leftPanel={<GlobalSettingLeftPanel />}
-      pageTitle={t('label.setting-plural')}>
+      leftPanel={<GlobalSettingLeftPanel />}>
       <GlobalSettingRouter />
     </PageLayoutV1>
   );

@@ -13,7 +13,6 @@
 
 import { Badge } from 'antd';
 import { ItemType } from 'antd/lib/menu/hooks/useItems';
-import classNames from 'classnames';
 import {
   ResourceEntity,
   UIPermission,
@@ -27,7 +26,6 @@ import { ReactComponent as BotIcon } from '../../src/assets/svg/bot-profile.svg'
 import { ReactComponent as DashboardIcon } from '../../src/assets/svg/dashboard-grey.svg';
 import { ReactComponent as ElasticSearchIcon } from '../../src/assets/svg/elasticsearch.svg';
 import { ReactComponent as BellIcon } from '../../src/assets/svg/ic-alert-bell.svg';
-import { ReactComponent as ObjectStoreIcon } from '../../src/assets/svg/ic-object-store.svg';
 import { ReactComponent as RolesIcon } from '../../src/assets/svg/icon-role-grey.svg';
 import { ReactComponent as OMLogo } from '../../src/assets/svg/metadata.svg';
 import { ReactComponent as MlModelIcon } from '../../src/assets/svg/mlmodal.svg';
@@ -56,10 +54,10 @@ export const getGlobalSettingsMenuWithPermission = (
 ) => {
   return [
     {
-      category: i18next.t('label.member-plural'),
+      category: 'Members',
       items: [
         {
-          label: i18next.t('label.team-plural'),
+          label: 'Teams',
           isProtected: userPermissions.hasViewPermissions(
             ResourceEntity.TEAM,
             permissions
@@ -68,7 +66,7 @@ export const getGlobalSettingsMenuWithPermission = (
           icon: <TeamsIcon className="side-panel-icons" />,
         },
         {
-          label: i18next.t('label.user-plural'),
+          label: 'Users',
           isProtected: userPermissions.hasViewPermissions(
             ResourceEntity.USER,
             permissions
@@ -76,7 +74,7 @@ export const getGlobalSettingsMenuWithPermission = (
           icon: <UsersIcon className="side-panel-icons" />,
         },
         {
-          label: i18next.t('label.admin-plural'),
+          label: 'Admins',
           isProtected: userPermissions.hasViewPermissions(
             ResourceEntity.USER,
             permissions
@@ -86,10 +84,10 @@ export const getGlobalSettingsMenuWithPermission = (
       ],
     },
     {
-      category: i18next.t('label.access'),
+      category: 'Access',
       items: [
         {
-          label: i18next.t('label.role-plural'),
+          label: 'Roles',
           isProtected: userPermissions.hasViewPermissions(
             ResourceEntity.ROLE,
             permissions
@@ -97,7 +95,7 @@ export const getGlobalSettingsMenuWithPermission = (
           icon: <RolesIcon className="side-panel-icons" />,
         },
         {
-          label: i18next.t('label.policy-plural'),
+          label: 'Policies',
           isProtected: userPermissions.hasViewPermissions(
             ResourceEntity.POLICY,
             permissions
@@ -107,10 +105,10 @@ export const getGlobalSettingsMenuWithPermission = (
       ],
     },
     {
-      category: i18next.t('label.service-plural'),
+      category: 'Services',
       items: [
         {
-          label: i18next.t('label.database-plural'),
+          label: 'Databases',
           isProtected: userPermissions.hasViewPermissions(
             ResourceEntity.DATABASE_SERVICE,
             permissions
@@ -118,7 +116,7 @@ export const getGlobalSettingsMenuWithPermission = (
           icon: <TableIcon className="side-panel-icons" />,
         },
         {
-          label: i18next.t('label.messaging'),
+          label: 'Messaging',
           isProtected: userPermissions.hasViewPermissions(
             ResourceEntity.MESSAGING_SERVICE,
             permissions
@@ -126,7 +124,7 @@ export const getGlobalSettingsMenuWithPermission = (
           icon: <TopicIcon className="side-panel-icons" />,
         },
         {
-          label: i18next.t('label.dashboard-plural'),
+          label: 'Dashboards',
           isProtected: userPermissions.hasViewPermissions(
             ResourceEntity.DASHBOARD_SERVICE,
             permissions
@@ -134,7 +132,7 @@ export const getGlobalSettingsMenuWithPermission = (
           icon: <DashboardIcon className="side-panel-icons" />,
         },
         {
-          label: i18next.t('label.pipeline-plural'),
+          label: 'Pipelines',
           isProtected: userPermissions.hasViewPermissions(
             ResourceEntity.PIPELINE_SERVICE,
             permissions
@@ -142,7 +140,7 @@ export const getGlobalSettingsMenuWithPermission = (
           icon: <PipelineIcon className="side-panel-icons" />,
         },
         {
-          label: i18next.t('label.ml-model-plural'),
+          label: 'ML Models',
           isProtected: userPermissions.hasViewPermissions(
             ResourceEntity.ML_MODEL_SERVICE,
             permissions
@@ -150,21 +148,12 @@ export const getGlobalSettingsMenuWithPermission = (
           icon: <MlModelIcon className="side-panel-icons" />,
         },
         {
-          label: i18next.t('label.metadata'),
+          label: 'Metadata',
           isProtected: userPermissions.hasViewPermissions(
             ResourceEntity.METADATA_SERVICE,
             permissions
           ),
           icon: <OMLogo className="side-panel-icons w-4 h-4" />,
-        },
-        {
-          label: i18next.t('label.object-store-plural'),
-          isProtected: userPermissions.hasViewPermissions(
-            ResourceEntity.OBJECT_STORE_SERVICE,
-            permissions
-          ),
-          icon: <ObjectStoreIcon className="side-panel-icons w-4 h-4" />,
-          isBeta: Boolean,
         },
       ],
     },
@@ -185,10 +174,10 @@ export const getGlobalSettingsMenuWithPermission = (
       ],
     },
     {
-      category: i18next.t('label.custom-attribute-plural'),
+      category: 'Custom Attributes',
       items: [
         {
-          label: i18next.t('label.table-plural'),
+          label: 'Tables',
           isProtected: userPermissions.hasViewPermissions(
             ResourceEntity.TYPE,
             permissions
@@ -196,7 +185,7 @@ export const getGlobalSettingsMenuWithPermission = (
           icon: <TableIcon className="side-panel-icons" />,
         },
         {
-          label: i18next.t('label.topic-plural'),
+          label: 'Topics',
           isProtected: userPermissions.hasViewPermissions(
             ResourceEntity.TYPE,
             permissions
@@ -204,7 +193,7 @@ export const getGlobalSettingsMenuWithPermission = (
           icon: <TopicIcon className="side-panel-icons" />,
         },
         {
-          label: i18next.t('label.dashboard-plural'),
+          label: 'Dashboards',
           isProtected: userPermissions.hasViewPermissions(
             ResourceEntity.TYPE,
             permissions
@@ -212,7 +201,7 @@ export const getGlobalSettingsMenuWithPermission = (
           icon: <DashboardIcon className="side-panel-icons" />,
         },
         {
-          label: i18next.t('label.pipeline-plural'),
+          label: 'Pipelines',
           isProtected: userPermissions.hasViewPermissions(
             ResourceEntity.TYPE,
             permissions
@@ -220,28 +209,20 @@ export const getGlobalSettingsMenuWithPermission = (
           icon: <PipelineIcon className="side-panel-icons" />,
         },
         {
-          label: i18next.t('label.ml-model-plural'),
+          label: 'ML Models',
           isProtected: userPermissions.hasViewPermissions(
             ResourceEntity.TYPE,
             permissions
           ),
           icon: <MlModelIcon className="side-panel-icons" />,
         },
-        {
-          label: i18next.t('label.container-plural'),
-          isProtected: userPermissions.hasViewPermissions(
-            ResourceEntity.TYPE,
-            permissions
-          ),
-          icon: <ObjectStoreIcon className="side-panel-icons" />,
-        },
       ],
     },
     {
-      category: i18next.t('label.event-publisher-plural'),
+      category: 'Event Publishers',
       items: [
         {
-          label: i18next.t('label.elasticsearch'),
+          label: 'Elasticsearch',
           isProtected: Boolean(isAdminUser),
           icon: (
             <ElasticSearchIcon className="tw-w-4 tw-mt-1.5 side-panel-icons" />
@@ -250,10 +231,10 @@ export const getGlobalSettingsMenuWithPermission = (
       ],
     },
     {
-      category: i18next.t('label.integration-plural'),
+      category: 'Integrations',
       items: [
         {
-          label: i18next.t('label.bot-plural'),
+          label: 'Bots',
           isProtected: userPermissions.hasViewPermissions(
             ResourceEntity.BOT,
             permissions
@@ -265,42 +246,30 @@ export const getGlobalSettingsMenuWithPermission = (
   ];
 };
 
-export const getGlobalSettingMenuItem = (args: {
-  label: string;
-  key: string;
-  category?: string;
-  icon?: React.ReactNode;
+export const getGlobalSettingMenuItem = (
+  label: string,
+  key: string,
+  category?: string,
+  icon?: React.ReactNode,
   children?: {
     label: string;
     isProtected: boolean;
     icon: React.ReactNode;
-    isBeta?: boolean;
-  }[];
-  type?: string;
-  isBeta?: boolean;
-  isChildren?: boolean;
-}): {
+  }[],
+  type?: string,
+  isBeta?: boolean
+): {
   key: string;
   icon: React.ReactNode;
   children: ItemType[] | undefined;
   label: ReactNode;
   type: string | undefined;
 } => {
-  const { children, label, key, icon, category, isBeta, type, isChildren } =
-    args;
-
   const subItems = children
     ? children
         .filter((menu) => menu.isProtected)
-        .map(({ label, icon, isBeta: isChildBeta }) => {
-          return getGlobalSettingMenuItem({
-            label,
-            key: camelCase(label),
-            category: key,
-            icon,
-            isBeta: isChildBeta,
-            isChildren: true,
-          });
+        .map(({ label, icon }) => {
+          return getGlobalSettingMenuItem(label, camelCase(label), key, icon);
         })
     : undefined;
 
@@ -310,8 +279,8 @@ export const getGlobalSettingMenuItem = (args: {
     children: subItems,
     label: isBeta ? (
       <Badge
-        className={classNames({ 'text-xs text-grey-muted': !isChildren })}
-        color="#004AB3FF"
+        className="text-xs text-grey-muted"
+        color="#004AB3"
         count="beta"
         offset={[30, 8]}
         size="small">

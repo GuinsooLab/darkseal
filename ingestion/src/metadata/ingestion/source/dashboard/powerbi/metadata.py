@@ -16,7 +16,7 @@ from typing import Any, Iterable, List, Optional
 from metadata.generated.schema.api.data.createChart import CreateChartRequest
 from metadata.generated.schema.api.data.createDashboard import CreateDashboardRequest
 from metadata.generated.schema.api.lineage.addLineage import AddLineageRequest
-from metadata.generated.schema.entity.data.chart import Chart, ChartType
+from metadata.generated.schema.entity.data.chart import ChartType
 from metadata.generated.schema.entity.data.dashboard import Dashboard
 from metadata.generated.schema.entity.data.table import Table
 from metadata.generated.schema.entity.services.connections.dashboard.powerBIConnection import (
@@ -28,7 +28,8 @@ from metadata.generated.schema.entity.services.connections.metadata.openMetadata
 from metadata.generated.schema.metadataIngestion.workflow import (
     Source as WorkflowSource,
 )
-from metadata.ingestion.api.source import InvalidSourceException
+from metadata.generated.schema.type.entityReference import EntityReference
+from metadata.ingestion.api.source import InvalidSourceException, SourceStatus
 from metadata.ingestion.source.dashboard.dashboard_service import DashboardServiceSource
 from metadata.utils import fqn
 from metadata.utils.filters import filter_by_chart, filter_by_dashboard
@@ -46,12 +47,14 @@ class PowerbiSource(DashboardServiceSource):
 
     config: WorkflowSource
     metadata_config: OpenMetadataConnection
+    status: SourceStatus
 
     def __init__(
         self,
         config: WorkflowSource,
         metadata_config: OpenMetadataConnection,
     ):
+
         super().__init__(config, metadata_config)
         self.pagination_entity_per_page = min(
             100, self.service_connection.pagination_entity_per_page
@@ -89,13 +92,7 @@ class PowerbiSource(DashboardServiceSource):
                     response = self.client.fetch_workspace_scan_result(
                         scan_id=workspace_scan_id
                     )
-                    self.workspace_data.extend(
-                        [
-                            active_workspace
-                            for active_workspace in response.get("workspaces")
-                            if active_workspace.get("state") == "Active"
-                        ]
-                    )
+                    self.workspace_data.extend(response.get("workspaces"))
                 else:
                     logger.error("Error in fetching dashboards and charts")
                 count += 1
@@ -145,7 +142,7 @@ class PowerbiSource(DashboardServiceSource):
         """
         Get List of all dashboards
         """
-        return self.context.workspace.get("dashboards", [])
+        return self.context.workspace.get("dashboards")
 
     def get_dashboard_name(self, dashboard: dict) -> str:
         """
@@ -176,15 +173,12 @@ class PowerbiSource(DashboardServiceSource):
             displayName=dashboard_details["displayName"],
             description="",
             charts=[
-                fqn.build(
-                    self.metadata,
-                    entity_type=Chart,
-                    service_name=self.context.dashboard_service.fullyQualifiedName.__root__,
-                    chart_name=chart.name.__root__,
-                )
+                EntityReference(id=chart.id.__root__, type="chart")
                 for chart in self.context.charts
             ],
-            service=self.context.dashboard_service.fullyQualifiedName.__root__,
+            service=EntityReference(
+                id=self.context.dashboard_service.id.__root__, type="dashboardService"
+            ),
         )
 
     def yield_dashboard_lineage_details(
@@ -269,7 +263,10 @@ class PowerbiSource(DashboardServiceSource):
                     chartType=ChartType.Other.value,
                     # PBI has no hostPort property. All URL details are present in the webUrl property.
                     chartUrl=chart_url,
-                    service=self.context.dashboard_service.fullyQualifiedName.__root__,
+                    service=EntityReference(
+                        id=self.context.dashboard_service.id.__root__,
+                        type="dashboardService",
+                    ),
                 )
                 self.status.scanned(chart_display_name)
             except Exception as exc:  # pylint: disable=broad-except

@@ -445,7 +445,7 @@
 .ql-snow .ql-toolbar .ql-picker-item:hover,
 .ql-snow.ql-toolbar .ql-picker-item.ql-selected,
 .ql-snow .ql-toolbar .ql-picker-item.ql-selected {
-  color: #004AB3FF;
+  color: #004ab3;
 }
 .ql-snow.ql-toolbar button:hover .ql-fill,
 .ql-snow .ql-toolbar button:hover .ql-fill,
@@ -475,7 +475,7 @@
 .ql-snow .ql-toolbar .ql-picker-item:hover .ql-stroke.ql-fill,
 .ql-snow.ql-toolbar .ql-picker-item.ql-selected .ql-stroke.ql-fill,
 .ql-snow .ql-toolbar .ql-picker-item.ql-selected .ql-stroke.ql-fill {
-  fill: #004AB3FF;
+  fill: #004ab3;
 }
 .ql-snow.ql-toolbar button:hover .ql-stroke,
 .ql-snow .ql-toolbar button:hover .ql-stroke,
@@ -505,7 +505,7 @@
 .ql-snow .ql-toolbar .ql-picker-item:hover .ql-stroke-miter,
 .ql-snow.ql-toolbar .ql-picker-item.ql-selected .ql-stroke-miter,
 .ql-snow .ql-toolbar .ql-picker-item.ql-selected .ql-stroke-miter {
-  stroke: #004AB3FF;
+  stroke: #004ab3;
 }
 @media (pointer: coarse) {
   .ql-snow.ql-toolbar button:hover:not(.ql-active),
@@ -928,7 +928,7 @@
   content: 'Edit';
   padding-right: 8px;
   color: #ffffff;
-  background: #004AB3FF;
+  background: #004ab3;
   padding-top: 4px;
   padding-bottom: 4px;
   padding-left: 8px;
@@ -939,7 +939,7 @@
   content: 'Remove';
   margin-left: 8px;
   color: #ffffff;
-  background: #004AB3FF;
+  background: #004ab3;
   padding-top: 4px;
   padding-bottom: 4px;
   padding-left: 8px;
@@ -948,11 +948,11 @@
 }
 .ql-snow .ql-tooltip a {
   line-height: 26px;
-  color: #004AB3FF;
+  color: #004ab3;
 }
 
 .ql-snow .ql-tooltip a:hover {
-  color: #004AB3FF;
+  color: #004ab3;
 }
 .ql-snow .ql-tooltip.ql-editing a.ql-preview,
 .ql-snow .ql-tooltip.ql-editing a.ql-remove {
@@ -963,7 +963,7 @@
 }
 .ql-snow .ql-tooltip.ql-editing input[type='text']:hover,
 .ql-snow .ql-tooltip.ql-editing input[type='text']:focus {
-  border: 1px solid #004AB3FF;
+  border: 1px solid #004ab3;
   outline: none;
 }
 .ql-snow .ql-tooltip.ql-editing a.ql-action {
@@ -976,7 +976,7 @@
   padding-right: 0px;
   margin: 0px;
   color: #ffffff;
-  background: #004AB3FF;
+  background: #004ab3;
   padding-top: 4px;
   padding-bottom: 4px;
   padding-left: 8px;

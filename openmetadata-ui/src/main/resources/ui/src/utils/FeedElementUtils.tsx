@@ -11,26 +11,15 @@
  *  limitations under the License.
  */
 
-import { Button, Popover, Space, Typography } from 'antd';
-import { t } from 'i18next';
 import { isEmpty, isEqual, isUndefined } from 'lodash';
 import React, { Fragment } from 'react';
-import { ReactComponent as IconCommentPlus } from '../assets/svg/add-chat.svg';
-import { ReactComponent as IconComments } from '../assets/svg/comment.svg';
-import { ReactComponent as IconTaskColor } from '../assets/svg/Task-ic.svg';
-
 import { entityUrlMap } from '../constants/Feeds.constants';
 import { ThreadType } from '../generated/entity/feed/thread';
 import { EntityReference } from '../generated/entity/teams/user';
 import { EntityFieldThreads } from '../interface/feed.interface';
 import { getEntityFeedLink } from './EntityUtils';
 import { getThreadField } from './FeedUtils';
-
-const iconsProps = {
-  height: 16,
-  name: 'comments',
-  width: 16,
-};
+import SVGIcons, { Icons } from './SvgUtils';
 
 export const getFieldThreadElement = (
   columnName: string,
@@ -55,10 +44,9 @@ export const getFieldThreadElement = (
   const isTaskType = isEqual(threadType, ThreadType.Task);
 
   return !isEmpty(threadValue) ? (
-    <Button
-      className="link-text tw-self-start w-8 h-7 m-r-xss tw-flex tw-items-center hover-cell-icon p-0"
+    <button
+      className="link-text tw-self-start tw-w-7 tw-h-7 tw-mr-1 tw-flex tw-items-center hover-cell-icon"
       data-testid="field-thread"
-      type="text"
       onClick={(e) => {
         e.preventDefault();
         e.stopPropagation();
@@ -67,33 +55,23 @@ export const getFieldThreadElement = (
           isTaskType ? ThreadType.Task : ThreadType.Conversation
         );
       }}>
-      <Popover
-        destroyTooltipOnHide
-        content={t('label.list-entity', {
-          entity: isTaskType ? t('label.task') : t('label.conversation'),
-        })}
-        overlayClassName="ant-popover-request-description"
-        trigger="hover">
-        <Space align="center" className="w-full h-full" size={4}>
-          {isTaskType ? (
-            <IconTaskColor {...iconsProps} />
-          ) : (
-            <IconComments {...iconsProps} />
-          )}
-
-          <Typography.Text data-testid="field-thread-count">
-            {threadValue.count}
-          </Typography.Text>
-        </Space>
-      </Popover>
-    </Button>
+      <SVGIcons
+        alt="comments"
+        className="tw-mt-0.5"
+        height="16px"
+        icon={isTaskType ? Icons.TASK_ICON : Icons.COMMENT}
+        width="16px"
+      />
+      <span className="tw-ml-1" data-testid="field-thread-count">
+        {threadValue.count}
+      </span>
+    </button>
   ) : (
     <Fragment>
       {entityType && entityFqn && entityField && flag && !isTaskType ? (
-        <Button
-          className="link-text tw-self-start w-7 h-7 m-r-xss tw-flex-none hover-cell-icon p-0"
+        <button
+          className="link-text tw-self-start tw-w-7 tw-h-7 tw-mr-1 tw-flex-none hover-cell-icon"
           data-testid="start-field-thread"
-          type="text"
           onClick={(e) => {
             e.preventDefault();
             e.stopPropagation();
@@ -101,23 +79,15 @@ export const getFieldThreadElement = (
               getEntityFeedLink(entityType, entityFqn, entityField)
             );
           }}>
-          <Popover
-            destroyTooltipOnHide
-            content={t('label.start-entity', {
-              entity: t('label.conversation'),
-            })}
-            overlayClassName="ant-popover-request-description"
-            trigger="hover">
-            <IconCommentPlus {...iconsProps} />
-          </Popover>
-        </Button>
+          <SVGIcons alt="comments" icon={Icons.COMMENT_PLUS} width="16px" />
+        </button>
       ) : null}
     </Fragment>
   );
 };
 
 export const getDefaultValue = (owner: EntityReference) => {
-  const message = t('message.can-you-add-a-description');
+  const message = 'Can you add a description?';
   if (isUndefined(owner)) {
     return `${message}`;
   } else {

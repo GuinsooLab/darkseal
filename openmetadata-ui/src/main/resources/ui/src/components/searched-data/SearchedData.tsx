@@ -12,7 +12,6 @@
  */
 
 import classNames from 'classnames';
-import { ELASTICSEARCH_ERROR_PLACEHOLDER_TYPE } from 'enums/common.enum';
 import { isUndefined, toString } from 'lodash';
 import PropTypes from 'prop-types';
 import React from 'react';
@@ -159,10 +158,7 @@ const SearchedData: React.FC<SearchedDataProps> = ({
           ) : (
             <>
               {children}
-              <ErrorPlaceHolderES
-                query={searchText}
-                type={ELASTICSEARCH_ERROR_PLACEHOLDER_TYPE.NO_DATA}
-              />
+              <ErrorPlaceHolderES query={searchText} type="noData" />
             </>
           )}
         </div>

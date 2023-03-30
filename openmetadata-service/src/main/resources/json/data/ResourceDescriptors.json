@@ -58,20 +58,6 @@
     ]
   },
   {
-    "name" : "query",
-    "operations" : [
-      "Create",
-      "Delete",
-      "ViewAll",
-      "ViewQueries",
-      "EditAll",
-      "EditDescription",
-      "EditDisplayName",
-      "EditTags",
-      "EditOwner"
-    ]
-  },
-  {
     "name" : "dashboard",
     "operations" : [
       "Create",
@@ -222,30 +208,6 @@
   },
   {
     "name" : "mlmodelService",
-    "operations" : [
-      "Create",
-      "Delete",
-      "ViewAll",
-      "EditAll",
-      "EditDescription",
-      "EditDisplayName",
-      "EditCustomFields"
-    ]
-  },
-  {
-    "name" : "container",
-    "operations" : [
-      "Create",
-      "Delete",
-      "ViewAll",
-      "EditAll",
-      "EditDescription",
-      "EditDisplayName",
-      "EditCustomFields"
-    ]
-  },
-  {
-    "name" : "objectStoreService",
     "operations" : [
       "Create",
       "Delete",
@@ -468,14 +430,6 @@
     ]
   },
   {
-    "name" : "testConnectionDefinition",
-    "operations" : [
-      "Create",
-      "Delete",
-      "ViewAll"
-    ]
-  },
-  {
     "name" : "type",
     "operations" : [
       "Create",
@@ -516,14 +470,6 @@
     ]
   },
   {
-    "name" : "workflow",
-    "operations" : [
-      "Create",
-      "Delete",
-      "ViewAll"
-    ]
-  },
-  {
     "name" : "metadataService",
     "operations" : [
       "Create",
@@ -536,7 +482,16 @@
     ]
   },
   {
-    "name" : "eventsubscription",
+    "name" : "alert",
+    "operations" : [
+      "Create",
+      "Delete",
+      "ViewAll",
+      "EditDescription"
+    ]
+  },
+  {
+    "name" : "alertAction",
     "operations" : [
       "Create",
       "Delete",

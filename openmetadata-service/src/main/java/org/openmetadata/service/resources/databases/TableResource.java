@@ -57,6 +57,7 @@ import org.openmetadata.schema.type.DataModel;
 import org.openmetadata.schema.type.EntityHistory;
 import org.openmetadata.schema.type.Include;
 import org.openmetadata.schema.type.MetadataOperation;
+import org.openmetadata.schema.type.SQLQuery;
 import org.openmetadata.schema.type.SystemProfile;
 import org.openmetadata.schema.type.TableData;
 import org.openmetadata.schema.type.TableJoins;
@@ -184,9 +185,9 @@ public class TableResource extends EntityResource<Table, TableRepository> {
   @Path("/{id}")
   @Operation(
       operationId = "getTableByID",
-      summary = "Get a table by Id",
+      summary = "Get a table",
       tags = "tables",
-      description = "Get a table by `Id`",
+      description = "Get a table by `id`",
       responses = {
         @ApiResponse(
             responseCode = "200",
@@ -217,7 +218,7 @@ public class TableResource extends EntityResource<Table, TableRepository> {
   @Path("/name/{fqn}")
   @Operation(
       operationId = "getTableByFQN",
-      summary = "Get a table by fully qualified name",
+      summary = "Get a table by name",
       tags = "tables",
       description = "Get a table by fully qualified table name.",
       responses = {
@@ -225,7 +226,7 @@ public class TableResource extends EntityResource<Table, TableRepository> {
             responseCode = "200",
             description = "table",
             content = @Content(mediaType = "application/json", schema = @Schema(implementation = Table.class))),
-        @ApiResponse(responseCode = "404", description = "Table for instance {fqn} is not found")
+        @ApiResponse(responseCode = "404", description = "Table for instance {id} is not found")
       })
   public Table getByName(
       @Context UriInfo uriInfo,
@@ -253,7 +254,7 @@ public class TableResource extends EntityResource<Table, TableRepository> {
       operationId = "listAllTableVersion",
       summary = "List table versions",
       tags = "tables",
-      description = "Get a list of all the versions of a table identified by `Id`",
+      description = "Get a list of all the versions of a table identified by `id`",
       responses = {
         @ApiResponse(
             responseCode = "200",
@@ -263,7 +264,7 @@ public class TableResource extends EntityResource<Table, TableRepository> {
   public EntityHistory listVersions(
       @Context UriInfo uriInfo,
       @Context SecurityContext securityContext,
-      @Parameter(description = "Table Id", schema = @Schema(type = "string")) @PathParam("id") UUID id)
+      @Parameter(description = "table Id", schema = @Schema(type = "string")) @PathParam("id") UUID id)
       throws IOException {
     return super.listVersionsInternal(securityContext, id);
   }
@@ -274,7 +275,7 @@ public class TableResource extends EntityResource<Table, TableRepository> {
       operationId = "getSpecificDatabaseVersion",
       summary = "Get a version of the table",
       tags = "tables",
-      description = "Get a version of the table by given `Id`",
+      description = "Get a version of the table by given `id`",
       responses = {
         @ApiResponse(
             responseCode = "200",
@@ -287,9 +288,9 @@ public class TableResource extends EntityResource<Table, TableRepository> {
   public Table getVersion(
       @Context UriInfo uriInfo,
       @Context SecurityContext securityContext,
-      @Parameter(description = "Table Id", schema = @Schema(type = "UUID")) @PathParam("id") UUID id,
+      @Parameter(description = "table Id", schema = @Schema(type = "UUID")) @PathParam("id") UUID id,
       @Parameter(
-              description = "Table version number in the form `major`.`minor`",
+              description = "table version number in the form `major`.`minor`",
               schema = @Schema(type = "string", example = "0.1 or 1.1"))
           @PathParam("version")
           String version)
@@ -366,9 +367,9 @@ public class TableResource extends EntityResource<Table, TableRepository> {
   @Path("/{id}")
   @Operation(
       operationId = "deleteTable",
-      summary = "Delete a table by Id",
+      summary = "Delete a table",
       tags = "tables",
-      description = "Delete a table by `Id`.",
+      description = "Delete a table by `id`.",
       responses = {
         @ApiResponse(responseCode = "200", description = "OK"),
         @ApiResponse(responseCode = "404", description = "Table for instance {id} is not found")
@@ -380,20 +381,16 @@ public class TableResource extends EntityResource<Table, TableRepository> {
           @QueryParam("hardDelete")
           @DefaultValue("false")
           boolean hardDelete,
-      @Parameter(description = "Recursively delete this entity and it's children. (Default `false`)")
-          @QueryParam("recursive")
-          @DefaultValue("false")
-          boolean recursive,
       @Parameter(description = "Id of the table", schema = @Schema(type = "UUID")) @PathParam("id") UUID id)
       throws IOException {
-    return delete(uriInfo, securityContext, id, recursive, hardDelete);
+    return delete(uriInfo, securityContext, id, false, hardDelete);
   }
 
   @DELETE
   @Path("/name/{fqn}")
   @Operation(
       operationId = "deleteTable",
-      summary = "Delete a table by fully qualified name",
+      summary = "Delete a table",
       tags = "tables",
       description = "Delete a table by `fullyQualifiedName`.",
       responses = {
@@ -416,7 +413,7 @@ public class TableResource extends EntityResource<Table, TableRepository> {
   @Path("/restore")
   @Operation(
       operationId = "restore",
-      summary = "Restore a soft deleted table",
+      summary = "Restore a soft deleted table.",
       tags = "tables",
       description = "Restore a soft deleted table.",
       responses = {
@@ -513,9 +510,9 @@ public class TableResource extends EntityResource<Table, TableRepository> {
   @Path("/{id}/sampleData")
   @Operation(
       operationId = "getSampleData",
-      summary = "Get sample data",
+      summary = "get sample data",
       tags = "tables",
-      description = "Get sample data from the table.",
+      description = "get sample data from the table.",
       responses = {
         @ApiResponse(
             responseCode = "200",
@@ -537,9 +534,9 @@ public class TableResource extends EntityResource<Table, TableRepository> {
   @Path("/{id}/sampleData")
   @Operation(
       operationId = "deleteSampleData",
-      summary = "Delete sample data",
+      summary = "delete sample data",
       tags = "tables",
-      description = "Delete sample data from the table.",
+      description = "delete sample data from the table.",
       responses = {
         @ApiResponse(
             responseCode = "200",
@@ -562,7 +559,7 @@ public class TableResource extends EntityResource<Table, TableRepository> {
   @Path("/{id}/tableProfilerConfig")
   @Operation(
       operationId = "addDataProfilerConfig",
-      summary = "Add table profile config",
+      summary = "Add table profile Config",
       tags = "tables",
       description = "Add table profile config to the table.",
       responses = {
@@ -587,7 +584,7 @@ public class TableResource extends EntityResource<Table, TableRepository> {
   @Path("/{id}/tableProfilerConfig")
   @Operation(
       operationId = "getDataProfilerConfig",
-      summary = "Get table profile config",
+      summary = "Get table profile Config",
       tags = "tables",
       description = "Get table profile config to the table.",
       responses = {
@@ -611,7 +608,7 @@ public class TableResource extends EntityResource<Table, TableRepository> {
   @Path("/{id}/tableProfilerConfig")
   @Operation(
       operationId = "delete DataProfilerConfig",
-      summary = "Delete table profiler config",
+      summary = "delete table profiler config",
       tags = "tables",
       description = "delete table profile config to the table.",
       responses = {
@@ -635,7 +632,7 @@ public class TableResource extends EntityResource<Table, TableRepository> {
   @Path("/{fqn}/tableProfile/latest")
   @Operation(
       operationId = "Get the latest table and column profile",
-      summary = "Get the latest table profile",
+      summary = "get the latest tableProfile",
       tags = "tables",
       description = "Get the latest table and column profile ",
       responses = {
@@ -796,9 +793,9 @@ public class TableResource extends EntityResource<Table, TableRepository> {
   @Path("/{fqn}/{entityType}/{timestamp}/profile")
   @Operation(
       operationId = "deleteDataProfiler",
-      summary = "Delete table profile data",
+      summary = "delete table profile data",
       tags = "tables",
-      description = "Delete table profile data to the table.",
+      description = "delete table profile data to the table.",
       responses = {
         @ApiResponse(
             responseCode = "200",
@@ -846,6 +843,87 @@ public class TableResource extends EntityResource<Table, TableRepository> {
 
     Table table = dao.addLocation(id, locationId);
     return Response.ok().entity(table).build();
+  }
+
+  @PUT
+  @Path("/{id}/tableQuery")
+  @Operation(
+      operationId = "addTableQuery",
+      summary = "Add table query data",
+      tags = "tables",
+      description = "Add table query data to the table.",
+      responses = {
+        @ApiResponse(
+            responseCode = "200",
+            description = "OK",
+            content = @Content(mediaType = "application/json", schema = @Schema(implementation = Table.class)))
+      })
+  public Table addQuery(
+      @Context UriInfo uriInfo,
+      @Context SecurityContext securityContext,
+      @Parameter(description = "Id of the table", schema = @Schema(type = "UUID")) @PathParam("id") UUID id,
+      @Valid SQLQuery sqlQuery)
+      throws IOException {
+    OperationContext operationContext = new OperationContext(entityType, MetadataOperation.EDIT_ALL);
+    authorizer.authorize(securityContext, operationContext, getResourceContextById(id));
+    Table table = dao.addQuery(id, sqlQuery);
+    return addHref(uriInfo, table);
+  }
+
+  @GET
+  @Path("/{id}/tableQuery")
+  @Operation(
+      operationId = "getTableQuery",
+      summary = "get table query data",
+      tags = "tables",
+      description = "get table query data from the table.",
+      responses = {
+        @ApiResponse(
+            responseCode = "200",
+            description = "OK",
+            content = @Content(mediaType = "application/json", schema = @Schema(implementation = Table.class)))
+      })
+  public Table getQuery(
+      @Context UriInfo uriInfo,
+      @Context SecurityContext securityContext,
+      @Parameter(description = "Id of the table", schema = @Schema(type = "UUID")) @PathParam("id") UUID id,
+      @Valid SQLQuery sqlQuery)
+      throws IOException {
+    OperationContext operationContext = new OperationContext(entityType, MetadataOperation.VIEW_QUERIES);
+    authorizer.authorize(securityContext, operationContext, getResourceContextById(id));
+    Table table = dao.getQueries(id);
+    return addHref(uriInfo, table);
+  }
+
+  @GET
+  @Path("/{id}/getTableQueries")
+  @Operation(
+      operationId = "getTableQueryList",
+      summary = "get table query data",
+      tags = "tables",
+      description = "get table query data from the table.",
+      responses = {
+        @ApiResponse(
+            responseCode = "200",
+            description = "OK",
+            content = @Content(mediaType = "application/json", schema = @Schema(implementation = Table.class)))
+      })
+  public ResultList<SQLQuery> getTableQueryList(
+      @Context UriInfo uriInfo,
+      @Context SecurityContext securityContext,
+      @Parameter(description = "Id of the table", schema = @Schema(type = "UUID")) @PathParam("id") UUID id,
+      @Valid SQLQuery sqlQuery,
+      @DefaultValue("10") @Min(0) @Max(1000000) @QueryParam("limit") int limitParam,
+      @Parameter(description = "Returns list of users before this cursor", schema = @Schema(type = "string"))
+          @QueryParam("before")
+          String before,
+      @Parameter(description = "Returns list of users after this cursor", schema = @Schema(type = "string"))
+          @QueryParam("after")
+          String after)
+      throws IOException {
+    OperationContext operationContext = new OperationContext(entityType, MetadataOperation.VIEW_QUERIES);
+    authorizer.authorize(securityContext, operationContext, getResourceContextById(id));
+    return dao.getQueriesForPagination(id, limitParam, before, after);
   }
 
   @PUT
@@ -903,7 +981,7 @@ public class TableResource extends EntityResource<Table, TableRepository> {
   @Path("/{id}/customMetric/{columnName}/{customMetricName}")
   @Operation(
       operationId = "deleteCustomMetric",
-      summary = "Delete custom metric from a column",
+      summary = "delete custom metric from a column",
       tags = "tables",
       description = "Delete a custom metric from a column.",
       responses = {
@@ -994,7 +1072,7 @@ public class TableResource extends EntityResource<Table, TableRepository> {
             .withTags(create.getTags())
             .withViewDefinition(create.getViewDefinition())
             .withTableProfilerConfig(create.getTableProfilerConfig())
-            .withDatabaseSchema(getEntityReference(Entity.DATABASE_SCHEMA, create.getDatabaseSchema())));
+            .withDatabaseSchema(create.getDatabaseSchema()));
   }
 
   private CustomMetric getCustomMetric(SecurityContext securityContext, CreateCustomMetric create) {

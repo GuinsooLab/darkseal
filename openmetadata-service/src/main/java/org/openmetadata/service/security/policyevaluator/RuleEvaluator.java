@@ -1,7 +1,6 @@
 package org.openmetadata.service.security.policyevaluator;
 
 import java.io.IOException;
-import java.util.Arrays;
 import java.util.List;
 import lombok.extern.slf4j.Slf4j;
 import org.openmetadata.schema.Function;
@@ -54,7 +53,6 @@ public class RuleEvaluator {
       return false;
     }
     List<TagLabel> tags = resourceContext.getTags();
-    LOG.debug("matchAllTags {} resourceTags {}", Arrays.toString(tagFQNs), tags.toString());
     for (String tagFQN : tagFQNs) {
       TagLabel found = tags.stream().filter(t -> t.getTagFQN().equals(tagFQN)).findAny().orElse(null);
       if (found == null) {
@@ -74,7 +72,6 @@ public class RuleEvaluator {
       return false;
     }
     List<TagLabel> tags = resourceContext.getTags();
-    LOG.debug("matchAnyTag {} resourceTags {}", Arrays.toString(tagFQNs), tags.toString());
     for (String tagFQN : tagFQNs) {
       TagLabel found = tags.stream().filter(t -> t.getTagFQN().equals(tagFQN)).findAny().orElse(null);
       if (found != null) {
@@ -90,48 +87,16 @@ public class RuleEvaluator {
       description =
           "Returns true if the user and the resource belongs to the team hierarchy where this policy is"
               + "attached. This allows restricting permissions to a resource to the members of the team hierarchy.",
-      examples = {"matchTeam()"})
+      examples = {"matchTeam()"},
+      resourceBased = true)
   public boolean matchTeam() throws IOException {
     if (resourceContext == null || resourceContext.getOwner() == null) {
-      return false; // No ownership information
+      return true; // No ownership information
     }
     if (policyContext == null || !policyContext.getEntityType().equals(Entity.TEAM)) {
-      return false; // Policy must be attached to a team for this function to work
+      return true; // Policy must be attached to a team for this function to work
     }
     return subjectContext.isTeamAsset(policyContext.getEntityName(), resourceContext.getOwner())
         && subjectContext.isUserUnderTeam(policyContext.getEntityName());
-  }
-
-  @Function(
-      name = "inAnyTeam",
-      input = "List of comma separated team names",
-      description = "Returns true if the user belongs under the hierarchy of any of the teams in the given team list.",
-      examples = {"inAnyTeam('marketing')"})
-  public boolean inAnyTeam(String... teams) {
-    for (String team : teams) {
-      if (subjectContext.isUserUnderTeam(team)) {
-        LOG.debug("inAnyTeam - User {} is under the team {}", subjectContext.getUser().getName(), team);
-        return true;
-      }
-      LOG.debug("inAnyTeam - User {} is not under the team {}", subjectContext.getUser().getName(), team);
-    }
-    return false;
-  }
-
-  @Function(
-      name = "hasAnyRole",
-      input = "List of comma separated roles",
-      description =
-          "Returns true if the user (either direct or inherited from the parent teams) has one or more roles "
-              + "from the list.",
-      examples = {"hasAnyRole('DataSteward', 'DataEngineer')"})
-  public boolean hasAnyRole(String... roles) {
-    for (String role : roles) {
-      if (subjectContext.hasAnyRole(role)) {
-        LOG.debug("hasAnyRole - User {} has the role {}", subjectContext.getUser().getName(), role);
-        return true;
-      }
-    }
-    return false;
   }
 }

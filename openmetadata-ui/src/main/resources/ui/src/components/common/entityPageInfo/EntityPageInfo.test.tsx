@@ -41,7 +41,7 @@ const onThreadLinkSelect = jest.fn();
 const mockTier = {
   tagFQN: 'Tier:Tier1',
   description: '',
-  source: 'Classification',
+  source: 'Tag',
   labelType: 'Manual',
   state: 'Confirmed',
 };
@@ -49,7 +49,7 @@ const mockTier = {
 const mockInfoTags = [
   {
     tagFQN: 'User.Biometric',
-    source: 'Classification',
+    source: 'Tag',
     labelType: 'Manual',
     state: 'Confirmed',
   },
@@ -122,7 +122,7 @@ jest.mock('../../../utils/EntityUtils', () => ({
 
 jest.mock('../../../utils/TagsUtils', () => ({
   fetchTagsAndGlossaryTerms: jest.fn().mockResolvedValue([
-    { fqn: 'PersonalData.Personal', source: 'Classification' },
+    { fqn: 'PersonalData.Personal', source: 'Tag' },
     { fqn: 'Glossary.Tag1', source: 'Glossary' },
   ]),
 }));

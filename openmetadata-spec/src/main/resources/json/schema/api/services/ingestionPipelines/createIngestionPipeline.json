@@ -33,12 +33,13 @@
       "$ref": "../../../metadataIngestion/workflow.json#/definitions/logLevels"
     },
     "service": {
-      "description": "Link to the service for which ingestion pipeline is ingesting the metadata.",
+      "description": "Link to the database service where this database is hosted in.",
       "$ref": "../../../type/entityReference.json"
     },
     "owner": {
       "description": "Owner of this Pipeline.",
-      "$ref": "../../../type/entityReference.json"
+      "$ref": "../../../type/entityReference.json",
+      "default": null
     }
   },
   "required": [

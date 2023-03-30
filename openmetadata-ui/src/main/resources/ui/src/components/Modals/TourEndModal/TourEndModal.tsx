@@ -37,7 +37,7 @@ const TourEndModal = ({ onSave, visible }: TourEndModalProps) => {
           <SVGIcons
             alt={t('label.open-metadata-logo')}
             icon={Icons.LOGO_SMALL}
-            width="70"
+            width="40"
           />
         </Col>
         <Col span={24}>

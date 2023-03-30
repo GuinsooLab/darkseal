@@ -7,6 +7,10 @@
   "javaType": "org.openmetadata.schema.entity.data.GlossaryTerm",
   "javaInterfaces": ["org.openmetadata.schema.EntityInterface"],
   "definitions": {
+    "name": {
+      "description": "Name that identifies a glossary term.",
+      "$ref": "../../type/basic.json#/definitions/entityName"
+    },
     "termReference": {
       "type": "object",
       "properties": {
@@ -35,7 +39,7 @@
     },
     "name": {
       "description": "Preferred name for the glossary term.",
-      "$ref": "../../type/basic.json#/definitions/entityName"
+      "$ref": "#/definitions/name"
     },
     "displayName": {
       "description": "Display Name that identifies this glossary.",
@@ -53,7 +57,7 @@
       "description": "Alternate names that are synonyms or near-synonyms for the glossary term.",
       "type": "array",
       "items": {
-        "$ref": "../../type/basic.json#/definitions/entityName"
+        "$ref": "#/definitions/name"
       }
     },
     "glossary": {

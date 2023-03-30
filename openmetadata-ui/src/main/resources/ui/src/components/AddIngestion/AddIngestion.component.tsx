@@ -11,8 +11,8 @@
  *  limitations under the License.
  */
 
-import { LOADING_STATE } from 'enums/common.enum';
 import { isEmpty, isUndefined, omit, trim } from 'lodash';
+import { LoadingState } from 'Models';
 import React, {
   Reducer,
   useCallback,
@@ -92,6 +92,7 @@ const AddIngestion = ({
   status,
 }: AddIngestionProps) => {
   const { t } = useTranslation();
+  console.log('data:', data);
   const { sourceConfig, sourceConfigType } = useMemo(
     () => ({
       sourceConfig: data?.sourceConfig.config as ConfigClass,
@@ -140,7 +141,6 @@ const AddIngestion = ({
         data?.name ?? getIngestionName(serviceData.name, pipelineType),
       ingestSampleData: sourceConfig?.generateSampleData ?? true,
       useFqnFilter: sourceConfig?.useFqnForFiltering ?? false,
-      processPii: sourceConfig?.processPiiSensitive ?? false,
       databaseServiceNames: sourceConfig?.dbServiceNames ?? [],
       description: data?.description ?? '',
       repeatFrequency:
@@ -171,7 +171,6 @@ const AddIngestion = ({
         : undefined,
       includeView: Boolean(sourceConfig?.includeViews),
       includeTags: Boolean(sourceConfig?.includeTags),
-      overrideOwner: Boolean(sourceConfig?.overrideOwner),
       includeLineage: Boolean(sourceConfig?.includeLineage ?? true),
       enableDebugLog: data?.loggerLevel === LogLevels.Debug,
       profileSample: sourceConfig?.profileSample,
@@ -204,9 +203,7 @@ const AddIngestion = ({
     Reducer<AddIngestionState, Partial<AddIngestionState>>
   >(reducerWithoutAction, initialState);
 
-  const [saveState, setSaveState] = useState<LOADING_STATE>(
-    LOADING_STATE.INITIAL
-  );
+  const [saveState, setSaveState] = useState<LoadingState>('initial');
   const [showDeployModal, setShowDeployModal] = useState(false);
 
   const handleStateChange = useCallback(
@@ -330,7 +327,6 @@ const AddIngestion = ({
       tableFilterPattern,
       topicFilterPattern,
       useFqnFilter,
-      overrideOwner,
     } = state;
 
     switch (serviceCategory) {
@@ -377,7 +373,6 @@ const AddIngestion = ({
             showDashboardFilter
           ),
           dbServiceNames: databaseServiceNames,
-          overrideOwner,
           type: ConfigType.DashboardMetadata,
         };
       }
@@ -424,7 +419,6 @@ const AddIngestion = ({
       tableFilterPattern,
       threadCount,
       timeoutSeconds,
-      processPii,
     } = state;
     switch (type) {
       case PipelineType.Usage: {
@@ -463,7 +457,6 @@ const AddIngestion = ({
           profileSampleType: profileSampleType,
           threadCount: threadCount,
           timeoutSeconds: timeoutSeconds,
-          processPiiSensitive: processPii,
         };
       }
 
@@ -498,7 +491,6 @@ const AddIngestion = ({
   };
 
   const createNewIngestion = () => {
-    setSaveState(LOADING_STATE.WAITING);
     const { repeatFrequency, enableDebugLog, ingestionName } = state;
     const ingestionDetails: CreateIngestionPipeline = {
       airflowConfig: {
@@ -539,7 +531,6 @@ const AddIngestion = ({
           // ignore since error is displayed in toast in the parent promise
         })
         .finally(() => {
-          setTimeout(() => setSaveState(LOADING_STATE.INITIAL), 500);
           setTimeout(() => setShowDeployModal(false), 500);
         });
     }
@@ -566,11 +557,11 @@ const AddIngestion = ({
       };
 
       if (onUpdateIngestion) {
-        setSaveState(LOADING_STATE.WAITING);
+        setSaveState('waiting');
         setShowDeployModal(true);
         onUpdateIngestion(updatedData, data, data.id as string, data.name)
           .then(() => {
-            setSaveState(LOADING_STATE.SUCCESS);
+            setSaveState('success');
             if (showSuccessScreen) {
               handleNext();
             } else {
@@ -578,7 +569,7 @@ const AddIngestion = ({
             }
           })
           .finally(() => {
-            setTimeout(() => setSaveState(LOADING_STATE.INITIAL), 500);
+            setTimeout(() => setSaveState('initial'), 500);
             setTimeout(() => setShowDeployModal(false), 500);
           });
       }
@@ -619,7 +610,7 @@ const AddIngestion = ({
     return (
       <span>
         <span className="tw-mr-1 tw-font-semibold">
-          {`"${state.ingestionName}"`}
+          &quot;{state.ingestionName}&quot;
         </span>
         <span>
           {status === FormSubmitType.ADD ? createMessage : updateMessage}

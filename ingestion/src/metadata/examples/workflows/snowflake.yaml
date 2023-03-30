@@ -13,7 +13,6 @@ source:
         private_key: private_key
   sourceConfig:
     config:
-      type: DatabaseMetadata
       schemaFilterPattern:
         excludes:
         - mysql.*

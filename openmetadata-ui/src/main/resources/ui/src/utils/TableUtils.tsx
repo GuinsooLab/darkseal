@@ -11,7 +11,7 @@
  *  limitations under the License.
  */
 
-import Icon from '@ant-design/icons';
+import Icon from '@ant-design/icons/lib/components/Icon';
 import { Tooltip } from 'antd';
 import { ExpandableConfig } from 'antd/lib/table/interface';
 import classNames from 'classnames';
@@ -22,15 +22,7 @@ import React from 'react';
 import { ReactComponent as DashboardIcon } from '../assets/svg/dashboard-grey.svg';
 import { ReactComponent as DragIcon } from '../assets/svg/drag.svg';
 import { ReactComponent as DropDownIcon } from '../assets/svg/DropDown.svg';
-import { ReactComponent as IconFailBadge } from '../assets/svg/fail-badge.svg';
-import { ReactComponent as IconForeignKey } from '../assets/svg/foriegnKey.svg';
 import { ReactComponent as RightArrowIcon } from '../assets/svg/ic-right-arrow.svg';
-import { ReactComponent as IconKey } from '../assets/svg/icon-key.svg';
-import { ReactComponent as IconNotNull } from '../assets/svg/icon-notnull.svg';
-import { ReactComponent as IconUnique } from '../assets/svg/icon-unique.svg';
-import { ReactComponent as IconPendingBadge } from '../assets/svg/pending-badge.svg';
-import { ReactComponent as IconSuccessBadge } from '../assets/svg/success-badge.svg';
-
 import { ReactComponent as MlModelIcon } from '../assets/svg/mlmodal.svg';
 import { ReactComponent as PipelineIcon } from '../assets/svg/pipeline-grey.svg';
 import { ReactComponent as TableIcon } from '../assets/svg/table-grey.svg';
@@ -63,9 +55,9 @@ import {
   getTableFQNFromColumnFQN,
   sortTagsCaseInsensitive,
 } from './CommonUtils';
-import { getContainerDetailPath } from './ContainerDetailUtils';
 import { getGlossaryPath, getSettingPath } from './RouterUtils';
 import { ordinalize } from './StringsUtils';
+import SVGIcons, { Icons } from './SvgUtils';
 
 export const getBadgeName = (tableType?: string) => {
   switch (tableType) {
@@ -91,7 +83,7 @@ export const getUsagePercentile = (pctRank: number, isLiteral = false) => {
   const ordinalPercentile = ordinalize(percentile);
   const usagePercentile = `${
     isLiteral ? t('label.usage') : ''
-  } ${ordinalPercentile} ${t('label.pctile-lowercase')}`;
+  } - ${ordinalPercentile} ${t('label.pctile-lowercase')}`;
 
   return usagePercentile;
 };
@@ -153,33 +145,33 @@ export const getConstraintIcon = (
   className = '',
   width = '16px'
 ) => {
-  let title: string, icon: SvgComponent;
+  let title: string, icon: string;
   switch (constraint) {
     case ConstraintTypes.PRIMARY_KEY:
       {
         title = t('label.primary-key');
-        icon = IconKey;
+        icon = Icons.KEY;
       }
 
       break;
     case ConstraintTypes.UNIQUE:
       {
         title = t('label.unique');
-        icon = IconUnique;
+        icon = Icons.UNIQUE;
       }
 
       break;
     case ConstraintTypes.NOT_NULL:
       {
         title = t('label.not-null');
-        icon = IconNotNull;
+        icon = Icons.NOT_NULL;
       }
 
       break;
     case ConstraintTypes.FOREIGN_KEY:
       {
         title = t('label.foreign-key');
-        icon = IconForeignKey;
+        icon = Icons.FOREGIN_KEY;
       }
 
       break;
@@ -193,7 +185,7 @@ export const getConstraintIcon = (
       placement="bottom"
       title={title}
       trigger="hover">
-      <Icon alt={title} component={icon} style={{ fontSize: width }} />
+      <SVGIcons alt={title} icon={icon} width={width} />
     </Tooltip>
   );
 };
@@ -245,10 +237,6 @@ export const getEntityLink = (
     case EntityType.MLMODEL:
     case SearchIndex.MLMODEL:
       return getMlModelPath(fullyQualifiedName);
-
-    case EntityType.CONTAINER:
-    case SearchIndex.CONTAINER:
-      return getContainerDetailPath(fullyQualifiedName);
 
     case SearchIndex.TABLE:
     case EntityType.TABLE:
@@ -368,16 +356,16 @@ export const getEntityFqnFromEntityLink = (
 export const getTestResultBadgeIcon = (status?: TestCaseStatus) => {
   switch (status) {
     case TestCaseStatus.Success:
-      return IconSuccessBadge;
+      return Icons.SUCCESS_BADGE;
 
     case TestCaseStatus.Failed:
-      return IconFailBadge;
+      return Icons.FAIL_BADGE;
 
     case TestCaseStatus.Aborted:
-      return IconPendingBadge;
+      return Icons.PENDING_BADGE;
 
     default:
-      return IconPendingBadge;
+      return '';
   }
 };
 

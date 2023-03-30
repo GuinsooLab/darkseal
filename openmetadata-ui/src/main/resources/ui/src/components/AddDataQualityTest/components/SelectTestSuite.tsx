@@ -24,7 +24,6 @@ import {
 } from 'antd';
 import { useForm } from 'antd/lib/form/Form';
 import { AxiosError } from 'axios';
-import { t } from 'i18next';
 import { isEmpty } from 'lodash';
 import React, { useEffect, useRef, useState } from 'react';
 import { useHistory, useParams } from 'react-router-dom';
@@ -35,6 +34,7 @@ import {
 } from '../../../constants/constants';
 import { TestSuite } from '../../../generated/tests/testSuite';
 import { useAuth } from '../../../hooks/authHooks';
+import jsonData from '../../../jsons/en';
 import SVGIcons, { Icons } from '../../../utils/SvgUtils';
 import { showErrorToast } from '../../../utils/ToastUtils';
 import { useAuthContext } from '../../authentication/auth-provider/AuthProvider';
@@ -132,15 +132,13 @@ const SelectTestSuite: React.FC<SelectTestSuiteProps> = ({
         }
       }}>
       <Form.Item
-        label={`${t('label.test-suite')}:`}
+        label="Test Suite:"
         name="testSuiteId"
         rules={[
           {
             required:
               !isNewTestSuite || !isEmpty(form.getFieldValue('testSuiteId')),
-            message: `${t('message.field-text-is-required', {
-              fieldText: t('label.test-suite'),
-            })}`,
+            message: 'Test suite is required',
           },
         ]}>
         <Select
@@ -148,9 +146,7 @@ const SelectTestSuite: React.FC<SelectTestSuiteProps> = ({
             label: suite.name,
             value: suite.id,
           }))}
-          placeholder={t('label.select-field', {
-            field: t('label.test-suite'),
-          })}
+          placeholder="Select test suite"
         />
       </Form.Item>
       {hasAccess && (
@@ -162,30 +158,24 @@ const SelectTestSuite: React.FC<SelectTestSuiteProps> = ({
               <Typography.Paragraph
                 className="text-base m-t-lg"
                 data-testid="new-test-title">
-                {t('label.new-test-suite')}
+                New Test Suite
               </Typography.Paragraph>
               <Form.Item
-                label={`${t('label.name')}:`}
+                label="Name:"
                 name="testSuiteName"
                 rules={[
                   {
                     required: isEmpty(form.getFieldValue('testSuiteId')),
-                    message: `${t('message.field-text-is-required', {
-                      fieldText: t('label.name'),
-                    })}`,
+                    message: 'Name is required!',
                   },
                   {
                     pattern: /^[A-Za-z0-9_]*$/g,
-                    message: t('message.special-character-not-allowed'),
+                    message: jsonData.label['special-character-error'],
                   },
                   {
                     validator: (_, value) => {
                       if (testSuites.some((suite) => suite.name === value)) {
-                        return Promise.reject(
-                          t('message.entity-already-exists', {
-                            entity: t('label.name'),
-                          })
-                        );
+                        return Promise.reject('Name already exist!');
                       }
 
                       return Promise.resolve();
@@ -194,11 +184,11 @@ const SelectTestSuite: React.FC<SelectTestSuiteProps> = ({
                 ]}>
                 <Input
                   data-testid="test-suite-name"
-                  placeholder={t('message.enter-test-suite-name')}
+                  placeholder="Enter test suite name"
                 />
               </Form.Item>
               <Form.Item
-                label={`${t('label.description')}:`}
+                label="Description:"
                 name="description"
                 rules={[
                   {
@@ -208,11 +198,7 @@ const SelectTestSuite: React.FC<SelectTestSuiteProps> = ({
                         isEmpty(getDescription()) &&
                         isEmpty(form.getFieldValue('testSuiteId'))
                       ) {
-                        return Promise.reject(
-                          `${t('message.field-text-is-required', {
-                            fieldText: t('label.description'),
-                          })}`
-                        );
+                        return Promise.reject('Description is required!');
                       }
 
                       return Promise.resolve();
@@ -243,9 +229,7 @@ const SelectTestSuite: React.FC<SelectTestSuiteProps> = ({
                   />
                 }
                 onClick={() => setIsNewTestSuite(true)}>
-                <span className="tw-text-primary">
-                  {t('label.create-new-test-suite')}
-                </span>
+                <span className="tw-text-primary">Create new test suite</span>
               </Button>
             </Row>
           )}
@@ -254,9 +238,9 @@ const SelectTestSuite: React.FC<SelectTestSuiteProps> = ({
 
       <Form.Item noStyle>
         <Space className="tw-w-full tw-justify-end" size={16}>
-          <Button onClick={handleCancelClick}>{t('label.cancel')}</Button>
+          <Button onClick={handleCancelClick}>Cancel</Button>
           <Button data-testid="next-button" htmlType="submit" type="primary">
-            {t('label.next')}
+            Next
           </Button>
         </Space>
       </Form.Item>

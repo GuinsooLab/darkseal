@@ -13,6 +13,8 @@
 
 package org.openmetadata.service.security.policyevaluator;
 
+import static org.openmetadata.common.utils.CommonUtil.listOrEmpty;
+
 import java.io.IOException;
 import java.util.List;
 import java.util.UUID;
@@ -24,7 +26,6 @@ import org.openmetadata.schema.type.Include;
 import org.openmetadata.schema.type.TagLabel;
 import org.openmetadata.service.Entity;
 import org.openmetadata.service.jdbi3.EntityRepository;
-import org.openmetadata.service.jdbi3.TestCaseRepository;
 import org.openmetadata.service.resources.feeds.MessageParser.EntityLink;
 import org.openmetadata.service.util.EntityUtil;
 
@@ -55,7 +56,7 @@ public class TestCaseResourceContext implements ResourceContextInterface {
   @Override
   public List<TagLabel> getTags() throws IOException {
     resolveEntity();
-    return entity == null ? null : Entity.getEntityTags(getResource(), entity);
+    return entity == null ? null : listOrEmpty(entity.getTags());
   }
 
   @Override
@@ -90,14 +91,14 @@ public class TestCaseResourceContext implements ResourceContextInterface {
   }
 
   private static EntityInterface resolveEntityById(UUID id) throws IOException {
-    TestCaseRepository dao = (TestCaseRepository) Entity.getEntityRepository(Entity.TEST_CASE);
+    EntityRepository<TestCase> dao = Entity.getEntityRepository(Entity.TEST_CASE);
     TestCase testCase = dao.get(null, id, dao.getFields("entityLink"), Include.ALL);
     return resolveEntityByEntityLink(EntityLink.parse(testCase.getEntityLink()));
   }
 
   private static EntityInterface resolveEntityByName(String fqn) throws IOException {
     if (fqn == null) return null;
-    TestCaseRepository dao = (TestCaseRepository) Entity.getEntityRepository(Entity.TEST_CASE);
+    EntityRepository<TestCase> dao = Entity.getEntityRepository(Entity.TEST_CASE);
     TestCase testCase = dao.getByName(null, fqn, dao.getFields("entityLink"), Include.ALL);
     return resolveEntityByEntityLink(EntityLink.parse(testCase.getEntityLink()));
   }

@@ -13,67 +13,50 @@
 
 import { t } from 'i18next';
 import React from 'react';
-import { ReactComponent as IconAllApplication } from '../../../assets/svg/ic-all-application.svg';
-import { ReactComponent as IconFolderPrimary } from '../../../assets/svg/ic-folder-primary.svg';
-import { ReactComponent as IconMentionsPrimary } from '../../../assets/svg/ic-mentions-primary.svg';
-import { ReactComponent as IconStarPrimary } from '../../../assets/svg/ic-star-primary.svg';
-
-import { ReactComponent as IconAnnouncementsBasicPrimary } from '../../../assets/svg/announcements-basic-primary.svg';
-import { ReactComponent as IconAllApplicationPrimary } from '../../../assets/svg/ic-all-application-primary.svg';
-import { ReactComponent as IconCommentPrimary } from '../../../assets/svg/ic-comment-grey-primary.svg';
-import { ReactComponent as IconTaskPrimary } from '../../../assets/svg/ic-task-primary.svg';
-
-import { ReactComponent as IconFolder } from '../../../assets/svg/ic-folder.svg';
-import { ReactComponent as IconMentions } from '../../../assets/svg/ic-mentions.svg';
-import { ReactComponent as IconStar } from '../../../assets/svg/ic-star.svg';
-
-import { ReactComponent as IconAnnouncementsBlack } from '../../../assets/svg/announcements-black.svg';
-import { ReactComponent as IconCommentGrey } from '../../../assets/svg/ic-comment-grey.svg';
-import { ReactComponent as IconTask } from '../../../assets/svg/ic-task.svg';
-
 import { FeedFilter } from '../../../enums/mydata.enum';
 import { ThreadType } from '../../../generated/entity/feed/thread';
+import SVGIcons, { Icons } from '../../../utils/SvgUtils';
 
 export const getFeedFilterDropdownIcon = (feedfilter: FeedFilter) => {
   switch (feedfilter) {
     case FeedFilter.OWNER:
       return (
-        <IconFolderPrimary
+        <SVGIcons
+          alt="My Data"
           className="m-r-xss"
-          height={16}
-          name="My Data"
-          width={16}
+          icon={Icons.FOLDER_PRIMARY}
+          width="16px"
         />
       );
 
     case FeedFilter.MENTIONS:
       return (
-        <IconMentionsPrimary
+        <SVGIcons
+          alt="Mentions"
           className="m-r-xss"
-          height={16}
-          name="Mentions"
-          width={16}
+          icon={Icons.MENTIONS_PRIMARY}
+          width="16px"
         />
       );
 
     case FeedFilter.FOLLOWS:
       return (
-        <IconStarPrimary
+        <SVGIcons
+          alt="Following"
           className="m-r-xss"
-          height={16}
-          name="Following"
-          width={16}
+          icon={Icons.STAR_PRIMARY}
+          width="16px"
         />
       );
 
     case FeedFilter.ALL:
     default:
       return (
-        <IconAllApplication
+        <SVGIcons
+          alt="All Activity"
           className="m-r-xss"
-          height={16}
-          name="All Activity"
-          width={16}
+          icon={Icons.ALL_APPLICATION_PRIMARY}
+          width="16px"
         />
       );
   }
@@ -83,42 +66,42 @@ export const getThreadFilterDropdownIcon = (threadType: ThreadType | 'ALL') => {
   switch (threadType) {
     case ThreadType.Announcement:
       return (
-        <IconAnnouncementsBasicPrimary
+        <SVGIcons
+          alt="Announcement"
           className="m-r-xss"
-          height={16}
-          name="Announcement"
-          width={16}
+          icon={Icons.ANNOUNCEMENT_BASIC_PRIMARY}
+          width="16px"
         />
       );
 
     case ThreadType.Conversation:
       return (
-        <IconCommentPrimary
+        <SVGIcons
+          alt="Conversation"
           className="m-r-xss"
-          height={16}
-          name="Conversation"
-          width={16}
+          icon={Icons.COMMENT_PRIMARY}
+          width="16px"
         />
       );
 
     case ThreadType.Task:
       return (
-        <IconTaskPrimary
+        <SVGIcons
+          alt="Task"
           className="m-r-xss"
-          height={16}
-          name="Task"
-          width={16}
+          icon={Icons.TASK_PRIMARY}
+          width="16px"
         />
       );
 
     case 'ALL':
     default:
       return (
-        <IconAllApplicationPrimary
+        <SVGIcons
+          alt="All Threads"
           className="m-r-xss"
-          height={16}
-          name="All Threads"
-          width={16}
+          icon={Icons.ALL_APPLICATION_PRIMARY}
+          width="16px"
         />
       );
   }
@@ -129,11 +112,11 @@ export const filterList = [
     name: t('label.all-activity'),
     value: 'ALL',
     icon: (
-      <IconAllApplication
+      <SVGIcons
+        alt="All Activity"
         className="m-r-xs"
-        height={16}
-        name="All Activity"
-        width={16}
+        icon={Icons.ALL_APPLICATION}
+        width="16px"
       />
     ),
   },
@@ -141,21 +124,36 @@ export const filterList = [
     name: t('label.my-data'),
     value: 'OWNER',
     icon: (
-      <IconFolder className="m-r-xs" height={16} name="My Data" width={16} />
+      <SVGIcons
+        alt="My Data"
+        className="m-r-xs"
+        icon={Icons.FOLDER}
+        width="16px"
+      />
     ),
   },
   {
     name: t('label.mention-plural'),
     value: 'MENTIONS',
     icon: (
-      <IconMentions className="m-r-xs" height={16} name="Mentions" width={16} />
+      <SVGIcons
+        alt="Mentions"
+        className="m-r-xs"
+        icon={Icons.MENTIONS}
+        width="16px"
+      />
     ),
   },
   {
     name: t('label.following'),
     value: 'FOLLOWS',
     icon: (
-      <IconStar className="m-r-xs" height={16} name="Following" width={16} />
+      <SVGIcons
+        alt="Following"
+        className="m-r-xs"
+        icon={Icons.STAR}
+        width="16px"
+      />
     ),
   },
 ];
@@ -165,28 +163,30 @@ export const threadFilterList = [
     name: t('label.all-threads'),
     value: 'ALL',
     icon: (
-      <IconAllApplication
+      <SVGIcons
+        alt="All Threads"
         className="m-r-xs"
-        height={16}
-        name="All Activity"
-        width={16}
+        icon={Icons.ALL_APPLICATION}
+        width="16px"
       />
     ),
   },
   {
     name: t('label.task'),
     value: 'Task',
-    icon: <IconTask className="m-r-xs" height={16} name="Task" width={16} />,
+    icon: (
+      <SVGIcons alt="Task" className="m-r-xs" icon={Icons.TASK} width="16px" />
+    ),
   },
   {
     name: t('label.conversation'),
     value: 'Conversation',
     icon: (
-      <IconCommentGrey
+      <SVGIcons
+        alt="Conversation"
         className="m-r-xs"
-        height={16}
-        name="Conversation"
-        width={16}
+        icon={Icons.COMMENT_GREY}
+        width="16px"
       />
     ),
   },
@@ -194,11 +194,11 @@ export const threadFilterList = [
     name: t('label.announcement'),
     value: 'Announcement',
     icon: (
-      <IconAnnouncementsBlack
+      <SVGIcons
+        alt="Announcement"
         className="m-r-xs"
-        height={16}
-        name="Announcement"
-        width={16}
+        icon={Icons.ANNOUNCEMENT_BLACK}
+        width="16px"
       />
     ),
   },

@@ -208,12 +208,9 @@ describe('Test DashboardDetails component', () => {
     const EntityPageInfo = await findByText(container, /EntityPageInfo/i);
     const description = await findByText(container, /Description Component/i);
     const tabs = await findByTestId(container, 'tabs');
-    const detailsTab = await findByTestId(tabs, 'label.detail-plural');
-    const activityFeedTab = await findByTestId(
-      tabs,
-      'label.activity-feed-and-task-plural'
-    );
-    const lineageTab = await findByTestId(tabs, 'label.lineage');
+    const detailsTab = await findByTestId(tabs, 'Details');
+    const activityFeedTab = await findByTestId(tabs, 'Activity Feeds & Tasks');
+    const lineageTab = await findByTestId(tabs, 'Lineage');
 
     expect(EntityPageInfo).toBeInTheDocument();
     expect(description).toBeInTheDocument();

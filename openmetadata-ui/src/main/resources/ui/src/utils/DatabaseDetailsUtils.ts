@@ -16,7 +16,7 @@ import { TabSpecificField } from '../enums/entity.enum';
 
 export const databaseDetailsTabs = [
   {
-    name: i18next.t('label.schema-plural'),
+    name: i18next.t('label.schemas'),
     path: 'schemas',
   },
   {

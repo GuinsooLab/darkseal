@@ -24,7 +24,6 @@ import org.openmetadata.schema.type.ChangeDescription;
 import org.openmetadata.schema.type.EntityReference;
 import org.openmetadata.schema.type.ProviderType;
 import org.openmetadata.schema.type.TagLabel;
-import org.openmetadata.schema.type.Votes;
 
 /** Interface to be implemented by all entities to provide a way to access all the common fields. */
 public interface EntityInterface {
@@ -67,10 +66,6 @@ public interface EntityInterface {
   }
 
   default List<EntityReference> getFollowers() {
-    return null;
-  }
-
-  default Votes getVotes() {
     return null;
   }
 

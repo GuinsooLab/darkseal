@@ -11,14 +11,8 @@
  *  limitations under the License.
  */
 
-import {
-  CheckCircleOutlined,
-  CheckOutlined,
-  DownOutlined,
-  RightOutlined,
-} from '@ant-design/icons';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import classNames from 'classnames';
-import { t } from 'i18next';
 import React, { FunctionComponent } from 'react';
 import { Button } from '../../buttons/Button/Button';
 import RichTextEditorPreviewer from '../../common/rich-text-editor/RichTextEditorPreviewer';
@@ -63,16 +57,16 @@ const CardListItem: FunctionComponent<Props> = ({
         );
 
       case 'success':
-        return <CheckOutlined />;
+        return <FontAwesomeIcon icon="check" />;
 
       default:
         return (
           <Button
-            data-testid="select-tier-button"
+            data-testid="select-tier-buuton"
             size="small"
             theme="primary"
             onClick={() => onSave(tier)}>
-            {t('label.select')}
+            Select
           </Button>
         );
     }
@@ -80,20 +74,20 @@ const CardListItem: FunctionComponent<Props> = ({
 
   const getCardIcon = (cardId: string) => {
     if (isSelected && isActive) {
-      return <CheckCircleOutlined className="tw-text-h4" />;
+      return <FontAwesomeIcon className="tw-text-h4" icon="check-circle" />;
     } else if (isSelected) {
-      return <CheckCircleOutlined className="tw-text-h4" />;
+      return <FontAwesomeIcon className="tw-text-h4" icon="check-circle" />;
     } else if (isActive) {
       return getTierSelectButton(cardId);
     } else {
       return (
         <Button
-          data-testid="select-tier-button"
+          data-testid="select-tier-buuton"
           size="small"
           theme="primary"
           variant="outlined"
           onClick={() => onSave(cardId)}>
-          {t('label.select')}
+          Select
         </Button>
       );
     }
@@ -116,11 +110,10 @@ const CardListItem: FunctionComponent<Props> = ({
         )}>
         <div className="tw-flex">
           <div className="tw-self-start tw-mr-2">
-            {isActive ? (
-              <DownOutlined className="tw-text-xs" />
-            ) : (
-              <RightOutlined className="tw-text-xs" />
-            )}
+            <FontAwesomeIcon
+              className="tw-text-xs"
+              icon={isActive ? 'chevron-down' : 'chevron-right'}
+            />
           </div>
           <div className="tw-flex tw-flex-col">
             <p className={cardStyle.header.title}>{card.title}</p>

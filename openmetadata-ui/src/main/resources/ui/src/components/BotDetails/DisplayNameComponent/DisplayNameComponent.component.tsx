@@ -11,7 +11,7 @@
  *  limitations under the License.
  */
 
-import { CheckOutlined, CloseOutlined } from '@ant-design/icons';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { Button, Input, Space, Typography } from 'antd';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
@@ -47,7 +47,7 @@ const DisplayNameComponent = ({
             <Button
               className="text-sm mr-1"
               data-testid="cancel-displayName"
-              icon={<CloseOutlined />}
+              icon={<FontAwesomeIcon className="w-3.5 h-3.5" icon="times" />}
               size="small"
               type="primary"
               onMouseDown={() => setIsDisplayNameEdit(false)}
@@ -56,7 +56,7 @@ const DisplayNameComponent = ({
             <Button
               className="text-sm mr-1"
               data-testid="save-displayName"
-              icon={<CheckOutlined />}
+              icon={<FontAwesomeIcon className="w-3.5 h-3.5" icon="check" />}
               size="small"
               type="primary"
               onClick={handleDisplayNameChange}
@@ -72,7 +72,7 @@ const DisplayNameComponent = ({
           ) : (
             <Typography.Text className="add-display-name">
               {t('label.add-entity', {
-                entity: t('label.display-name'),
+                entity: t('label.display-name-lowercase'),
               })}
             </Typography.Text>
           )}

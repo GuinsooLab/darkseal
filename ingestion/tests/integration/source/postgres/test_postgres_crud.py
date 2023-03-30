@@ -85,7 +85,7 @@ def test_create_table_service(catalog_service):
 
     create_database_request = CreateDatabaseRequest(
         name=database_name,
-        service=postgres_dbservice.fullyQualifiedName,
+        service=EntityReference(id=postgres_dbservice.id, type="databaseService"),
     )
     created_database = client.create_database(create_database_request)
     db_ref = EntityReference(

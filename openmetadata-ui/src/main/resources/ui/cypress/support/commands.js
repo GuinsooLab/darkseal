@@ -77,11 +77,10 @@ Cypress.Commands.add('loginByGoogleApi', () => {
   });
 });
 
-Cypress.Commands.add('goToHomePage', (doNotNavigate) => {
-  interceptURL('GET', '/api/v1/system/entities/count', 'entitiesCount');
+Cypress.Commands.add('goToHomePage', () => {
+  interceptURL('GET', '/api/v1/util/entities/count', 'count');
   interceptURL('GET', '/api/v1/feed*', 'feed');
-  interceptURL('GET', '/api/v1/users/*?fields=*', 'userProfile');
-  !doNotNavigate && cy.visit('/');
+  interceptURL('GET', '/api/v1/users/name/*?fields=*', 'userProfile');
   cy.get('[data-testid="whats-new-dialog"]')
     .should('exist')
     .then(() => {
@@ -89,7 +88,7 @@ Cypress.Commands.add('goToHomePage', (doNotNavigate) => {
     });
   cy.get('[data-testid="closeWhatsNew"]').click();
   cy.get('[data-testid="whats-new-dialog"]').should('not.exist');
-  verifyResponseStatusCode('@entitiesCount', 200);
+  verifyResponseStatusCode('@count', 200);
   verifyResponseStatusCode('@feed', 200);
   verifyResponseStatusCode('@userProfile', 200);
 });
@@ -129,5 +128,6 @@ Cypress.Commands.add('storeSession', (username, password) => {
 
 Cypress.Commands.add('login', () => {
   cy.storeSession(LOGIN.username, LOGIN.password);
+  cy.visit('/');
   cy.goToHomePage();
 });

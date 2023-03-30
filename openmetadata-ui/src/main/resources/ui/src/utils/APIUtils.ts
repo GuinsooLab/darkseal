@@ -25,7 +25,6 @@ export type SearchEntityHits = SearchResponse<
   | SearchIndex.TABLE
   | SearchIndex.MLMODEL
   | SearchIndex.TOPIC
-  | SearchIndex.CONTAINER
 >['hits']['hits'];
 
 // if more value is added, also update its interface file at -> interface/types.d.ts
@@ -86,7 +85,6 @@ export const formatUsersResponse = (
     return {
       name: d._source.name,
       displayName: d._source.displayName,
-      fullyQualifiedName: d._source.fullyQualifiedName,
       email: d._source.email,
       type: d._source.entityType,
       id: d._source.id,

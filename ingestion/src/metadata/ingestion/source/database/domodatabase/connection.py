@@ -12,19 +12,12 @@
 """
 Source connection handler
 """
-from functools import partial
-
 from pydomo import Domo
 
 from metadata.generated.schema.entity.services.connections.database.domoDatabaseConnection import (
     DomoDatabaseConnection,
 )
-from metadata.ingestion.connections.test_connections import (
-    SourceConnectionException,
-    TestConnectionResult,
-    TestConnectionStep,
-    test_connection_steps,
-)
+from metadata.ingestion.connections.test_connections import SourceConnectionException
 
 
 def get_connection(connection: DomoDatabaseConnection) -> Domo:
@@ -43,20 +36,12 @@ def get_connection(connection: DomoDatabaseConnection) -> Domo:
         raise SourceConnectionException(msg)
 
 
-def test_connection(domo: Domo, _) -> TestConnectionResult:
+def test_connection(domo: Domo) -> None:
     """
     Test connection
     """
-
-    def custom_executor():
-        result = domo.datasets.list()
-        return list(result)
-
-    steps = [
-        TestConnectionStep(
-            function=partial(custom_executor),
-            name="Get Tables",
-        ),
-    ]
-
-    return test_connection_steps(steps)
+    try:
+        domo.datasets.list()
+    except Exception as exc:
+        msg = f"Unknown error connecting with {domo}: {exc}."
+        raise SourceConnectionException(msg)

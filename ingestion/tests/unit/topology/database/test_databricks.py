@@ -16,7 +16,6 @@ from metadata.generated.schema.entity.services.databaseService import (
 from metadata.generated.schema.metadataIngestion.workflow import (
     OpenMetadataWorkflowConfig,
 )
-from metadata.generated.schema.type.basic import FullyQualifiedEntityName
 from metadata.generated.schema.type.entityReference import EntityReference
 from metadata.ingestion.source.database.databricks.metadata import DatabricksSource
 
@@ -97,6 +96,18 @@ MOCK_DATABASE_SERVICE = DatabaseService(
     serviceType=DatabaseServiceType.Databricks,
 )
 
+# MOCK_DATABASE = Database(
+#     id="a4e2f4aa-10af-4d4b-a85b-5daad6f70720",
+#     name="hive_metastore",
+#     fullyQualifiedName="local_databricks.hive_metastore",
+#     displayName="hive_metastore",
+#     description="",
+#     service=EntityReference(
+#         id="85811038-099a-11ed-861d-0242ac1204f7h",
+#         type="databaseService",
+#     ),
+# )
+
 MOCK_DATABASE = Database(
     id="a4e2f4aa-10af-4d4b-a85b-5daad6f70720",
     name="hive_metastore",
@@ -126,7 +137,16 @@ EXPTECTED_DATABASE_SCHEMA = [
         displayName=None,
         description=None,
         owner=None,
-        database="local_databricks.hive_metastore",
+        database=EntityReference(
+            id="a4e2f4aa-10af-4d4b-a85b-5daad6f70720",
+            type="database",
+            name=None,
+            fullyQualifiedName=None,
+            description=None,
+            displayName=None,
+            deleted=None,
+            href=None,
+        ),
     )
 ]
 
@@ -219,8 +239,15 @@ EXPTECTED_TABLE = [
         tablePartition=None,
         tableProfilerConfig=None,
         owner=None,
-        databaseSchema=FullyQualifiedEntityName(
-            __root__="local_databricks.hive_metastore.do_it_all_with_default_schema"
+        databaseSchema=EntityReference(
+            id="2d725b6e-1588-4814-9d8b-eff384cd105b",
+            type="databaseSchema",
+            name=None,
+            fullyQualifiedName=None,
+            description=None,
+            displayName=None,
+            deleted=None,
+            href=None,
         ),
         tags=None,
         viewDefinition=None,

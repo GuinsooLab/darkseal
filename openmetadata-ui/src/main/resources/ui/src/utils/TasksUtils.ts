@@ -22,7 +22,6 @@ import {
   TaskActionMode,
 } from 'pages/TasksPage/TasksPage.interface';
 import { getDashboardByFqn } from 'rest/dashboardAPI';
-import { getDatabaseSchemaDetailsByFQN } from 'rest/databaseAPI';
 import { getUserSuggestions } from 'rest/miscAPI';
 import { getMlModelByFQN } from 'rest/mlModelAPI';
 import { getPipelineByFqn } from 'rest/pipelineAPI';
@@ -41,11 +40,9 @@ import { EntityType, FqnPart, TabSpecificField } from '../enums/entity.enum';
 import { ServiceCategory } from '../enums/service.enum';
 import { Column, Table } from '../generated/entity/data/table';
 import { TaskType } from '../generated/entity/feed/thread';
-import { getPartialNameFromTableFQN } from './CommonUtils';
+import { getEntityName, getPartialNameFromTableFQN } from './CommonUtils';
 import { defaultFields as DashboardFields } from './DashboardDetailsUtils';
-import { defaultFields as DatabaseSchemaFields } from './DatabaseSchemaDetailsUtils';
 import { defaultFields as TableFields } from './DatasetDetailsUtils';
-import { getEntityName } from './EntityUtils';
 import { defaultFields as MlModelFields } from './MlModelDetailsUtils';
 import { defaultFields as PipelineFields } from './PipelineDetailsUtils';
 import { serviceTypeLogo } from './ServiceUtils';
@@ -188,7 +185,6 @@ export const TASK_ENTITIES = [
   EntityType.TOPIC,
   EntityType.PIPELINE,
   EntityType.MLMODEL,
-  EntityType.DATABASE_SCHEMA,
 ];
 
 export const getBreadCrumbList = (
@@ -258,14 +254,6 @@ export const getBreadCrumbList = (
       return [service(ServiceCategory.ML_MODEL_SERVICES), activeEntity];
     }
 
-    case EntityType.DATABASE_SCHEMA: {
-      return [
-        service(ServiceCategory.DATABASE_SERVICES),
-        database,
-        activeEntity,
-      ];
-    }
-
     default:
       return [];
   }
@@ -311,15 +299,6 @@ export const fetchEntityDetail = (
       break;
     case EntityType.MLMODEL:
       getMlModelByFQN(entityFQN, MlModelFields)
-        .then((res) => {
-          setEntityData(res);
-        })
-        .catch((err: AxiosError) => showErrorToast(err));
-
-      break;
-
-    case EntityType.DATABASE_SCHEMA:
-      getDatabaseSchemaDetailsByFQN(entityFQN, DatabaseSchemaFields)
         .then((res) => {
           setEntityData(res);
         })

@@ -17,15 +17,12 @@ import static org.openmetadata.common.utils.CommonUtil.nullOrEmpty;
 import static org.openmetadata.service.Entity.FIELD_DISPLAY_NAME;
 import static org.openmetadata.service.Entity.FIELD_NAME;
 import static org.openmetadata.service.Entity.FIELD_OWNER;
-import static org.openmetadata.service.Entity.INGESTION_PIPELINE;
 import static org.openmetadata.service.Entity.KPI;
 import static org.openmetadata.service.Entity.TEST_CASE;
 
 import java.net.URI;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
@@ -48,7 +45,6 @@ import org.openmetadata.schema.EntityInterface;
 import org.openmetadata.schema.dataInsight.kpi.Kpi;
 import org.openmetadata.schema.dataInsight.type.KpiResult;
 import org.openmetadata.schema.dataInsight.type.KpiTarget;
-import org.openmetadata.schema.entity.services.ingestionPipelines.PipelineStatus;
 import org.openmetadata.schema.tests.TestCase;
 import org.openmetadata.schema.tests.type.TestCaseResult;
 import org.openmetadata.schema.type.ChangeDescription;
@@ -56,11 +52,10 @@ import org.openmetadata.schema.type.ChangeEvent;
 import org.openmetadata.schema.type.EntityReference;
 import org.openmetadata.schema.type.FieldChange;
 import org.openmetadata.service.Entity;
-import org.openmetadata.service.events.subscription.emailAlert.EmailMessage;
-import org.openmetadata.service.events.subscription.gchat.GChatMessage;
-import org.openmetadata.service.events.subscription.msteams.TeamsMessage;
-import org.openmetadata.service.events.subscription.slack.SlackAttachment;
-import org.openmetadata.service.events.subscription.slack.SlackMessage;
+import org.openmetadata.service.alerts.emailAlert.EmailMessage;
+import org.openmetadata.service.alerts.msteams.TeamsMessage;
+import org.openmetadata.service.alerts.slack.SlackAttachment;
+import org.openmetadata.service.alerts.slack.SlackMessage;
 import org.openmetadata.service.resources.feeds.MessageParser.EntityLink;
 
 public final class ChangeEventParser {
@@ -86,7 +81,6 @@ public final class ChangeEventParser {
     FEED,
     SLACK,
     TEAMS,
-    GCHAT,
     EMAIL
   }
 
@@ -98,8 +92,6 @@ public final class ChangeEventParser {
         return FEED_BOLD;
       case SLACK:
         return SLACK_BOLD;
-      case GCHAT:
-        return "<b>%s</b>";
       default:
         return "INVALID";
     }
@@ -109,8 +101,7 @@ public final class ChangeEventParser {
     switch (publishTo) {
       case FEED:
       case TEAMS:
-      case GCHAT:
-        // TEAMS, GCHAT, FEED linebreak formatting are same
+        // TEAMS and FEED bold formatting is same
         return FEED_LINE_BREAK;
       case SLACK:
         return SLACK_LINE_BREAK;
@@ -124,11 +115,10 @@ public final class ChangeEventParser {
       case FEED:
         return FEED_SPAN_ADD;
       case TEAMS:
+        // TEAMS and FEED bold formatting is same
         return "**";
       case SLACK:
         return "*";
-      case GCHAT:
-        return "<b>";
       default:
         return "INVALID";
     }
@@ -139,11 +129,10 @@ public final class ChangeEventParser {
       case FEED:
         return FEED_SPAN_CLOSE;
       case TEAMS:
+        // TEAMS and FEED bold formatting is same
         return "** ";
       case SLACK:
         return "*";
-      case GCHAT:
-        return "</b>";
       default:
         return "INVALID";
     }
@@ -154,11 +143,10 @@ public final class ChangeEventParser {
       case FEED:
         return FEED_SPAN_REMOVE;
       case TEAMS:
+        // TEAMS and FEED bold formatting is same
         return "~~";
       case SLACK:
         return "~";
-      case GCHAT:
-        return "<s>";
       default:
         return "INVALID";
     }
@@ -169,37 +157,28 @@ public final class ChangeEventParser {
       case FEED:
         return FEED_SPAN_CLOSE;
       case TEAMS:
+        // TEAMS and FEED bold formatting is same
         return "~~ ";
       case SLACK:
         return "~";
-      case GCHAT:
-        return "</s>";
       default:
         return "INVALID";
     }
   }
 
   public static String getEntityUrl(PUBLISH_TO publishTo, ChangeEvent event) {
-    String fqn;
-    String entityType;
     EntityInterface entity = (EntityInterface) event.getEntity();
     URI urlInstance = entity.getHref();
-    if (entity instanceof TestCase) {
-      fqn = ((TestCase) entity).getTestSuite().getFullyQualifiedName();
-      entityType = "test-suites";
-    } else {
-      fqn = event.getEntityFullyQualifiedName();
-      entityType = event.getEntityType();
-    }
+    String fqn = event.getEntityFullyQualifiedName();
     if (Objects.nonNull(urlInstance)) {
       String scheme = urlInstance.getScheme();
       String host = urlInstance.getHost();
-      if (publishTo == PUBLISH_TO.SLACK || publishTo == PUBLISH_TO.GCHAT) {
-        return String.format("<%s://%s/%s/%s|%s>", scheme, host, entityType, fqn, fqn);
+      if (publishTo == PUBLISH_TO.SLACK) {
+        return String.format("<%s://%s/%s/%s|%s>", scheme, host, event.getEntityType(), fqn, fqn);
       } else if (publishTo == PUBLISH_TO.TEAMS) {
-        return String.format("[%s](%s://%s/%s/%s)", fqn, scheme, host, entityType, fqn);
+        return String.format("[%s](%s://%s/%s/%s)", fqn, scheme, host, event.getEntityType(), fqn);
       } else if (publishTo == PUBLISH_TO.EMAIL) {
-        return String.format("%s://%s/%s/%s", scheme, host, entityType, fqn);
+        return String.format("%s://%s/%s/%s", scheme, host, event.getEntityType(), fqn);
       }
     }
     return "";
@@ -209,13 +188,7 @@ public final class ChangeEventParser {
     SlackMessage slackMessage = new SlackMessage();
     slackMessage.setUsername(event.getUserName());
     if (event.getEntity() != null) {
-      String eventType;
-      if ((EntityInterface) event.getEntity() instanceof TestCase) {
-        eventType = "testSuite";
-      } else {
-        eventType = event.getEntityType();
-      }
-      String headerTxt = "%s posted on " + eventType + " %s";
+      String headerTxt = "%s posted on " + event.getEntityType() + " %s";
       String headerText = String.format(headerTxt, event.getUserName(), getEntityUrl(PUBLISH_TO.SLACK, event));
       slackMessage.setText(headerText);
     }
@@ -273,42 +246,6 @@ public final class ChangeEventParser {
     return teamsMessage;
   }
 
-  public static GChatMessage buildGChatMessage(ChangeEvent event) {
-    GChatMessage gChatMessage = new GChatMessage();
-    GChatMessage.CardsV2 cardsV2 = new GChatMessage.CardsV2();
-    GChatMessage.Card card = new GChatMessage.Card();
-    GChatMessage.Section section = new GChatMessage.Section();
-    if (event.getEntity() != null) {
-      String headerTemplate = "%s posted on %s %s";
-      String headerText =
-          String.format(
-              headerTemplate, event.getUserName(), event.getEntityType(), getEntityUrl(PUBLISH_TO.GCHAT, event));
-      gChatMessage.setText(headerText);
-      GChatMessage.CardHeader cardHeader = new GChatMessage.CardHeader();
-      String cardHeaderText =
-          String.format(
-              headerTemplate,
-              event.getUserName(),
-              event.getEntityType(),
-              ((EntityInterface) event.getEntity()).getName());
-      cardHeader.setTitle(cardHeaderText);
-      card.setHeader(cardHeader);
-    }
-    Map<EntityLink, String> messages =
-        getFormattedMessages(PUBLISH_TO.GCHAT, event.getChangeDescription(), (EntityInterface) event.getEntity());
-    List<GChatMessage.Widget> widgets = new ArrayList<>();
-    for (Entry<EntityLink, String> entry : messages.entrySet()) {
-      GChatMessage.Widget widget = new GChatMessage.Widget();
-      widget.setTextParagraph(new GChatMessage.TextParagraph(entry.getValue()));
-      widgets.add(widget);
-    }
-    section.setWidgets(widgets);
-    card.setSections(List.of(section));
-    cardsV2.setCard(card);
-    gChatMessage.setCardsV2(List.of(cardsV2));
-    return gChatMessage;
-  }
-
   public static Map<EntityLink, String> getFormattedMessages(
       PUBLISH_TO publishTo, ChangeDescription changeDescription, EntityInterface entity) {
     // Store a map of entityLink -> message
@@ -341,10 +278,6 @@ public final class ChangeEventParser {
         messages.put(link, message);
       } else if (link.getEntityType().equals(KPI) && link.getFieldName().equals("kpiResult")) {
         String message = handleKpiResult(publishTo, entity, link, field.getOldValue(), field.getNewValue());
-        messages.put(link, message);
-      } else if (link.getEntityType().equals(INGESTION_PIPELINE) && link.getFieldName().equals("pipelineStatus")) {
-        String message =
-            handleIngestionPipelineResult(publishTo, entity, link, field.getOldValue(), field.getNewValue());
         messages.put(link, message);
       } else if (!fieldName.equals("failureDetails")) {
         String message = createMessageForField(publishTo, link, changeType, fieldName, oldFieldValue, newFieldValue);
@@ -608,10 +541,10 @@ public final class ChangeEventParser {
     if (result != null) {
       String format =
           String.format(
-              "Test Case status for %s against table/column %s is %s in test suite %s",
+              "Test Case %s is %s in %s/%s",
+              getBold(publishTo),
               getBold(publishTo),
               EntityLink.parse(testCaseEntity.getEntityLink()).getEntityFQN(),
-              getBold(publishTo),
               testCaseEntity.getTestSuite().getName());
       return String.format(format, testCaseName, result.getTestCaseStatus());
     } else {
@@ -622,20 +555,6 @@ public final class ChangeEventParser {
               EntityLink.parse(testCaseEntity.getEntityLink()).getEntityFQN(),
               testCaseEntity.getTestSuite().getName());
       return String.format(format, testCaseName);
-    }
-  }
-
-  public static String handleIngestionPipelineResult(
-      PUBLISH_TO publishTo, EntityInterface entity, EntityLink link, Object oldValue, Object newValue) {
-    String ingestionPipelineName = entity.getName();
-    PipelineStatus status = (PipelineStatus) newValue;
-    if (status != null) {
-      String date = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss").format(new Date(status.getEndDate()));
-      String format = String.format("Ingestion Pipeline %s %s at %s", getBold(publishTo), getBold(publishTo), date);
-      return String.format(format, ingestionPipelineName, status.getPipelineState());
-    } else {
-      String format = String.format("Ingestion Pipeline %s is updated", getBold(publishTo));
-      return String.format(format, ingestionPipelineName);
     }
   }
 

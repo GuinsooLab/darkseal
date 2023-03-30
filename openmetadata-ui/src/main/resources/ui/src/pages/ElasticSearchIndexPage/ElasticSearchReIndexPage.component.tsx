@@ -135,7 +135,7 @@ const ElasticSearchIndexPage = () => {
       <Col span={24}>
         <PageHeader
           data={{
-            header: t('label.elasticsearch'),
+            header: t('label.elastic-search'),
             subHeader: t('message.elastic-search-message'),
           }}
         />
@@ -152,7 +152,7 @@ const ElasticSearchIndexPage = () => {
                       disabled={batchLoading}
                       icon={<ReloadOutlined />}
                       size="small"
-                      title={t('label.refresh-log')}
+                      title="Refresh log"
                       onClick={fetchBatchReIndexedData}
                     />
                     <Button
@@ -161,29 +161,25 @@ const ElasticSearchIndexPage = () => {
                       size="small"
                       type="primary"
                       onClick={() => setModalOpen(true)}>
-                      {t('label.re-index-all')}
+                      Re Index All
                     </Button>
                   </Space>
                 }
                 loading={batchLoading}
                 size="small"
-                title={t('label.elasticsearch')}>
+                title="ElasticSearch">
                 <Row gutter={[16, 8]}>
                   <Col span={24}>
                     <Space wrap direction="horizontal" size={0}>
                       <div className="flex">
-                        <span className="text-grey-muted">{`${t(
-                          'label.mode'
-                        )}:`}</span>
+                        <span className="text-grey-muted">Mode</span> :
                         <span className="m-l-xs">
                           {startCase(batchJobData?.runMode) || '--'}
                         </span>
                       </div>
                       <Divider type="vertical" />
                       <div className="flex">
-                        <span className="text-grey-muted">{`${t(
-                          'label.status'
-                        )}:`}</span>
+                        <span className="text-grey-muted">Status</span> :
                         <span className="m-l-xs">
                           <Space size={8}>
                             {batchJobData?.status && (
@@ -205,9 +201,7 @@ const ElasticSearchIndexPage = () => {
                       </div>
                       <Divider type="vertical" />
                       <div className="flex">
-                        <span className="text-grey-muted">{`${t(
-                          'label.index-states'
-                        )}:`}</span>
+                        <span className="text-grey-muted">Index stats</span> :
                         <span className="m-l-xs">
                           {!isEmpty(batchJobData) ? (
                             <Space size={8}>
@@ -215,18 +209,14 @@ const ElasticSearchIndexPage = () => {
                                 className="request-badge running"
                                 count={batchJobData?.stats?.total}
                                 overflowCount={99999999}
-                                title={`${t('label.total-index-sent')}: ${
-                                  batchJobData?.stats?.total
-                                }`}
+                                title={`Total index sent: ${batchJobData?.stats?.total}`}
                               />
 
                               <Badge
                                 className="request-badge success"
                                 count={batchJobData?.stats?.success}
                                 overflowCount={99999999}
-                                title={`${t('label.entity-index', {
-                                  entity: t('label.success'),
-                                })}: ${batchJobData?.stats?.success}`}
+                                title={`Success index: ${batchJobData?.stats?.success}`}
                               />
 
                               <Badge
@@ -234,9 +224,7 @@ const ElasticSearchIndexPage = () => {
                                 className="request-badge failed"
                                 count={batchJobData?.stats?.failed}
                                 overflowCount={99999999}
-                                title={`${t('label.entity-index', {
-                                  entity: t('label.failed'),
-                                })}: ${batchJobData?.stats?.failed}`}
+                                title={`Failed index: ${batchJobData?.stats?.failed}`}
                               />
                             </Space>
                           ) : (
@@ -246,9 +234,7 @@ const ElasticSearchIndexPage = () => {
                       </div>
                       <Divider type="vertical" />
                       <div className="flex">
-                        <span className="text-grey-muted">{`${t(
-                          'label.last-updated'
-                        )}:`}</span>
+                        <span className="text-grey-muted">Last Updated</span> :
                         <span className="m-l-xs">
                           {batchJobData?.timestamp
                             ? getDateTimeByTimeStampWithZone(
@@ -259,9 +245,7 @@ const ElasticSearchIndexPage = () => {
                       </div>
                       <Divider type="vertical" />
                       <div className="flex">
-                        <span className="text-grey-muted">{`${t(
-                          'label.last-failed-at'
-                        )}:`}</span>
+                        <span className="text-grey-muted">Last Failed At:</span>
                         <p className="m-l-xs">
                           {batchJobData?.failureDetails?.lastFailedAt
                             ? getDateTimeByTimeStampWithZone(
@@ -273,9 +257,7 @@ const ElasticSearchIndexPage = () => {
                     </Space>
                   </Col>
                   <Col span={24}>
-                    <span className="text-grey-muted">{`${t(
-                      'label.failure-context'
-                    )}:`}</span>
+                    <span className="text-grey-muted">Failure Context:</span>
                     <span className="m-l-xs">
                       {batchJobData?.failureDetails?.context ? (
                         <RichTextEditorPreviewer
@@ -288,9 +270,7 @@ const ElasticSearchIndexPage = () => {
                     </span>
                   </Col>
                   <Col span={24}>
-                    <span className="text-grey-muted">{`${t(
-                      'label.last-error'
-                    )}:`}</span>
+                    <span className="text-grey-muted">Last error:</span>
                     <span className="m-l-xs">
                       {batchJobData?.failureDetails?.lastFailedReason ? (
                         <RichTextEditorPreviewer
@@ -315,28 +295,24 @@ const ElasticSearchIndexPage = () => {
                     disabled={streamLoading}
                     icon={<ReloadOutlined />}
                     size="small"
-                    title={t('label.refresh-log')}
+                    title="Refresh log"
                     onClick={fetchStreamReIndexedData}
                   />
                 }
                 loading={streamLoading}
                 size="small"
-                title={t('label.elasticsearch')}>
+                title="ElasticSearch">
                 <Row gutter={[16, 8]}>
                   <Col span={24}>
                     <Space direction="horizontal" size={16}>
                       <div className="flex">
-                        <span className="text-grey-muted">{`${t(
-                          'label.mode'
-                        )}:`}</span>
+                        <span className="text-grey-muted">Mode</span> :
                         <span className="m-l-xs">
                           {startCase(streamJobData?.runMode) || '--'}
                         </span>
                       </div>
                       <div className="flex">
-                        <span className="text-grey-muted">{`${t(
-                          'label.status'
-                        )}:`}</span>
+                        <span className="text-grey-muted">Status</span> :
                         <span className="m-l-xs">
                           <Space size={8}>
                             {streamJobData?.status && (
@@ -358,9 +334,7 @@ const ElasticSearchIndexPage = () => {
                       </div>
 
                       <div className="flex">
-                        <span className="text-grey-muted">{`${t(
-                          'label.last-updated'
-                        )}:`}</span>
+                        <span className="text-grey-muted">Last Updated</span> :
                         <span className="m-l-xs">
                           {streamJobData?.timestamp
                             ? getDateTimeByTimeStampWithZone(
@@ -370,9 +344,7 @@ const ElasticSearchIndexPage = () => {
                         </span>
                       </div>
                       <div className="flex">
-                        <span className="text-grey-muted">{`${t(
-                          'label.last-failed-at'
-                        )}:`}</span>
+                        <span className="text-grey-muted">Last Failed At:</span>
                         <p className="m-l-xs">
                           {streamJobData?.failureDetails?.lastFailedAt
                             ? getDateTimeByTimeStampWithZone(
@@ -384,9 +356,7 @@ const ElasticSearchIndexPage = () => {
                     </Space>
                   </Col>
                   <Col span={24}>
-                    <span className="text-grey-muted">{`${t(
-                      'label.failure-context'
-                    )}:`}</span>
+                    <span className="text-grey-muted">Failure Context:</span>
                     <span className="m-l-xs">
                       {streamJobData?.failureDetails?.context ? (
                         <RichTextEditorPreviewer
@@ -399,9 +369,7 @@ const ElasticSearchIndexPage = () => {
                     </span>
                   </Col>
                   <Col span={24}>
-                    <span className="text-grey-muted">{`${t(
-                      'label.last-error'
-                    )}:`}</span>
+                    <span className="text-grey-muted">Last error:</span>
                     <span className="m-l-xs">
                       {streamJobData?.failureDetails?.lastFailedReason ? (
                         <RichTextEditorPreviewer

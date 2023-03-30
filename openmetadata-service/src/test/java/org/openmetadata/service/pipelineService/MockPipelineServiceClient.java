@@ -1,20 +1,19 @@
 package org.openmetadata.service.pipelineService;
 
+import java.net.http.HttpResponse;
 import java.util.List;
 import java.util.Map;
 import javax.ws.rs.core.Response;
-import org.openmetadata.schema.ServiceEntityInterface;
-import org.openmetadata.schema.api.configuration.pipelineServiceClient.PipelineServiceClientConfiguration;
-import org.openmetadata.schema.entity.automations.TestServiceConnectionRequest;
-import org.openmetadata.schema.entity.automations.Workflow;
+import org.openmetadata.schema.api.services.ingestionPipelines.TestServiceConnection;
 import org.openmetadata.schema.entity.services.ingestionPipelines.IngestionPipeline;
 import org.openmetadata.schema.entity.services.ingestionPipelines.PipelineStatus;
-import org.openmetadata.sdk.PipelineServiceClient;
+import org.openmetadata.service.util.PipelineServiceClient;
 
 public class MockPipelineServiceClient extends PipelineServiceClient {
 
-  public MockPipelineServiceClient(PipelineServiceClientConfiguration pipelineServiceClientConfiguration) {
-    super(pipelineServiceClientConfiguration);
+  public MockPipelineServiceClient(
+      String userName, String password, String apiEndpoint, String hostIp, int apiTimeout) {
+    super(userName, password, apiEndpoint, hostIp, apiTimeout);
   }
 
   @Override
@@ -23,27 +22,22 @@ public class MockPipelineServiceClient extends PipelineServiceClient {
   }
 
   @Override
-  public Response testConnection(TestServiceConnectionRequest testServiceConnection) {
+  public HttpResponse<String> testConnection(TestServiceConnection testServiceConnection) {
     return null;
   }
 
   @Override
-  public Response runAutomationsWorkflow(Workflow workflow) {
+  public String deployPipeline(IngestionPipeline ingestionPipeline) {
     return null;
   }
 
   @Override
-  public String deployPipeline(IngestionPipeline ingestionPipeline, ServiceEntityInterface service) {
+  public String runPipeline(String pipelineName) {
     return null;
   }
 
   @Override
-  public String runPipeline(IngestionPipeline ingestionPipeline, ServiceEntityInterface service) {
-    return null;
-  }
-
-  @Override
-  public String deletePipeline(IngestionPipeline ingestionPipeline) {
+  public String deletePipeline(String pipelineName) {
     return null;
   }
 
@@ -63,7 +57,7 @@ public class MockPipelineServiceClient extends PipelineServiceClient {
   }
 
   @Override
-  public Response killIngestion(IngestionPipeline ingestionPipeline) {
+  public HttpResponse<String> killIngestion(IngestionPipeline ingestionPipeline) {
     return null;
   }
 

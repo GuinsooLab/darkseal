@@ -65,14 +65,12 @@ import org.openmetadata.schema.services.connections.messaging.KafkaConnection;
 import org.openmetadata.schema.services.connections.metadata.AmundsenConnection;
 import org.openmetadata.schema.services.connections.metadata.AtlasConnection;
 import org.openmetadata.schema.services.connections.mlmodel.MlflowConnection;
-import org.openmetadata.schema.services.connections.objectstore.S3Connection;
 import org.openmetadata.schema.services.connections.pipeline.AirflowConnection;
 import org.openmetadata.schema.services.connections.pipeline.GluePipelineConnection;
 import org.openmetadata.schema.type.DashboardConnection;
 import org.openmetadata.schema.type.EntityReference;
 import org.openmetadata.schema.type.MessagingConnection;
 import org.openmetadata.schema.type.MlModelConnection;
-import org.openmetadata.schema.type.ObjectStoreConnection;
 import org.openmetadata.schema.type.PipelineConnection;
 import org.openmetadata.schema.type.TagLabel;
 import org.openmetadata.schema.type.TagLabel.TagSource;
@@ -105,13 +103,10 @@ public final class TestUtils {
   public static DashboardConnection METABASE_CONNECTION;
 
   public static final MlModelConnection MLFLOW_CONNECTION;
-  public static final ObjectStoreConnection OBJECT_STORE_CONNECTION;
   public static MetadataConnection AMUNDSEN_CONNECTION;
   public static MetadataConnection ATLAS_CONNECTION;
 
   public static URI PIPELINE_URL;
-
-  public static AWSCredentials AWS_CREDENTIALS;
 
   public static void assertCustomProperties(List<CustomProperty> expected, List<CustomProperty> actual) {
     if (expected == actual) { // Take care of both being null
@@ -191,26 +186,21 @@ public final class TestUtils {
   }
 
   static {
-    AWS_CREDENTIALS =
-        new AWSCredentials().withAwsAccessKeyId("ABCD").withAwsSecretAccessKey("1234").withAwsRegion("eu-west-2");
-  }
-
-  static {
-    OBJECT_STORE_CONNECTION = new ObjectStoreConnection().withConfig(new S3Connection().withAwsConfig(AWS_CREDENTIALS));
-  }
-
-  static {
     try {
       PIPELINE_URL = new URI("http://localhost:8080");
       AIRFLOW_CONNECTION =
           new PipelineConnection()
-              .withConfig(
-                  new AirflowConnection()
-                      .withHostPort(PIPELINE_URL)
-                      .withConnection(MYSQL_DATABASE_CONNECTION.getConfig()));
+              .withConfig(new AirflowConnection().withHostPort(PIPELINE_URL).withConnection(MYSQL_DATABASE_CONNECTION));
 
       GLUE_CONNECTION =
-          new PipelineConnection().withConfig(new GluePipelineConnection().withAwsConfig(AWS_CREDENTIALS));
+          new PipelineConnection()
+              .withConfig(
+                  new GluePipelineConnection()
+                      .withAwsConfig(
+                          new AWSCredentials()
+                              .withAwsAccessKeyId("ABCD")
+                              .withAwsSecretAccessKey("1234")
+                              .withAwsRegion("eu-west-2")));
     } catch (URISyntaxException e) {
       PIPELINE_URL = null;
       e.printStackTrace();
@@ -493,13 +483,12 @@ public final class TestUtils {
     if (expected == null && actual == null) {
       return;
     }
-    expected = listOrEmpty(expected);
-    actual = listOrEmpty(actual);
-    if (expected.isEmpty()) {
+    if (listOrEmpty(expected).isEmpty()) {
       return;
     }
-    assertEquals(expected.size(), actual.size());
-    for (UUID id : expected) {
+    for (UUID id : listOrEmpty(expected)) {
+      actual = listOrEmpty(actual);
+      assertEquals(expected.size(), actual.size());
       assertNotNull(actual.stream().filter(entity -> entity.getId().equals(id)).findAny().orElse(null));
     }
     validateEntityReferences(actual);
@@ -516,16 +505,7 @@ public final class TestUtils {
         TestUtils.existsInEntityReferenceList(actual, e.getId(), true);
       }
     }
-  }
-
-  public static void assertEntityReferenceNames(List<String> expected, List<EntityReference> actual) {
-    if (expected != null) {
-      actual = listOrEmpty(actual);
-      assertEquals(expected.size(), actual.size());
-      for (String e : expected) {
-        TestUtils.existsInEntityReferenceList(actual, e, true);
-      }
-    }
+    validateEntityReferences(actual);
   }
 
   public static void existsInEntityReferenceList(List<EntityReference> list, UUID id, boolean expectedExistsInList) {
@@ -542,26 +522,6 @@ public final class TestUtils {
     } else {
       if (ref != null) {
         assertTrue(ref.getDeleted(), "EntityReference is not deleted as expected " + id);
-      }
-    }
-  }
-
-  // TODO clean up
-  public static void existsInEntityReferenceList(List<EntityReference> list, String fqn, boolean expectedExistsInList) {
-    EntityReference ref = null;
-    for (EntityReference r : list) {
-      // TODO Change description does not href in EntityReferences
-      // validateEntityReference(r);
-      if (r.getFullyQualifiedName().equals(fqn)) {
-        ref = r;
-        break;
-      }
-    }
-    if (expectedExistsInList) {
-      assertNotNull(ref, "EntityReference does not exist for " + fqn);
-    } else {
-      if (ref != null) {
-        assertTrue(ref.getDeleted(), "EntityReference is not deleted as expected " + fqn);
       }
     }
   }

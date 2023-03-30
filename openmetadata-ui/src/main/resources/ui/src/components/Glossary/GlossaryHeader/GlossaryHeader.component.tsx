@@ -10,23 +10,30 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
-import { CheckOutlined, CloseOutlined } from '@ant-design/icons';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { Button, Col, Input, Row, Space, Tooltip, Typography } from 'antd';
 import Description from 'components/common/description/Description';
-import OwnerWidgetWrapper from 'components/common/OwnerWidget/OwnerWidgetWrapper.component';
 import ProfilePicture from 'components/common/ProfilePicture/ProfilePicture';
+import DropDownList from 'components/dropdown/DropDownList';
 import ReviewerModal from 'components/Modals/ReviewerModal/ReviewerModal.component';
 import { OperationPermission } from 'components/PermissionProvider/PermissionProvider.interface';
+import { WILD_CARD_CHAR } from 'constants/char.constants';
 import { getUserPath } from 'constants/constants';
 import { NO_PERMISSION_FOR_ACTION } from 'constants/HelperTextUtil';
 import { EntityReference, Glossary } from 'generated/entity/data/glossary';
 import { GlossaryTerm } from 'generated/entity/data/glossaryTerm';
-import { cloneDeep, includes, isEqual } from 'lodash';
-import React, { useEffect, useMemo, useState } from 'react';
+import { cloneDeep, debounce, includes, isEqual } from 'lodash';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
-import { getEntityName } from 'utils/EntityUtils';
+import { getEntityName } from 'utils/CommonUtils';
+import { getOwnerList } from 'utils/ManageUtils';
 import SVGIcons, { Icons } from 'utils/SvgUtils';
+import {
+  isCurrentUserAdmin,
+  searchFormattedUsersAndTeams,
+  suggestFormattedUsersAndTeams,
+} from 'utils/UserDataUtils';
 
 export interface GlossaryHeaderProps {
   supportAddOwner?: boolean;
@@ -46,7 +53,10 @@ const GlossaryHeader = ({
   const [isNameEditing, setIsNameEditing] = useState<boolean>(false);
   const [isDescriptionEditable, setIsDescriptionEditable] =
     useState<boolean>(false);
-  const [isEditOwner, setIsEditOwner] = useState<boolean>(false);
+  const [listVisible, setListVisible] = useState<boolean>(false);
+  const [isUserLoading, setIsUserLoading] = useState<boolean>(false);
+  const [listOwners, setListOwners] = useState(getOwnerList());
+  const [searchText, setSearchText] = useState<string>('');
   const [showReviewerModal, setShowReviewerModal] = useState<boolean>(false);
 
   const editDisplayNamePermission = useMemo(() => {
@@ -85,6 +95,71 @@ const GlossaryHeader = ({
       setIsDescriptionEditable(false);
     }
   };
+  const getOwnerSearch = useCallback(
+    (searchQuery = WILD_CARD_CHAR, from = 1) => {
+      setIsUserLoading(true);
+      searchFormattedUsersAndTeams(searchQuery, from)
+        .then((res) => {
+          const { users, teams } = res;
+          setListOwners(getOwnerList(users, teams, false, searchQuery));
+        })
+        .catch(() => {
+          setListOwners([]);
+        })
+        .finally(() => {
+          setIsUserLoading(false);
+        });
+    },
+    [setListOwners, setIsUserLoading]
+  );
+  const handleSelectOwnerDropdown = () => {
+    setListVisible((visible) => {
+      const newState = !visible;
+
+      if (newState) {
+        getOwnerSearch();
+      }
+
+      return newState;
+    });
+  };
+  const getOwnerSuggestion = useCallback(
+    (qSearchText = '') => {
+      setIsUserLoading(true);
+      suggestFormattedUsersAndTeams(qSearchText)
+        .then((res) => {
+          const { users, teams } = res;
+          setListOwners(getOwnerList(users, teams, false, qSearchText));
+        })
+        .catch(() => {
+          setListOwners([]);
+        })
+        .finally(() => {
+          setIsUserLoading(false);
+        });
+    },
+    [setListOwners, setIsUserLoading]
+  );
+
+  const debouncedOnChange = useCallback(
+    (text: string): void => {
+      if (text) {
+        getOwnerSuggestion(text);
+      } else {
+        getOwnerSearch();
+      }
+    },
+    [getOwnerSuggestion, getOwnerSearch]
+  );
+
+  const debounceOnSearch = useCallback(debounce(debouncedOnChange, 400), [
+    debouncedOnChange,
+  ]);
+
+  const handleOwnerSearch = (text: string) => {
+    setSearchText(text);
+    debounceOnSearch(text);
+  };
 
   const handleRemoveReviewer = (id: string) => {
     let updatedGlossary = cloneDeep(selectedData);
@@ -99,23 +174,39 @@ const GlossaryHeader = ({
     onUpdate(updatedGlossary);
   };
 
-  const handleUpdatedOwner = (newOwner: Glossary['owner']) => {
-    if (newOwner) {
-      const updatedData = {
-        ...selectedData,
-        owner: newOwner,
-      };
-      onUpdate(updatedData);
-    }
+  const prepareOwner = (updatedOwner?: EntityReference) => {
+    return !isEqual(updatedOwner, selectedData.owner)
+      ? updatedOwner
+      : undefined;
   };
+  const handleOwnerSelection = (
+    _e: React.MouseEvent<HTMLElement, MouseEvent>,
+    value = ''
+  ) => {
+    const owner = listOwners.find((item) => item.value === value);
 
-  const handleRemoveOwner = () => {
+    if (owner) {
+      const newOwner = prepareOwner({
+        type: owner.type,
+        id: owner.value || '',
+      });
+      if (newOwner) {
+        const updatedData = {
+          ...selectedData,
+          owner: newOwner,
+        };
+        onUpdate(updatedData);
+      }
+    }
+    setListVisible(false);
+  };
+  const onRemoveOwner = () => {
     const updatedData = {
       ...selectedData,
       owner: undefined,
     };
     onUpdate(updatedData);
-    setIsEditOwner(false);
+    setListVisible(false);
   };
 
   const handleReviewerSave = (data: Array<EntityReference>) => {
@@ -154,8 +245,9 @@ const GlossaryHeader = ({
               onChange={(e) => onDisplayNameChange(e.target.value)}
             />
             <Button
+              className="m-r-xs"
               data-testid="cancelAssociatedTag"
-              icon={<CloseOutlined />}
+              icon={<FontAwesomeIcon className="w-3.5 h-3.5" icon="times" />}
               size="small"
               type="primary"
               onMouseDown={() => setIsNameEditing(false)}
@@ -163,7 +255,7 @@ const GlossaryHeader = ({
 
             <Button
               data-testid="saveAssociatedTag"
-              icon={<CheckOutlined />}
+              icon={<FontAwesomeIcon className="w-3.5 h-3.5" icon="check" />}
               size="small"
               type="primary"
               onMouseDown={onDisplayNameSave}
@@ -194,7 +286,7 @@ const GlossaryHeader = ({
         <Space className="flex-wrap" direction="horizontal">
           <div className="flex items-center">
             <Typography.Text className="text-grey-muted m-r-xs">
-              {`${t('label.owner')}:`}
+              Owner:
             </Typography.Text>
 
             {selectedData.owner && getEntityName(selectedData.owner) ? (
@@ -239,16 +331,23 @@ const GlossaryHeader = ({
                   }
                   size="small"
                   type="text"
-                  onClick={() => setIsEditOwner(true)}
+                  onClick={handleSelectOwnerDropdown}
                 />
               </Tooltip>
-              {isEditOwner && (
-                <OwnerWidgetWrapper
-                  currentUser={selectedData.owner}
-                  hideWidget={() => setIsEditOwner(false)}
-                  removeOwner={handleRemoveOwner}
-                  updateUser={handleUpdatedOwner}
-                  visible={isEditOwner}
+              {listVisible && (
+                <DropDownList
+                  showEmptyList
+                  controlledSearchStr={searchText}
+                  dropDownList={listOwners}
+                  groupType="tab"
+                  horzPosRight={false}
+                  isLoading={isUserLoading}
+                  listGroups={['Teams', 'Users']}
+                  removeOwner={onRemoveOwner}
+                  showSearchBar={isCurrentUserAdmin()}
+                  value={selectedData.owner?.id || ''}
+                  onSearchTextChange={handleOwnerSearch}
+                  onSelect={handleOwnerSelection}
                 />
               )}
             </div>
@@ -259,7 +358,7 @@ const GlossaryHeader = ({
             className="flex items-center tw-flex-wrap"
             data-testid="reviewer-card-container">
             <Typography.Text className="text-grey-muted m-r-xs">
-              {`${t('label.reviewer')}:`}
+              Reviewer:
             </Typography.Text>{' '}
             {selectedData.reviewers && selectedData.reviewers.length ? (
               <>
@@ -290,7 +389,12 @@ const GlossaryHeader = ({
                           className="p-0 flex-center"
                           data-testid="remove"
                           disabled={!permissions.EditAll}
-                          icon={<CloseOutlined />}
+                          icon={
+                            <FontAwesomeIcon
+                              className="tw-cursor-pointer"
+                              icon="remove"
+                            />
+                          }
                           size="small"
                           type="text"
                           onClick={() => handleRemoveReviewer(reviewer.id)}

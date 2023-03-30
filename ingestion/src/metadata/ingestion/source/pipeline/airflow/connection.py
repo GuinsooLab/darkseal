@@ -104,7 +104,7 @@ def get_connection(connection: AirflowConnection) -> Engine:
         raise SourceConnectionException(msg) from exc
 
 
-def test_connection(engine: Engine, _) -> None:
+def test_connection(engine: Engine) -> None:
     """
     Test connection
     """

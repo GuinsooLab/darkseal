@@ -18,13 +18,12 @@ import Loader from 'components/Loader/Loader';
 import { compare } from 'fast-json-patch';
 import { trim } from 'lodash';
 import React, { useEffect, useMemo, useState } from 'react';
-import { useTranslation } from 'react-i18next';
 import { useHistory, useParams } from 'react-router-dom';
 import { getPolicyByName, patchPolicy } from 'rest/rolesAPIV1';
-import { getEntityName } from 'utils/EntityUtils';
 import { GlobalSettingOptions } from '../../../constants/GlobalSettings.constants';
 import { Effect, Rule } from '../../../generated/api/policies/createPolicy';
 import { Policy } from '../../../generated/entity/policies/policy';
+import { getEntityName } from '../../../utils/CommonUtils';
 import {
   getPath,
   getPolicyWithFqnPath,
@@ -45,7 +44,6 @@ const InitialData: Rule = {
 };
 
 const EditRulePage = () => {
-  const { t } = useTranslation();
   const history = useHistory();
   const { fqn, ruleName } = useParams<{ fqn: string; ruleName: string }>();
   const [isLoading, setLoading] = useState<boolean>(false);
@@ -142,8 +140,7 @@ const EditRulePage = () => {
           <Typography.Paragraph
             className="text-base"
             data-testid="edit-rule-title">
-            {t('label.edit-entity', { entity: t('label.rule') })}{' '}
-            {`"${ruleName}"`}
+            Edit Rule {`"${ruleName}"`}
           </Typography.Paragraph>
           <Form
             data-testid="rule-form"
@@ -160,14 +157,14 @@ const EditRulePage = () => {
             <RuleForm ruleData={ruleData} setRuleData={setRuleData} />
             <Space align="center" className="w-full justify-end">
               <Button data-testid="cancel-btn" type="link" onClick={handleBack}>
-                {t('label.cancel')}
+                Cancel
               </Button>
               <Button
                 data-testid="submit-btn"
                 form="rule-form"
                 htmlType="submit"
                 type="primary">
-                {t('label.submit')}
+                Submit
               </Button>
             </Space>
           </Form>

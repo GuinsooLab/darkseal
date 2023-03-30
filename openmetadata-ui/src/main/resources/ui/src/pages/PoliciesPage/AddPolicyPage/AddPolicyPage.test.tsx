@@ -44,16 +44,6 @@ jest.mock('../../../utils/ToastUtils', () => ({
   showErrorToast: jest.fn(),
 }));
 
-jest.mock('components/containers/PageLayoutV1', () =>
-  jest.fn().mockImplementation(({ children, leftPanel, rightPanel }) => (
-    <div>
-      {leftPanel}
-      {children}
-      {rightPanel}
-    </div>
-  ))
-);
-
 describe('Test Add Policy Page', () => {
   it('Should Render the Add Policy page component', async () => {
     render(<AddPolicyPage />, { wrapper: MemoryRouter });

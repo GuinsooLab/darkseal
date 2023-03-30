@@ -36,17 +36,6 @@ const mockProps: TopicSchemaFieldsProps = {
   hasTagEditAccess: true,
 };
 
-const mockTags = [
-  {
-    tagFQN: 'PII.Sensitive',
-    source: 'Tag',
-  },
-  {
-    tagFQN: 'PersonalData.Personal',
-    source: 'Tag',
-  },
-];
-
 jest.mock('../../../utils/TagsUtils', () => ({
   fetchTagsAndGlossaryTerms: jest.fn().mockReturnValue([]),
 }));
@@ -74,16 +63,9 @@ jest.mock(
 );
 
 jest.mock('components/Tag/TagsContainer/tags-container', () =>
-  jest.fn().mockImplementation(({ onSelectionChange }) => (
-    <div data-testid="tag-container">
-      Tag Container
-      <div
-        data-testid="onSelectionChange"
-        onClick={() => onSelectionChange(mockTags)}>
-        onSelectionChange
-      </div>
-    </div>
-  ))
+  jest
+    .fn()
+    .mockReturnValue(<div data-testid="tag-container">Tag Container</div>)
 );
 
 jest.mock('components/Tag/TagsViewer/tags-viewer', () =>
@@ -172,21 +154,5 @@ describe('Topic Schema', () => {
     const editDescriptionButton = queryByTestId(row1, 'edit-button');
 
     expect(editDescriptionButton).toBeNull();
-  });
-
-  it('onUpdate should be called after the tags are added or removed to a task', async () => {
-    render(<TopicSchema {...mockProps} />);
-
-    const tagsContainer = await screen.findAllByTestId('tag-container');
-
-    expect(tagsContainer).toHaveLength(9);
-
-    const onSelectionChange = await screen.findAllByTestId('onSelectionChange');
-
-    expect(onSelectionChange).toHaveLength(9);
-
-    await act(async () => userEvent.click(onSelectionChange[0]));
-
-    expect(mockOnUpdate).toHaveBeenCalledTimes(1);
   });
 });

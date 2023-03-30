@@ -24,8 +24,8 @@
       "$ref": "../../../type/entityReference.json"
     },
     "dataInsightChart": {
-      "description": "Fully qualified name of the Chart this kpi refers to",
-      "$ref": "../../../type/basic.json#/definitions/fullyQualifiedEntityName"
+      "description": "Chart this kpi refers to",
+      "$ref": "../../../type/entityReference.json"
     },
     "startDate": {
       "description": "Start Date for the KPIs",

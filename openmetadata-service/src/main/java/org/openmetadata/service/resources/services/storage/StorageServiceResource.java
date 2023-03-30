@@ -132,9 +132,9 @@ public class StorageServiceResource extends EntityResource<StorageService, Stora
   @Path("/{id}")
   @Operation(
       operationId = "getStorageServiceByID",
-      summary = "Get a storage service by Id",
+      summary = "Get a storage service",
       tags = "storageServices",
-      description = "Get a storage service by `Id`.",
+      description = "Get a storage service by `id`.",
       responses = {
         @ApiResponse(
             responseCode = "200",
@@ -146,7 +146,7 @@ public class StorageServiceResource extends EntityResource<StorageService, Stora
   public StorageService get(
       @Context UriInfo uriInfo,
       @Context SecurityContext securityContext,
-      @Parameter(description = "Id of the storage service", schema = @Schema(type = "UUID")) @PathParam("id") UUID id,
+      @PathParam("id") UUID id,
       @Parameter(
               description = "Fields requested in the returned resource",
               schema = @Schema(type = "string", example = FIELDS))
@@ -175,13 +175,12 @@ public class StorageServiceResource extends EntityResource<StorageService, Stora
             description = "Storage service instance",
             content =
                 @Content(mediaType = "application/json", schema = @Schema(implementation = StorageService.class))),
-        @ApiResponse(responseCode = "404", description = "Storage service for instance {name} is not found")
+        @ApiResponse(responseCode = "404", description = "Storage service for instance {id} is not found")
       })
   public StorageService getByName(
       @Context UriInfo uriInfo,
       @Context SecurityContext securityContext,
-      @Parameter(description = "Name of the storage service", schema = @Schema(type = "string")) @PathParam("name")
-          String name,
+      @PathParam("name") String name,
       @Parameter(
               description = "Fields requested in the returned resource",
               schema = @Schema(type = "string", example = FIELDS))
@@ -203,7 +202,7 @@ public class StorageServiceResource extends EntityResource<StorageService, Stora
       operationId = "listAllStorageServiceVersion",
       summary = "List storage service versions",
       tags = "storageServices",
-      description = "Get a list of all the versions of a storage service identified by `Id`",
+      description = "Get a list of all the versions of a storage service identified by `id`",
       responses = {
         @ApiResponse(
             responseCode = "200",
@@ -213,7 +212,7 @@ public class StorageServiceResource extends EntityResource<StorageService, Stora
   public EntityHistory listVersions(
       @Context UriInfo uriInfo,
       @Context SecurityContext securityContext,
-      @Parameter(description = "Id of the storage service", schema = @Schema(type = "UUID")) @PathParam("id") UUID id)
+      @Parameter(description = "storage service Id", schema = @Schema(type = "string")) @PathParam("id") UUID id)
       throws IOException {
     return super.listVersionsInternal(securityContext, id);
   }
@@ -224,7 +223,7 @@ public class StorageServiceResource extends EntityResource<StorageService, Stora
       operationId = "getSpecificStorageServiceVersion",
       summary = "Get a version of the storage service",
       tags = "storageServices",
-      description = "Get a version of the storage service by given `Id`",
+      description = "Get a version of the storage service by given `id`",
       responses = {
         @ApiResponse(
             responseCode = "200",
@@ -238,7 +237,7 @@ public class StorageServiceResource extends EntityResource<StorageService, Stora
   public StorageService getVersion(
       @Context UriInfo uriInfo,
       @Context SecurityContext securityContext,
-      @Parameter(description = "Id of the storage service", schema = @Schema(type = "UUID")) @PathParam("id") UUID id,
+      @Parameter(description = "storage service Id", schema = @Schema(type = "string")) @PathParam("id") UUID id,
       @Parameter(
               description = "storage service version number in the form `major`" + ".`minor`",
               schema = @Schema(type = "string", example = "0.1 or 1.1"))
@@ -274,7 +273,7 @@ public class StorageServiceResource extends EntityResource<StorageService, Stora
       operationId = "createOrUpdateStorageService",
       summary = "Update storage service",
       tags = "storageServices",
-      description = "Update an existing storage service identified by `Id`.",
+      description = "Update an existing storage service identified by `id`.",
       responses = {
         @ApiResponse(
             responseCode = "200",
@@ -346,9 +345,9 @@ public class StorageServiceResource extends EntityResource<StorageService, Stora
   @Path("/restore")
   @Operation(
       operationId = "restore",
-      summary = "Restore a soft deleted storage service",
+      summary = "Restore a soft deleted StorageService.",
       tags = "storageServices",
-      description = "Restore a soft deleted storage service.",
+      description = "Restore a soft deleted StorageService.",
       responses = {
         @ApiResponse(
             responseCode = "200",

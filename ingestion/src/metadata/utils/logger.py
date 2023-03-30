@@ -40,7 +40,6 @@ class Loggers(Enum):
     PROFILER_INTERFACE = "ProfilerInterface"
     TEST_SUITE = "TestSuite"
     DATA_INSIGHT = "DataInsight"
-    QUERY_RUNNER = "QueryRunner"
 
     @DynamicClassAttribute
     def value(self):
@@ -130,14 +129,6 @@ def great_expectations_logger():
     """
 
     return logging.getLogger(Loggers.GREAT_EXPECTATIONS.value)
-
-
-def query_runner_logger():
-    """
-    Method to get the QUERY_RUNNER logger
-    """
-
-    return logging.getLogger(Loggers.QUERY_RUNNER.value)
 
 
 def set_loggers_level(level: Union[int, str] = logging.INFO):

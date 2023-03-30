@@ -13,7 +13,6 @@
 
 import { Col, Switch } from 'antd';
 import { SwitchChangeEventHandler } from 'antd/lib/switch';
-import { t } from 'i18next';
 import { orderBy } from 'lodash';
 import React, { useMemo, useState } from 'react';
 import { Operation } from '../../generated/entity/policies/policy';
@@ -65,7 +64,7 @@ const TestCasesTab = ({
   return (
     <TestCaseCommonTabContainer
       isPaging
-      buttonName={t('label.add-entity', { entity: t('label.test') })}
+      buttonName="Add Test"
       currentPage={currentPage}
       hasAccess={createPermission}
       paging={testCasesPaging}
@@ -73,15 +72,12 @@ const TestCasesTab = ({
       testCasePageHandler={testCasePageHandler}>
       <>
         <Col className="flex justify-end items-center" span={24}>
-          <span className="m-r-xs">
-            {t('label.deleted-entity', {
-              entity: t('label.test-plural'),
-            })}
-          </span>
+          <span className="m-r-xs">Deleted Tests</span>
           <Switch checked={deleted} onClick={handleDeletedTestCaseClick} />
         </Col>
         <Col span={24}>
           <DataQualityTab
+            hasAccess
             deletedTable={deleted}
             isLoading={isDataLoading}
             testCases={sortedTestCases}

@@ -12,7 +12,6 @@
  */
 
 import { AxiosError } from 'axios';
-import { t } from 'i18next';
 import { uniqueId } from 'lodash';
 import { FormErrorData } from 'Models';
 import React, { useEffect, useRef, useState } from 'react';
@@ -88,9 +87,7 @@ const AddCustomProperty = () => {
 
   const handleError = (flag: boolean, property: string) => {
     const message =
-      property === 'name'
-        ? t('message.invalid-property-name')
-        : t('message.field-text-is-required', { fieldText: t('label.type') });
+      property === 'name' ? 'Invalid Property Name' : 'Type is required';
 
     setFormErrorData((preVdata) => ({
       ...preVdata,
@@ -174,20 +171,15 @@ const AddCustomProperty = () => {
         <PageLayout
           classes="tw-max-w-full-hd tw-h-full tw-pt-4"
           layout={PageLayoutType['2ColRTL']}
-          pageTitle={t('label.add-entity', {
-            entity: t('label.custom-property'),
-          })}
           rightPanel={<RightPanel />}>
           <div
             className="tw-bg-white tw-p-4 tw-border tw-border-main tw-rounded tw-form-container"
             data-testid="form-container">
-            <h6 className="tw-heading tw-text-base">
-              {t('label.add-entity', { entity: t('label.custom-property') })}
-            </h6>
+            <h6 className="tw-heading tw-text-base">Add Custom Property</h6>
 
             <Field>
               <label className="tw-block tw-form-label" htmlFor="name">
-                {requiredField(`${t('label.name')}:`)}
+                {requiredField('Name:')}
               </label>
               <input
                 autoComplete="off"
@@ -195,7 +187,7 @@ const AddCustomProperty = () => {
                 data-testid="name"
                 id="name"
                 name="name"
-                placeholder={t('label.name')}
+                placeholder="Name"
                 type="text"
                 value={formData.name}
                 onChange={onChangeHandler}
@@ -205,21 +197,17 @@ const AddCustomProperty = () => {
 
             <Field>
               <label className="tw-block tw-form-label" htmlFor="type">
-                {requiredField(`${t('label.type')}:`)}
+                {requiredField('Type:')}
               </label>
               <select
                 className="tw-form-inputs tw-form-inputs-padding"
                 data-testid="type"
                 id="type"
                 name="type"
-                placeholder={t('label.type')}
+                placeholder="type"
                 value={formData.type || ''}
                 onChange={onChangeHandler}>
-                <option value="">
-                  {t('label.select-field', {
-                    field: t('label.type-lowercase'),
-                  })}
-                </option>
+                <option value="">Select type</option>
                 {getPropertyTypes().map((propertyType) => (
                   <option key={uniqueId()} value={propertyType.id}>
                     {propertyType.displayName}
@@ -232,7 +220,7 @@ const AddCustomProperty = () => {
               <label
                 className="tw-block tw-form-label tw-mb-0"
                 htmlFor="description">
-                {`${t('label.description')}:`}
+                Description:
               </label>
               <RichTextEditor
                 data-testid="description"
@@ -247,7 +235,7 @@ const AddCustomProperty = () => {
                 theme="primary"
                 variant="text"
                 onClick={onCancel}>
-                {t('label.back')}
+                Back
               </Button>
 
               <Button
@@ -257,7 +245,7 @@ const AddCustomProperty = () => {
                 theme="primary"
                 type="submit"
                 onClick={onSave}>
-                {t('label.create')}
+                Create
               </Button>
             </Field>
           </div>

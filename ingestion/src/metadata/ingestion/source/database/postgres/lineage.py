@@ -37,6 +37,8 @@ class PostgresLineageSource(PostgresQueryParserSource, LineageSource):
                     OR s.query ILIKE '%%insert%%'
                 )
             """
+    database_field = "d.datname"
+    schema_field = ""  # schema filtering not available
 
     def next_record(self) -> Iterable[AddLineageRequest]:
         """

@@ -13,18 +13,14 @@
 Source connection handler
 """
 import os
-from functools import partial
 
-from google import auth
-from google.cloud.datacatalog_v1 import PolicyTagManagerClient
 from sqlalchemy.engine import Engine
-from sqlalchemy.inspection import inspect
 
 from metadata.generated.schema.entity.services.connections.database.bigQueryConnection import (
     BigQueryConnection,
 )
-from metadata.generated.schema.security.credentials.gcsValues import (
-    GcsCredentialsValues,
+from metadata.generated.schema.security.credentials.gcsCredentials import (
+    GCSValues,
     MultipleProjectId,
     SingleProjectId,
 )
@@ -32,11 +28,7 @@ from metadata.ingestion.connections.builders import (
     create_generic_db_connection,
     get_connection_args_common,
 )
-from metadata.ingestion.connections.test_connections import (
-    TestConnectionResult,
-    TestConnectionStep,
-    test_connection_db_common,
-)
+from metadata.ingestion.connections.test_connections import test_connection_db_common
 from metadata.utils.credentials import set_google_credentials
 
 
@@ -46,7 +38,7 @@ def get_connection_url(connection: BigQueryConnection) -> str:
     environment variable when needed
     """
 
-    if isinstance(connection.credentials.gcsConfig, GcsCredentialsValues):
+    if isinstance(connection.credentials.gcsConfig, GCSValues):
         if isinstance(  # pylint: disable=no-else-return
             connection.credentials.gcsConfig.projectId, SingleProjectId
         ):
@@ -82,60 +74,8 @@ def get_connection(connection: BigQueryConnection) -> Engine:
     )
 
 
-def test_connection(engine: Engine, service_connection) -> TestConnectionResult:
+def test_connection(engine: Engine) -> None:
     """
     Test connection
     """
-
-    def get_tags(taxonomies):
-        for taxonomy in taxonomies:
-            policy_tags = PolicyTagManagerClient().list_policy_tags(
-                parent=taxonomy.name
-            )
-            return policy_tags
-
-    inspector = inspect(engine)
-
-    def custom_executor():
-        list_project_ids = auth.default()
-        project_id = list_project_ids[1]
-
-        if isinstance(project_id, str):
-            taxonomies = PolicyTagManagerClient().list_taxonomies(
-                parent=f"projects/{project_id}/locations/{service_connection.taxonomyLocation}"
-            )
-            return get_tags(taxonomies)
-
-        if isinstance(project_id, list):
-            taxonomies = PolicyTagManagerClient().list_taxonomies(
-                parent=f"projects/{project_id[0]}/locations/{service_connection.taxonomyLocation}"
-            )
-
-            return get_tags(taxonomies)
-
-        return None
-
-    steps = [
-        TestConnectionStep(
-            function=inspector.get_schema_names,
-            name="Get Schemas",
-        ),
-        TestConnectionStep(
-            function=inspector.get_table_names,
-            name="Get Tables",
-        ),
-        TestConnectionStep(
-            function=inspector.get_view_names,
-            name="Get Views",
-            mandatory=False,
-        ),
-        TestConnectionStep(
-            function=partial(
-                custom_executor,
-            ),
-            name="Get Tags",
-            mandatory=False,
-        ),
-    ]
-
-    return test_connection_db_common(engine, steps)
+    test_connection_db_common(engine)

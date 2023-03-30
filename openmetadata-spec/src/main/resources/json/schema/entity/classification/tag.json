@@ -11,8 +11,7 @@
       "description": "Name of the tag.",
       "type": "string",
       "minLength": 2,
-      "maxLength": 64,
-      "pattern": "^(?U)[\\w'\\- .&]+$"
+      "maxLength": 64
     }
   },
   "properties": {

@@ -12,7 +12,6 @@
  */
 
 import { Button, Input } from 'antd';
-import { t } from 'i18next';
 import React, { Fragment, FunctionComponent, useState } from 'react';
 import {
   DBTBucketDetails,
@@ -41,8 +40,6 @@ interface Props extends DBTFormCommonProps, DbtConfigS3GCS {
   handlePrefixConfigChange: (value: DBTBucketDetails) => void;
   handleUpdateDescriptions: (value: boolean) => void;
   handleUpdateDBTClassification: (value: string) => void;
-  enableDebugLog: boolean;
-  handleEnableDebugLogCheck: (value: boolean) => void;
 }
 
 export const DBTS3Config: FunctionComponent<Props> = ({
@@ -58,8 +55,6 @@ export const DBTS3Config: FunctionComponent<Props> = ({
   handlePrefixConfigChange,
   handleUpdateDescriptions,
   handleUpdateDBTClassification,
-  enableDebugLog,
-  handleEnableDebugLogCheck,
 }: Props) => {
   const updateS3Creds = (key: keyof SCredentials, val: string) => {
     const updatedCreds: SCredentials = {
@@ -109,10 +104,10 @@ export const DBTS3Config: FunctionComponent<Props> = ({
         <label
           className="tw-block tw-form-label tw-mb-1"
           htmlFor="aws-access-key-id">
-          {t('label.aws-access-key-id')}
+          AWS Access Key ID
         </label>
         <p className="tw-text-grey-muted tw-mt-1 tw-mb-2 tw-text-xs">
-          {`${t('label.aws-access-key-id')}.`}
+          AWS Access Key ID.
         </p>
         <Input.Password
           className="tw-form-inputs tw-form-inputs-padding"
@@ -127,10 +122,10 @@ export const DBTS3Config: FunctionComponent<Props> = ({
         <label
           className="tw-block tw-form-label tw-mb-1"
           htmlFor="aws-secret-access-key-id">
-          {t('label.aws-secret-access-key')}
+          AWS Secret Access Key
         </label>
         <p className="tw-text-grey-muted tw-mt-1 tw-mb-2 tw-text-xs">
-          {`${t('label.aws-secret-access-key')}.`}
+          AWS Secret Access Key.
         </p>
 
         <Input.Password
@@ -144,10 +139,10 @@ export const DBTS3Config: FunctionComponent<Props> = ({
       </Field>
       <Field>
         <label className="tw-block tw-form-label tw-mb-1" htmlFor="aws-region">
-          {requiredField(t('label.aws-region'))}
+          {requiredField('AWS Region')}
         </label>
         <p className="tw-text-grey-muted tw-mt-1 tw-mb-2 tw-text-xs">
-          {`${t('label.aws-region')}.`}
+          AWS Region.
         </p>
         <input
           className="tw-form-inputs tw-form-inputs-padding"
@@ -164,10 +159,10 @@ export const DBTS3Config: FunctionComponent<Props> = ({
         <label
           className="tw-block tw-form-label tw-mb-1"
           htmlFor="aws-session-token">
-          {t('label.aws-session-token')}
+          AWS Session Token
         </label>
         <p className="tw-text-grey-muted tw-mt-1 tw-mb-2 tw-text-xs">
-          {`${t('label.aws-session-token')}.`}
+          AWS Session Token.
         </p>
         <Input.Password
           className="tw-form-inputs tw-form-inputs-padding"
@@ -183,10 +178,10 @@ export const DBTS3Config: FunctionComponent<Props> = ({
         <label
           className="tw-block tw-form-label tw-mb-1"
           htmlFor="endpoint-url">
-          {t('label.endpoint-url')}
+          Endpoint URL
         </label>
         <p className="tw-text-grey-muted tw-mt-1 tw-mb-2 tw-text-xs">
-          {`${t('label.endpoint-url-for-aws')}.`}
+          EndPoint URL for the AWS.
         </p>
         <input
           className="tw-form-inputs tw-form-inputs-padding"
@@ -203,10 +198,10 @@ export const DBTS3Config: FunctionComponent<Props> = ({
         <label
           className="tw-block tw-form-label tw-mb-1"
           htmlFor="dbt-bucket-name">
-          {t('label.dbt-bucket-name')}
+          dbt Bucket Name
         </label>
         <p className="tw-text-grey-muted tw-mt-1 tw-mb-2 tw-text-xs">
-          {t('message.name-of-the-bucket-dbt-files-stored')}
+          Name of the bucket where the dbt files are stored.
         </p>
         <input
           className="tw-form-inputs tw-form-inputs-padding"
@@ -222,10 +217,10 @@ export const DBTS3Config: FunctionComponent<Props> = ({
         <label
           className="tw-block tw-form-label tw-mb-1"
           htmlFor="dbt-object-prefix">
-          {t('label.dbt-object-prefix')}
+          dbt Object Prefix
         </label>
         <p className="tw-text-grey-muted tw-mt-1 tw-mb-2 tw-text-xs">
-          {t('message.path-of-the-dbt-files-stored')}
+          Path of the folder where the dbt files are stored.
         </p>
         <input
           className="tw-form-inputs tw-form-inputs-padding"
@@ -243,8 +238,6 @@ export const DBTS3Config: FunctionComponent<Props> = ({
         dbtClassificationName={dbtClassificationName}
         dbtUpdateDescriptions={dbtUpdateDescriptions}
         descriptionId="s3-update-description"
-        enableDebugLog={enableDebugLog}
-        handleEnableDebugLogCheck={handleEnableDebugLogCheck}
         handleUpdateDBTClassification={handleUpdateDBTClassification}
         handleUpdateDescriptions={handleUpdateDescriptions}
       />

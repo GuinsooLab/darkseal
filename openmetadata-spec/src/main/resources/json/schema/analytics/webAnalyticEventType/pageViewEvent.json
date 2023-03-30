@@ -8,15 +8,15 @@
   "properties": {
         "fullUrl": {
           "description": "complete URL of the page",
-          "$ref": "../basic.json#/definitions/fullUrl"
+          "type": "string"
         },
         "url": {
           "description": "url part after the domain specification",
-          "$ref": "../basic.json#/definitions/url"
+          "type": "string"
         },
         "hostname": {
           "description": "domain name",
-          "$ref": "../basic.json#/definitions/hostname"
+          "type": "string"
         },
         "language": {
           "description": "language set on the page",
@@ -32,7 +32,7 @@
         },
         "sessionId": {
           "description": "Unique ID identifying a session",
-          "$ref": "../basic.json#/definitions/sessionId"
+          "$ref": "../../type/basic.json#/definitions/uuid"
         },
         "pageLoadTime": {
           "description": "time for the page to load in seconds",

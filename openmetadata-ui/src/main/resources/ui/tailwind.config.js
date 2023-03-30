@@ -110,7 +110,6 @@ module.exports = {
         'primary-hover': primaryHover,
         'primary-active': primaryActive,
         'primary-hover-lite': primaryHoverLite,
-        'primary-lite': lightBG,
         secondary: secondary,
         'secondary-lite': secondaryBG,
         'body-main': bodyBG,

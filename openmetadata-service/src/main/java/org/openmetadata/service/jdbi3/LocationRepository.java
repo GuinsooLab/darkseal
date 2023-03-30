@@ -25,6 +25,7 @@ import org.openmetadata.schema.entity.data.Location;
 import org.openmetadata.schema.entity.services.StorageService;
 import org.openmetadata.schema.type.EntityReference;
 import org.openmetadata.schema.type.Relationship;
+import org.openmetadata.schema.type.TagLabel;
 import org.openmetadata.service.Entity;
 import org.openmetadata.service.exception.CatalogExceptionMessage;
 import org.openmetadata.service.resources.locations.LocationResource;
@@ -163,11 +164,18 @@ public class LocationRepository extends EntityRepository<Location> {
 
   @Override
   public void storeEntity(Location location, boolean update) throws IOException {
-    // Relationships and fields such as service are derived and not stored as part of json
+    // Relationships and fields such as href are derived and not stored as part of json
+    EntityReference owner = location.getOwner();
     EntityReference service = location.getService();
-    location.withService(null);
+    List<TagLabel> tags = location.getTags();
+
+    // Don't store owner, href and tags as JSON. Build it on the fly based on relationships
+    location.withOwner(null).withService(null).withHref(null).withTags(null);
+
     store(location, update);
-    location.withService(service);
+
+    // Restore the relationships
+    location.withOwner(owner).withService(service).withTags(tags);
   }
 
   @Override
@@ -187,14 +195,11 @@ public class LocationRepository extends EntityRepository<Location> {
   }
 
   private EntityReference getService(EntityReference service) throws IOException {
-    if (service.getId() != null) {
-      if (service.getType().equalsIgnoreCase(Entity.STORAGE_SERVICE)) {
-        return daoCollection.storageServiceDAO().findEntityReferenceById(service.getId());
-      }
-      throw new IllegalArgumentException(
-          CatalogExceptionMessage.invalidServiceEntity(service.getType(), Entity.LOCATION, STORAGE_SERVICE));
+    if (service.getType().equalsIgnoreCase(Entity.STORAGE_SERVICE)) {
+      return daoCollection.storageServiceDAO().findEntityReferenceById(service.getId());
     }
-    return daoCollection.storageServiceDAO().findEntityReferenceByName(service.getFullyQualifiedName());
+    throw new IllegalArgumentException(
+        CatalogExceptionMessage.invalidServiceEntity(service.getType(), Entity.LOCATION, STORAGE_SERVICE));
   }
 
   public List<EntityReference> getEntityDetails(String id) throws IOException {

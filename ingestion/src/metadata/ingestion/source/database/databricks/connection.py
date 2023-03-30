@@ -12,10 +12,7 @@
 """
 Source connection handler
 """
-from functools import partial
-
 from sqlalchemy.engine import Engine
-from sqlalchemy.inspection import inspect
 
 from metadata.generated.schema.entity.services.connections.database.databricksConnection import (
     DatabricksConnection,
@@ -25,11 +22,7 @@ from metadata.ingestion.connections.builders import (
     get_connection_args_common,
     init_empty_connection_arguments,
 )
-from metadata.ingestion.connections.test_connections import (
-    TestConnectionResult,
-    TestConnectionStep,
-    test_connection_db_common,
-)
+from metadata.ingestion.connections.test_connections import test_connection_db_common
 
 
 def get_connection_url(connection: DatabricksConnection) -> str:
@@ -53,44 +46,8 @@ def get_connection(connection: DatabricksConnection) -> Engine:
     )
 
 
-def test_connection(engine: Engine, service_connection) -> TestConnectionResult:
+def test_connection(engine: Engine) -> None:
     """
     Test connection
     """
-
-    def custom_executor(engine, statement):
-
-        cursor = engine.execute(statement)
-        return [item[0] for item in list(cursor.all())]
-
-    inspector = inspect(engine)
-    steps = [
-        TestConnectionStep(
-            function=partial(
-                custom_executor,
-                statement="SHOW CATALOGS",
-                engine=engine,
-            ),
-            name="Get Catalogs",
-        ),
-        TestConnectionStep(
-            function=partial(
-                custom_executor,
-                statement="SHOW SCHEMAS",
-                engine=engine,
-            ),
-            name="Get Schemas",
-        ),
-        TestConnectionStep(
-            function=inspector.get_table_names,
-            name="Get Tables",
-        ),
-        TestConnectionStep(
-            function=inspector.get_view_names,
-            name="Get Views",
-            mandatory=False,
-        ),
-    ]
-
-    timeout_seconds = service_connection.connectionTimeout
-    return test_connection_db_common(engine, steps, timeout_seconds)
+    test_connection_db_common(engine)

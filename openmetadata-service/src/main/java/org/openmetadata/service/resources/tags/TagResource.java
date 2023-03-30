@@ -52,6 +52,7 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.core.UriInfo;
 import lombok.extern.slf4j.Slf4j;
+import org.openmetadata.schema.EntityInterface;
 import org.openmetadata.schema.api.classification.CreateTag;
 import org.openmetadata.schema.api.classification.LoadTags;
 import org.openmetadata.schema.api.data.RestoreEntity;
@@ -63,7 +64,6 @@ import org.openmetadata.schema.type.Include;
 import org.openmetadata.schema.type.Relationship;
 import org.openmetadata.service.Entity;
 import org.openmetadata.service.OpenMetadataApplicationConfig;
-import org.openmetadata.service.jdbi3.ClassificationRepository;
 import org.openmetadata.service.jdbi3.CollectionDAO;
 import org.openmetadata.service.jdbi3.EntityRepository;
 import org.openmetadata.service.jdbi3.ListFilter;
@@ -103,8 +103,7 @@ public class TagResource extends EntityResource<Tag, TagRepository> {
     if (!(daoCollection.relationshipDAO().findIfAnyRelationExist(CLASSIFICATION, TAG) > 0)) {
       // We are missing relationship for classification -> tag, and also tag -> tag (parent relationship)
       // Find tag definitions and load classifications from the json file, if necessary
-      ClassificationRepository classificationRepository =
-          (ClassificationRepository) Entity.getEntityRepository(CLASSIFICATION);
+      EntityRepository<Classification> classificationRepository = Entity.getEntityRepository(CLASSIFICATION);
       try {
         List<Classification> classificationList =
             classificationRepository.listAll(classificationRepository.getFields("*"), new ListFilter(Include.ALL));
@@ -151,13 +150,11 @@ public class TagResource extends EntityResource<Tag, TagRepository> {
     }
   }
 
-  @Override
   public void initialize(OpenMetadataApplicationConfig config) throws IOException {
     // TODO: Once we have migrated to the version above 0.13.1, then this can be removed
     migrateTags();
     // Find tag definitions and load classifications from the json file, if necessary
-    ClassificationRepository classificationRepository =
-        (ClassificationRepository) Entity.getEntityRepository(CLASSIFICATION);
+    EntityRepository<EntityInterface> classificationRepository = Entity.getEntityRepository(CLASSIFICATION);
     List<LoadTags> loadTagsList =
         EntityRepository.getEntitiesFromSeedData(CLASSIFICATION, ".*json/data/tags/.*\\.json$", LoadTags.class);
     for (LoadTags loadTags : loadTagsList) {
@@ -187,7 +184,7 @@ public class TagResource extends EntityResource<Tag, TagRepository> {
   @Valid
   @Operation(
       operationId = "listTags",
-      summary = "List tags",
+      summary = "List Tags",
       tags = "classification",
       description =
           "Get a list of tags. Use `fields` parameter to get only necessary fields. "
@@ -241,7 +238,7 @@ public class TagResource extends EntityResource<Tag, TagRepository> {
   @Path("/{id}")
   @Operation(
       operationId = "getTagByID",
-      summary = "Get a tag by id",
+      summary = "Get a tag",
       tags = "classification",
       description = "Get a tag by `id`.",
       responses = {
@@ -254,7 +251,7 @@ public class TagResource extends EntityResource<Tag, TagRepository> {
   public Tag get(
       @Context UriInfo uriInfo,
       @Context SecurityContext securityContext,
-      @Parameter(description = "Id of the tag", schema = @Schema(type = "UUID")) @PathParam("id") UUID id,
+      @PathParam("id") UUID id,
       @Parameter(
               description = "Fields requested in the returned resource",
               schema = @Schema(type = "string", example = FIELDS))
@@ -271,23 +268,22 @@ public class TagResource extends EntityResource<Tag, TagRepository> {
   }
 
   @GET
-  @Path("/name/{fqn}")
+  @Path("/name/{name}")
   @Operation(
       operationId = "getTagByFQN",
-      summary = "Get a tag by fully qualified name",
+      summary = "Get a tag by name",
       tags = "classification",
-      description = "Get a tag by `fullyQualifiedName`.",
+      description = "Get a tag by name.",
       responses = {
         @ApiResponse(
             responseCode = "200",
             description = "The tag",
             content = @Content(mediaType = "application/json", schema = @Schema(implementation = Tag.class))),
-        @ApiResponse(responseCode = "404", description = "Tag for instance {fqn} is not found")
+        @ApiResponse(responseCode = "404", description = "Tag for instance {id} is not found")
       })
   public Tag getByName(
       @Context UriInfo uriInfo,
-      @Parameter(description = "Fully qualified name of the tag", schema = @Schema(type = "string")) @PathParam("fqn")
-          String fqn,
+      @PathParam("name") String name,
       @Context SecurityContext securityContext,
       @Parameter(
               description = "Fields requested in the returned resource",
@@ -301,7 +297,7 @@ public class TagResource extends EntityResource<Tag, TagRepository> {
           @DefaultValue("non-deleted")
           Include include)
       throws IOException {
-    return getByNameInternal(uriInfo, securityContext, fqn, fieldsParam, include);
+    return getByNameInternal(uriInfo, securityContext, name, fieldsParam, include);
   }
 
   @GET
@@ -320,7 +316,7 @@ public class TagResource extends EntityResource<Tag, TagRepository> {
   public EntityHistory listVersions(
       @Context UriInfo uriInfo,
       @Context SecurityContext securityContext,
-      @Parameter(description = "Id of the tag", schema = @Schema(type = "UUID")) @PathParam("id") UUID id)
+      @Parameter(description = "tag Id", schema = @Schema(type = "string")) @PathParam("id") UUID id)
       throws IOException {
     return super.listVersionsInternal(securityContext, id);
   }
@@ -344,7 +340,7 @@ public class TagResource extends EntityResource<Tag, TagRepository> {
   public Tag getVersion(
       @Context UriInfo uriInfo,
       @Context SecurityContext securityContext,
-      @Parameter(description = "Id of the tag", schema = @Schema(type = "UUID")) @PathParam("id") UUID id,
+      @Parameter(description = "tag Id", schema = @Schema(type = "UUID")) @PathParam("id") UUID id,
       @Parameter(
               description = "tag version number in the form `major`.`minor`",
               schema = @Schema(type = "string", example = "0.1 or 1.1"))
@@ -385,7 +381,7 @@ public class TagResource extends EntityResource<Tag, TagRepository> {
   public Response patch(
       @Context UriInfo uriInfo,
       @Context SecurityContext securityContext,
-      @Parameter(description = "Id of the tag", schema = @Schema(type = "UUID")) @PathParam("id") UUID id,
+      @PathParam("id") UUID id,
       @RequestBody(
               description = "JsonPatch with array of operations",
               content =
@@ -422,7 +418,7 @@ public class TagResource extends EntityResource<Tag, TagRepository> {
   @Path("/{id}")
   @Operation(
       operationId = "deleteTag",
-      summary = "Delete a tag by id",
+      summary = "Delete a Tag",
       tags = "classification",
       description = "Delete a tag by `id`.",
       responses = {
@@ -440,21 +436,21 @@ public class TagResource extends EntityResource<Tag, TagRepository> {
           @QueryParam("hardDelete")
           @DefaultValue("false")
           boolean hardDelete,
-      @Parameter(description = "Id of the tag", schema = @Schema(type = "UUID")) @PathParam("id") UUID id)
+      @Parameter(description = "Tag Id", schema = @Schema(type = "UUID")) @PathParam("id") UUID id)
       throws IOException {
     return delete(uriInfo, securityContext, id, recursive, hardDelete);
   }
 
   @DELETE
-  @Path("/name/{fqn}")
+  @Path("/name/{name}")
   @Operation(
       operationId = "deleteTagByName",
-      summary = "Delete a tag by fully qualified name",
+      summary = "Delete a Tag",
       tags = "classification",
-      description = "Delete a tag by `fullyQualifiedName`.",
+      description = "Delete a tag by `name`.",
       responses = {
         @ApiResponse(responseCode = "200", description = "OK"),
-        @ApiResponse(responseCode = "404", description = "tag for instance {fqn} is not found")
+        @ApiResponse(responseCode = "404", description = "tag for instance {name} is not found")
       })
   public Response delete(
       @Context UriInfo uriInfo,
@@ -463,19 +459,18 @@ public class TagResource extends EntityResource<Tag, TagRepository> {
           @QueryParam("hardDelete")
           @DefaultValue("false")
           boolean hardDelete,
-      @Parameter(description = "Fully qualified name of the tag", schema = @Schema(type = "string")) @PathParam("fqn")
-          String fqn)
+      @Parameter(description = "Name of the tag", schema = @Schema(type = "string")) @PathParam("name") String name)
       throws IOException {
-    return deleteByName(uriInfo, securityContext, fqn, false, hardDelete);
+    return deleteByName(uriInfo, securityContext, name, false, hardDelete);
   }
 
   @PUT
   @Path("/restore")
   @Operation(
       operationId = "restoreTag",
-      summary = "Restore a soft deleted tag.",
+      summary = "Restore a soft deleted Tag.",
       tags = "classification",
-      description = "Restore a soft deleted tag.",
+      description = "Restore a soft deleted Tag.",
       responses = {
         @ApiResponse(
             responseCode = "200",

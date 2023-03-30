@@ -11,12 +11,7 @@
  *  limitations under the License.
  */
 
-import {
-  fireEvent,
-  getByTestId,
-  queryByTestId,
-  render,
-} from '@testing-library/react';
+import { fireEvent, getByTestId, render } from '@testing-library/react';
 import { LabelType, State, TagSource } from 'generated/type/tagLabel';
 import React from 'react';
 import Tags from './tags';
@@ -40,7 +35,7 @@ describe('Test tags Component', () => {
       <Tags editable removeTag={mockCallback} startWith="#" tag="test" />
     );
     const tags = getByTestId(container, 'tags');
-    const remove = getByTestId(container, 'remove-test-tag');
+    const remove = getByTestId(container, 'remove');
 
     expect(tags).toBeInTheDocument();
     expect(remove).toBeInTheDocument();
@@ -48,13 +43,13 @@ describe('Test tags Component', () => {
 
   it('Component should render properly for add tag button', () => {
     const { container } = render(
-      <Tags removeTag={mockCallback} startWith="+ " tag="add tag" />
+      <Tags editable removeTag={mockCallback} startWith="+ " tag="add tag" />
     );
     const tags = getByTestId(container, 'tags');
-    const remove = queryByTestId(container, 'remove-test-tag');
+    const remove = getByTestId(container, 'remove');
 
     expect(tags).toBeInTheDocument();
-    expect(remove).toBeNull();
+    expect(remove).toBeInTheDocument();
   });
 
   it('onClick of X callback function should call', () => {
@@ -67,7 +62,7 @@ describe('Test tags Component', () => {
         tag="test"
       />
     );
-    const remove = getByTestId(container, 'remove-test-tag');
+    const remove = getByTestId(container, 'remove');
     fireEvent.click(
       remove,
       new MouseEvent('click', {
@@ -79,7 +74,7 @@ describe('Test tags Component', () => {
     expect(mockCallback).toHaveBeenCalledTimes(1);
   });
 
-  it('Clicking on tag with source Classification should redirect to the proper Classification page', () => {
+  it('Clicking on tag with source Tag should redirect to the proper tag category page', () => {
     const { container } = render(
       <Tags
         editable
@@ -87,7 +82,7 @@ describe('Test tags Component', () => {
         startWith="#"
         tag={{
           labelType: LabelType.Manual,
-          source: TagSource.Classification,
+          source: TagSource.Tag,
           state: State.Confirmed,
           tagFQN: 'testTag.Test1',
         }}

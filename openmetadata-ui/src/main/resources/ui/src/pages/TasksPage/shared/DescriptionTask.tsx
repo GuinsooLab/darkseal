@@ -15,7 +15,6 @@ import RichTextEditor from 'components/common/rich-text-editor/RichTextEditor';
 import { EditorContentRef } from 'components/common/rich-text-editor/RichTextEditor.interface';
 import { isEqual } from 'lodash';
 import React, { FC, Fragment, useRef } from 'react';
-import { useTranslation } from 'react-i18next';
 import {
   TaskType,
   Thread,
@@ -42,7 +41,6 @@ const DescriptionTask: FC<DescriptionTaskProps> = ({
   currentDescription,
   onSuggestionChange,
 }) => {
-  const { t } = useTranslation();
   const markdownRef = useRef<EditorContentRef>();
 
   const isRequestDescription = isEqual(
@@ -66,9 +64,7 @@ const DescriptionTask: FC<DescriptionTaskProps> = ({
     if (!oldValue && !newValue) {
       return (
         <div className="tw-border tw-border-main tw-p-2 tw-rounded tw-my-1 tw-mb-3">
-          <span className="tw-p-2 tw-text-grey-muted">
-            {t('label.no-entity', { entity: t('label.description') })}
-          </span>
+          <span className="tw-p-2 tw-text-grey-muted">No Description</span>
         </div>
       );
     } else {
@@ -98,9 +94,7 @@ const DescriptionTask: FC<DescriptionTaskProps> = ({
     );
 
     return !newDescription && !oldDescription ? (
-      <span className="tw-p-2 tw-text-grey-muted">
-        {t('label.no-entity', { entity: t('label.suggestion') })}
-      </span>
+      <span className="tw-p-2 tw-text-grey-muted">No Suggestion</span>
     ) : (
       <DiffView className="tw-p-2" diffArr={diffs} />
     );
@@ -108,7 +102,7 @@ const DescriptionTask: FC<DescriptionTaskProps> = ({
 
   return (
     <div data-testid="task-description-tabs">
-      <p className="tw-text-grey-muted">{`${t('label.description')}:`}</p>{' '}
+      <p className="tw-text-grey-muted">Description:</p>{' '}
       <Fragment>
         {isTaskClosed ? (
           getDiffView()
@@ -120,9 +114,7 @@ const DescriptionTask: FC<DescriptionTaskProps> = ({
                   <RichTextEditor
                     height="208px"
                     initialValue={suggestion}
-                    placeHolder={t('label.add-entity', {
-                      entity: t('label.description'),
-                    })}
+                    placeHolder="Add description"
                     style={{ marginTop: '0px' }}
                     onTextChange={onSuggestionChange}
                   />

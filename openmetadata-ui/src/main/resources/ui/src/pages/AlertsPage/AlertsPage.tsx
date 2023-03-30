@@ -11,39 +11,37 @@
  *  limitations under the License.
  */
 import { Button, Col, Row, Table, Tooltip } from 'antd';
-import { AxiosError } from 'axios';
+import DeleteWidgetModal from 'components/common/DeleteWidget/DeleteWidgetModal';
 import NextPrevious from 'components/common/next-previous/NextPrevious';
 import PageHeader from 'components/header/PageHeader.component';
 import Loader from 'components/Loader/Loader';
-import ConfirmationModal from 'components/Modals/ConfirmationModal/ConfirmationModal';
-import {
-  EventSubscription,
-  ProviderType,
-} from 'generated/events/eventSubscription';
 import { isNil } from 'lodash';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
-import { deleteAlert, getAllAlerts } from 'rest/alertsAPI';
+import { getAllAlerts } from 'rest/alertsAPI';
 import { PAGE_SIZE_MEDIUM } from '../../constants/constants';
 import {
   GlobalSettingOptions,
   GlobalSettingsMenuCategory,
 } from '../../constants/GlobalSettings.constants';
+import { EntityType } from '../../enums/entity.enum';
+import { Alerts, ProviderType } from '../../generated/alerts/alerts';
 import { Paging } from '../../generated/type/paging';
+import { getDisplayNameForTriggerType } from '../../utils/Alerts/AlertsUtil';
 import { getSettingPath } from '../../utils/RouterUtils';
 import SVGIcons, { Icons } from '../../utils/SvgUtils';
-import { showErrorToast, showSuccessToast } from '../../utils/ToastUtils';
+import { showErrorToast } from '../../utils/ToastUtils';
 
 const AlertsPage = () => {
   const [loading, setLoading] = useState(true);
   const { t } = useTranslation();
-  const [alerts, setAlerts] = useState<EventSubscription[]>([]);
+  const [alerts, setAlerts] = useState<Alerts[]>([]);
   const [alertsPaging, setAlertsPaging] = useState<Paging>({
     total: 0,
   } as Paging);
   const [currentPage, setCurrentPage] = useState(0);
-  const [selectedAlert, setSelectedAlert] = useState<EventSubscription>();
+  const [selectedAlert, setSelectedAlert] = useState<Alerts>();
 
   const fetchAlerts = useCallback(async (after?: string) => {
     setLoading(true);
@@ -66,17 +64,8 @@ const AlertsPage = () => {
   }, []);
 
   const handleAlertDelete = useCallback(async () => {
-    try {
-      await deleteAlert(selectedAlert?.id || '');
-      setSelectedAlert(undefined);
-      showSuccessToast(
-        t('server.entity-deleted-successfully', { entity: t('label.alert') })
-      );
-      fetchAlerts();
-    } catch (error) {
-      showErrorToast(error as AxiosError);
-    }
-  }, [selectedAlert]);
+    fetchAlerts();
+  }, []);
 
   const onPageChange = useCallback((after: string | number, page?: number) => {
     if (after) {
@@ -92,18 +81,16 @@ const AlertsPage = () => {
         dataIndex: 'name',
         width: '200px',
         key: 'name',
-        render: (name: string, record: EventSubscription) => {
+        render: (name: string, record: Alerts) => {
           return <Link to={`alert/${record.id}`}>{name}</Link>;
         },
       },
       {
         title: t('label.trigger'),
-        dataIndex: ['filteringRules', 'resources'],
+        dataIndex: ['triggerConfig', 'type'],
         width: '200px',
-        key: 'FilteringRules.resources',
-        render: (resources: string[]) => {
-          return resources?.join(', ') || '--';
-        },
+        key: 'triggerConfig.type',
+        render: getDisplayNameForTriggerType,
       },
       {
         title: t('label.description'),
@@ -116,7 +103,7 @@ const AlertsPage = () => {
         dataIndex: 'id',
         width: 120,
         key: 'id',
-        render: (id: string, record: EventSubscription) => {
+        render: (id: string, record: Alerts) => {
           return (
             <>
               <Tooltip placement="bottom" title={t('label.edit')}>
@@ -194,20 +181,16 @@ const AlertsPage = () => {
             />
           )}
 
-          <ConfirmationModal
-            bodyText={t('message.delete-entity-permanently', {
-              entityType: selectedAlert?.name || '',
-            })}
-            cancelText={t('label.cancel')}
-            confirmText={t('label.delete')}
-            header={t('label.delete-entity', {
-              entity: selectedAlert?.name || '',
-            })}
+          <DeleteWidgetModal
+            afterDeleteAction={handleAlertDelete}
+            allowSoftDelete={false}
+            entityId={selectedAlert?.id || ''}
+            entityName={selectedAlert?.name || ''}
+            entityType={EntityType.ALERT}
             visible={Boolean(selectedAlert)}
             onCancel={() => {
               setSelectedAlert(undefined);
             }}
-            onConfirm={handleAlertDelete}
           />
         </Col>
       </Row>

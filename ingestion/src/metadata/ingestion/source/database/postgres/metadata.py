@@ -19,7 +19,7 @@ from sqlalchemy import sql
 from sqlalchemy.dialects.postgresql.base import PGDialect, ischema_names
 from sqlalchemy.engine import reflection
 from sqlalchemy.engine.reflection import Inspector
-from sqlalchemy.sql import sqltypes
+from sqlalchemy.sql.sqltypes import String
 
 from metadata.generated.schema.api.classification.createClassification import (
     CreateClassificationRequest,
@@ -42,18 +42,14 @@ from metadata.generated.schema.metadataIngestion.workflow import (
 )
 from metadata.ingestion.api.source import InvalidSourceException
 from metadata.ingestion.models.ometa_classification import OMetaTagAndClassification
-from metadata.ingestion.source.database.column_type_parser import create_sqlalchemy_type
 from metadata.ingestion.source.database.common_db_source import (
     CommonDbSourceService,
     TableNameAndType,
 )
 from metadata.ingestion.source.database.postgres.queries import (
-    POSTGRES_COL_IDENTITY,
     POSTGRES_GET_ALL_TABLE_PG_POLICY,
-    POSTGRES_GET_DB_NAMES,
     POSTGRES_GET_TABLE_NAMES,
     POSTGRES_PARTITION_DETAILS,
-    POSTGRES_SQL_COLUMNS,
     POSTGRES_TABLE_COMMENTS,
     POSTGRES_VIEW_DEFINITIONS,
 )
@@ -84,27 +80,26 @@ RELKIND_MAP = {
     "f": TableType.Foreign,
 }
 
-GEOMETRY = create_sqlalchemy_type("GEOMETRY")
-POINT = create_sqlalchemy_type("POINT")
-POLYGON = create_sqlalchemy_type("POLYGON")
 
-ischema_names.update(
-    {
-        "geometry": GEOMETRY,
-        "point": POINT,
-        "polygon": POLYGON,
-        "box": create_sqlalchemy_type("BOX"),
-        "circle": create_sqlalchemy_type("CIRCLE"),
-        "line": create_sqlalchemy_type("LINE"),
-        "lseg": create_sqlalchemy_type("LSEG"),
-        "path": create_sqlalchemy_type("PATH"),
-        "pg_lsn": create_sqlalchemy_type("PG_LSN"),
-        "pg_snapshot": create_sqlalchemy_type("PG_SNAPSHOT"),
-        "tsquery": create_sqlalchemy_type("TSQUERY"),
-        "txid_snapshot": create_sqlalchemy_type("TXID_SNAPSHOT"),
-        "xml": create_sqlalchemy_type("XML"),
-    }
-)
+class GEOMETRY(String):
+    """The SQL GEOMETRY type."""
+
+    __visit_name__ = "GEOMETRY"
+
+
+class POINT(String):
+    """The SQL POINT type."""
+
+    __visit_name__ = "POINT"
+
+
+class POLYGON(String):
+    """The SQL GEOMETRY type."""
+
+    __visit_name__ = "POLYGON"
+
+
+ischema_names.update({"geometry": GEOMETRY, "point": POINT, "polygon": POLYGON})
 
 
 @reflection.cache
@@ -118,85 +113,6 @@ def get_table_comment(
         schema=schema,
         query=POSTGRES_TABLE_COMMENTS,
     )
-
-
-@reflection.cache
-def get_columns(  # pylint: disable=too-many-locals
-    self, connection, table_name, schema=None, **kw
-):
-    """
-    Overriding the dialect method to add raw_data_type in response
-    """
-
-    table_oid = self.get_table_oid(
-        connection, table_name, schema, info_cache=kw.get("info_cache")
-    )
-
-    generated = (
-        "a.attgenerated as generated"
-        if self.server_version_info >= (12,)
-        else "NULL as generated"
-    )
-    if self.server_version_info >= (10,):
-        # a.attidentity != '' is required or it will reflect also
-        # serial columns as identity.
-        identity = POSTGRES_COL_IDENTITY
-    else:
-        identity = "NULL as identity_options"
-
-    sql_col_query = POSTGRES_SQL_COLUMNS.format(
-        generated=generated,
-        identity=identity,
-    )
-    sql_col_query = (
-        sql.text(sql_col_query)
-        .bindparams(sql.bindparam("table_oid", type_=sqltypes.Integer))
-        .columns(attname=sqltypes.Unicode, default=sqltypes.Unicode)
-    )
-    conn = connection.execute(sql_col_query, {"table_oid": table_oid})
-    rows = conn.fetchall()
-
-    # dictionary with (name, ) if default search path or (schema, name)
-    # as keys
-    domains = self._load_domains(connection)  # pylint: disable=protected-access
-
-    # dictionary with (name, ) if default search path or (schema, name)
-    # as keys
-    enums = dict(
-        ((rec["name"],), rec) if rec["visible"] else ((rec["schema"], rec["name"]), rec)
-        for rec in self._load_enums(  # pylint: disable=protected-access
-            connection, schema="*"
-        )
-    )
-
-    # format columns
-    columns = []
-
-    for (
-        name,
-        format_type,
-        default_,
-        notnull,
-        table_oid,
-        comment,
-        generated,
-        identity,
-    ) in rows:
-        column_info = self._get_column_info(  # pylint: disable=protected-access
-            name,
-            format_type,
-            default_,
-            notnull,
-            domains,
-            enums,
-            schema,
-            comment,
-            generated,
-            identity,
-        )
-        column_info["system_data_type"] = format_type
-        columns.append(column_info)
-    return columns
 
 
 PGDialect.get_all_table_comments = get_all_table_comments
@@ -217,7 +133,6 @@ def get_view_definition(
 
 
 PGDialect.get_view_definition = get_view_definition
-PGDialect.get_columns = get_columns
 PGDialect.get_all_view_definitions = get_all_view_definitions
 
 PGDialect.ischema_names = ischema_names
@@ -248,7 +163,7 @@ class PostgresSource(CommonDbSourceService):
         """
         result = self.connection.execute(
             sql.text(POSTGRES_GET_TABLE_NAMES),
-            {"schema": schema_name},
+            dict(schema=schema_name),
         )
 
         return [
@@ -259,12 +174,14 @@ class PostgresSource(CommonDbSourceService):
         ]
 
     def get_database_names(self) -> Iterable[str]:
-        if not self.config.serviceConnection.__root__.config.ingestAllDatabases:
-            configured_db = self.config.serviceConnection.__root__.config.database
+        configured_db = self.config.serviceConnection.__root__.config.database
+        if configured_db:
             self.set_inspector(database_name=configured_db)
             yield configured_db
         else:
-            results = self.connection.execute(POSTGRES_GET_DB_NAMES)
+            results = self.connection.execute(
+                "select datname from pg_catalog.pg_database"
+            )
             for res in results:
                 row = list(res)
                 new_database = row[0]

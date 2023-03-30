@@ -40,7 +40,7 @@ from metadata.generated.schema.entity.services.connections.metadata.openMetadata
 )
 from metadata.generated.schema.type.tableUsageCount import TableColumn, TableUsageCount
 from metadata.generated.schema.type.usageRequest import UsageRequest
-from metadata.ingestion.api.bulk_sink import BulkSink
+from metadata.ingestion.api.bulk_sink import BulkSink, BulkSinkStatus
 from metadata.ingestion.lineage.sql_lineage import (
     get_column_fqn,
     get_table_entities_from_query,
@@ -75,12 +75,13 @@ class MetadataUsageBulkSink(BulkSink):
         config: MetadataUsageSinkConfig,
         metadata_config: OpenMetadataConnection,
     ):
-        super().__init__()
+
         self.config = config
         self.metadata_config = metadata_config
         self.service_name = None
         self.wrote_something = False
         self.metadata = OpenMetadata(self.metadata_config)
+        self.status = BulkSinkStatus()
         self.table_join_dict = {}
         self.table_usage_map = {}
         self.today = datetime.today().strftime("%Y-%m-%d")
@@ -101,6 +102,7 @@ class MetadataUsageBulkSink(BulkSink):
             self.table_usage_map[table_entity.id.__root__] = {
                 "table_entity": table_entity,
                 "usage_count": table_usage.count,
+                "sql_queries": list(table_usage.sqlQueries or []),
                 "usage_date": table_usage.date,
                 "database": table_usage.databaseName,
                 "database_schema": table_usage.databaseSchema,
@@ -109,6 +111,9 @@ class MetadataUsageBulkSink(BulkSink):
             self.table_usage_map[table_entity.id.__root__][
                 "usage_count"
             ] += table_usage.count
+            self.table_usage_map[table_entity.id.__root__]["sql_queries"].extend(
+                table_usage.sqlQueries
+            )
 
     def __publish_usage_records(self) -> None:
         """
@@ -118,10 +123,11 @@ class MetadataUsageBulkSink(BulkSink):
             table_usage_request = None
             try:
                 table_usage_request = UsageRequest(
-                    date=datetime.fromtimestamp(int(value_dict["usage_date"])).strftime(
-                        "%Y-%m-%d"
-                    ),
-                    count=value_dict["usage_count"],
+                    date=value_dict["usage_date"], count=value_dict["usage_count"]
+                )
+                self.metadata.ingest_table_queries_data(
+                    table=value_dict["table_entity"],
+                    table_queries=value_dict["sql_queries"],
                 )
                 self.metadata.publish_table_usage(
                     value_dict["table_entity"], table_usage_request
@@ -220,11 +226,6 @@ class MetadataUsageBulkSink(BulkSink):
                         self.metadata.publish_frequently_joined_with(
                             table_entity, table_join_request
                         )
-
-                    if table_usage.sqlQueries:
-                        self.metadata.ingest_entity_queries_data(
-                            entity=table_entity, queries=table_usage.sqlQueries
-                        )
                 except APIError as err:
                     logger.debug(traceback.format_exc())
                     logger.warning(
@@ -313,6 +314,9 @@ class MetadataUsageBulkSink(BulkSink):
 
         for table_entity in table_entities:
             return get_column_fqn(table_entity=table_entity, column=table_column.column)
+
+    def get_status(self):
+        return self.status
 
     def close(self):
         if Path(self.config.filename).exists():

@@ -12,7 +12,6 @@
  */
 
 import { Button, Col, Row, Space } from 'antd';
-import { t } from 'i18next';
 import React, { useEffect, useState } from 'react';
 import CronEditor from '../../common/CronEditor/CronEditor';
 import { TestSuiteSchedulerProps } from '../AddDataQualityTest.interface';
@@ -42,12 +41,12 @@ const TestSuiteScheduler: React.FC<TestSuiteSchedulerProps> = ({
       </Col>
       <Col span={24}>
         <Space className="tw-w-full tw-justify-end" size={16}>
-          <Button onClick={onCancel}>{t('label.back')}</Button>
+          <Button onClick={onCancel}>Back</Button>
           <Button
             data-testid="deploy-button"
             type="primary"
             onClick={() => onSubmit(repeatFrequency || '')}>
-            {t('label.submit')}
+            Submit
           </Button>
         </Space>
       </Col>

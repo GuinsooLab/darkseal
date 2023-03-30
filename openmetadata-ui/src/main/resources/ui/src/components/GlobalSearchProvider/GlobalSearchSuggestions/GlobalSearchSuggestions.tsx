@@ -101,7 +101,7 @@ const GlobalSearchSuggestions = ({
     let icon = '';
     switch (index) {
       case SearchIndex.TOPIC:
-        label = t('label.topic-plural');
+        label = t('label.topics');
         icon = Icons.TOPIC_GREY;
 
         break;
@@ -122,7 +122,7 @@ const GlobalSearchSuggestions = ({
         break;
       case SearchIndex.TABLE:
       default:
-        label = t('label.table-plural');
+        label = t('label.tables');
         icon = Icons.TABLE_GREY;
 
         break;

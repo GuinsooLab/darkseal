@@ -11,7 +11,7 @@
  *  limitations under the License.
  */
 
-import { Card, Col, Row, Skeleton, Space, Table } from 'antd';
+import { Col, Row, Skeleton, Space, Table } from 'antd';
 import { ColumnsType } from 'antd/lib/table';
 import { AxiosError } from 'axios';
 import ActivityFeedList from 'components/ActivityFeed/ActivityFeedList/ActivityFeedList';
@@ -63,7 +63,6 @@ import { FQN_SEPARATOR_CHAR } from '../../constants/char.constants';
 import {
   getDatabaseDetailsPath,
   getDatabaseSchemaDetailsPath,
-  getExplorePath,
   getServiceDetailsPath,
   getTeamAndUserDetailsPath,
   PAGE_SIZE,
@@ -80,23 +79,27 @@ import { Database } from '../../generated/entity/data/database';
 import { DatabaseSchema } from '../../generated/entity/data/databaseSchema';
 import { Post, Thread } from '../../generated/entity/feed/thread';
 import { EntityReference } from '../../generated/entity/teams/user';
-import { UsageDetails } from '../../generated/type/entityUsage';
+import { TypeUsedToReturnUsageDetailsOfAnEntity } from '../../generated/type/entityUsage';
 import { Paging } from '../../generated/type/paging';
 import { useInfiniteScroll } from '../../hooks/useInfiniteScroll';
 import { EntityFieldThreadCount } from '../../interface/feed.interface';
 import jsonData from '../../jsons/en';
+import { getEntityName } from '../../utils/CommonUtils';
 import {
   databaseDetailsTabs,
   getCurrentDatabaseDetailsTab,
 } from '../../utils/DatabaseDetailsUtils';
-import { getEntityFeedLink, getEntityName } from '../../utils/EntityUtils';
+import { getEntityFeedLink } from '../../utils/EntityUtils';
 import {
   deletePost,
   getEntityFieldThreadCounts,
   updateThreadData,
 } from '../../utils/FeedUtils';
 import { DEFAULT_ENTITY_PERMISSION } from '../../utils/PermissionsUtils';
-import { getSettingPath } from '../../utils/RouterUtils';
+import {
+  getExplorePathWithInitFilters,
+  getSettingPath,
+} from '../../utils/RouterUtils';
 import {
   getServiceRouteFromServiceType,
   serviceTypeLogo,
@@ -173,7 +176,7 @@ const DatabaseDetails: FunctionComponent = () => {
 
   const tabs = [
     {
-      name: t('label.schema-plural'),
+      name: 'Schemas',
       icon: {
         alt: 'schemas',
         name: 'schema-grey',
@@ -185,7 +188,7 @@ const DatabaseDetails: FunctionComponent = () => {
       position: 1,
     },
     {
-      name: t('label.activity-feed-plural'),
+      name: 'Activity Feeds',
       icon: {
         alt: 'activity_feed',
         name: 'activity_feed',
@@ -574,15 +577,11 @@ const DatabaseDetails: FunctionComponent = () => {
   useEffect(() => {
     if (!isMounting.current && appState.inPageSearchText) {
       history.push(
-        getExplorePath({
-          search: appState.inPageSearchText,
-          extraParameters: {
-            postFilter: {
-              serviceType: [serviceType],
-              'database.name.keyword': [databaseName],
-            },
-          },
-        })
+        getExplorePathWithInitFilters(
+          appState.inPageSearchText,
+          undefined,
+          `postFilter[serviceType][0]=${serviceType}&postFilter[database.name.keyword][0]=${databaseName}`
+        )
       );
     }
   }, [appState.inPageSearchText]);
@@ -627,14 +626,14 @@ const DatabaseDetails: FunctionComponent = () => {
         title: t('label.schema-name'),
         dataIndex: 'name',
         key: 'name',
-        render: (_, record: DatabaseSchema) => (
+        render: (text: string, record: DatabaseSchema) => (
           <Link
             to={
               record.fullyQualifiedName
                 ? getDatabaseSchemaDetailsPath(record.fullyQualifiedName)
                 : ''
             }>
-            {getEntityName(record)}
+            {text}
           </Link>
         ),
       },
@@ -646,9 +645,7 @@ const DatabaseDetails: FunctionComponent = () => {
           text?.trim() ? (
             <RichTextEditorPreviewer markdown={text} />
           ) : (
-            <span className="text-grey-muted">
-              {t('label.no-entity', { entity: t('label.description') })}
-            </span>
+            <span className="text-grey-muted">No description</span>
           ),
       },
       {
@@ -661,7 +658,7 @@ const DatabaseDetails: FunctionComponent = () => {
         title: t('label.usage'),
         dataIndex: 'usageSummary',
         key: 'usageSummary',
-        render: (text: UsageDetails) =>
+        render: (text: TypeUsedToReturnUsageDetailsOfAnEntity) =>
           getUsagePercentile(text?.weeklyStats?.percentileRank || 0),
       },
     ],
@@ -790,24 +787,24 @@ const DatabaseDetails: FunctionComponent = () => {
                         </Fragment>
                       )}
                       {activeTab === 2 && (
-                        <Card className="p-t-xss p-b-md">
-                          <Row className="entity-feed-list" id="activityfeed">
-                            <Col offset={4} span={16}>
-                              <ActivityFeedList
-                                hideFeedFilter
-                                hideThreadFilter
-                                isEntityFeed
-                                withSidePanel
-                                className=""
-                                deletePostHandler={deletePostHandler}
-                                entityName={databaseName}
-                                feedList={entityThread}
-                                postFeedHandler={postFeedHandler}
-                                updateThreadHandler={updateThreadHandler}
-                              />
-                            </Col>
-                          </Row>
-                        </Card>
+                        <Row
+                          className="p-t-xss p-b-md entity-feed-list bg-white border-1 rounded-4 shadow-base h-full"
+                          id="activityfeed">
+                          <Col offset={4} span={16}>
+                            <ActivityFeedList
+                              hideFeedFilter
+                              hideThreadFilter
+                              isEntityFeed
+                              withSidePanel
+                              className=""
+                              deletePostHandler={deletePostHandler}
+                              entityName={databaseName}
+                              feedList={entityThread}
+                              postFeedHandler={postFeedHandler}
+                              updateThreadHandler={updateThreadHandler}
+                            />
+                          </Col>
+                        </Row>
                       )}
                       <Col
                         data-testid="observer-element"

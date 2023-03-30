@@ -11,7 +11,6 @@
  *  limitations under the License.
  */
 
-import { t } from 'i18next';
 import { isEmpty, isUndefined } from 'lodash';
 import { Team } from '../../generated/entity/teams/team';
 import { Paging } from '../../generated/type/paging';
@@ -26,31 +25,31 @@ export const getTabs = (
 ) => {
   const tabs = {
     teams: {
-      name: t('label.team-plural'),
+      name: 'Teams',
       isProtected: false,
       position: 1,
       count: teamsCount,
     },
     users: {
-      name: t('label.user-plural'),
+      name: 'Users',
       isProtected: false,
       position: 2,
       count: teamUserPagin?.total,
     },
     assets: {
-      name: t('label.asset-plural'),
+      name: 'Assets',
       isProtected: false,
       position: 3,
       count: filterEntityAssets(currentTeam?.owns || []).length,
     },
     roles: {
-      name: t('label.role-plural'),
+      name: 'Roles',
       isProtected: false,
       position: 4,
       count: currentTeam?.defaultRoles?.length,
     },
     policies: {
-      name: t('label.policy-plural'),
+      name: 'Policies',
       isProtected: false,
       position: 5,
       count: currentTeam?.policies?.length,

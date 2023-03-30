@@ -11,7 +11,6 @@
  *  limitations under the License.
  */
 
-import { t } from 'i18next';
 import { capitalize, isUndefined } from 'lodash';
 import { LoadingState } from 'Models';
 import React, { useState } from 'react';
@@ -228,7 +227,7 @@ const AddService = ({
     return (
       <div data-testid="add-new-service-container">
         <h6 className="tw-heading tw-text-base" data-testid="header">
-          {t('label.add-new-entity', { entity: t('label.service') })}
+          Add New Service
         </h6>
         <IngestionStepper
           activeStep={activeServiceStep}
@@ -268,7 +267,7 @@ const AddService = ({
 
           {activeServiceStep === 3 && (
             <ConnectionConfigForm
-              cancelText={t('label.back')}
+              cancelText="Back"
               serviceCategory={serviceCategory}
               serviceType={selectServiceType}
               status={saveServiceState}
@@ -320,7 +319,6 @@ const AddService = ({
         classes="tw-max-w-full-hd tw-h-full tw-pt-4"
         header={<TitleBreadcrumb titleLinks={slashedBreadcrumb} />}
         layout={PageLayoutType['2ColRTL']}
-        pageTitle={t('label.add-entity', { entity: t('label.service') })}
         rightPanel={fetchRightPanel()}>
         <div className="tw-form-container">
           {addIngestion ? (
@@ -328,9 +326,7 @@ const AddService = ({
               activeIngestionStep={activeIngestionStep}
               handleCancelClick={() => handleAddIngestion(false)}
               handleViewServiceClick={handleViewServiceClick}
-              heading={`${t('label.add-workflow-ingestion', {
-                workflow: capitalize(PipelineType.Metadata),
-              })}`}
+              heading={`Add ${capitalize(PipelineType.Metadata)} Ingestion`}
               ingestionAction={ingestionAction}
               ingestionProgress={ingestionProgress}
               isIngestionCreated={isIngestionCreated}

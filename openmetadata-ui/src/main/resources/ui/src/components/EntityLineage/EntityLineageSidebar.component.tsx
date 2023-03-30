@@ -11,12 +11,12 @@
  *  limitations under the License.
  */
 
-import Icon from '@ant-design/icons';
+import { faGripVertical } from '@fortawesome/free-solid-svg-icons';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import classNames from 'classnames';
 import { capitalize, isEmpty, uniqueId } from 'lodash';
 import React, { FC, HTMLAttributes } from 'react';
 import { Node } from 'reactflow';
-import { ReactComponent as DragIconDotted } from '../../assets/svg/dots-six-bold.svg';
 import { entityData } from '../../constants/Lineage.constants';
 import SVGIcons from '../../utils/SvgUtils';
 
@@ -56,12 +56,7 @@ const EntityNode: FC<EntityNodeProps> = ({ type, label, draggable }) => {
           <SVGIcons alt={type} icon={`${type}-grey`} width="14" />
         </span>
         <span>
-          <Icon
-            className="drag-icon"
-            component={DragIconDotted}
-            rotate={90}
-            style={{ color: '#004AB3FF', fontSize: '18px', fontWeight: 'bold' }}
-          />
+          <FontAwesomeIcon icon={faGripVertical} style={{ color: '#004AB3' }} />
         </span>
       </div>
       <p className="tw-text-grey-body tw-text-center tw-text-xs tw-pt-1.5">

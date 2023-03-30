@@ -20,7 +20,6 @@ from metadata.generated.schema.entity.services.dashboardService import (
 from metadata.generated.schema.metadataIngestion.workflow import (
     OpenMetadataWorkflowConfig,
 )
-from metadata.generated.schema.type.basic import FullyQualifiedEntityName
 from metadata.generated.schema.type.entityReference import EntityReference
 from metadata.ingestion.source.dashboard.quicksight.metadata import QuicksightSource
 
@@ -33,7 +32,6 @@ with open(mock_file_path, encoding="UTF-8") as file:
 MOCK_DASHBOARD_SERVICE = DashboardService(
     id="c3eb265f-5445-4ad3-ba5e-797d3a3071bb",
     name="quicksight_source_test",
-    fullyQualifiedName=FullyQualifiedEntityName(__root__="quicksight_source_test"),
     connection=DashboardConnection(),
     serviceType=DashboardServiceType.QuickSight,
 )
@@ -92,11 +90,20 @@ EXPECTED_DASHBOARD = CreateDashboardRequest(
     name="552315335",
     displayName="New Dashboard",
     description="",
-    dashboardUrl="https://us-east-2.quicksight.aws.amazon.com/sn/dashboards/552315335",
+    dashboardUrl="https://dashboards.example.com/embed/1234",
     charts=[],
     tags=None,
     owner=None,
-    service="quicksight_source_test",
+    service=EntityReference(
+        id="c3eb265f-5445-4ad3-ba5e-797d3a3071bb",
+        type="dashboardService",
+        name=None,
+        fullyQualifiedName=None,
+        description=None,
+        displayName=None,
+        deleted=None,
+        href=None,
+    ),
     extension=None,
 )
 
@@ -106,35 +113,66 @@ EXPECTED_DASHBOARDS = [
         displayName="Top Salespeople",
         description="",
         chartType="Other",
-        chartUrl="https://us-east-2.quicksight.aws.amazon.com/sn/dashboards/552315335",
+        chartUrl="https://dashboards.example.com/embed/1234/sheets/1108771657",
         tables=None,
         tags=None,
         owner=None,
-        service="quicksight_source_test",
+        service=EntityReference(
+            id="c3eb265f-5445-4ad3-ba5e-797d3a3071bb",
+            type="dashboardService",
+            name=None,
+            fullyQualifiedName=None,
+            description=None,
+            displayName=None,
+            deleted=None,
+            href=None,
+        ),
     ),
     CreateChartRequest(
         name="1985861713",
         displayName="Milan Datasets",
         description="",
         chartType="Other",
-        chartUrl="https://us-east-2.quicksight.aws.amazon.com/sn/dashboards/552315335",
+        chartUrl="https://dashboards.example.com/embed/1234/sheets/1985861713",
         tables=None,
         tags=None,
         owner=None,
-        service="quicksight_source_test",
+        service=EntityReference(
+            id="c3eb265f-5445-4ad3-ba5e-797d3a3071bb",
+            type="dashboardService",
+            name=None,
+            fullyQualifiedName=None,
+            description=None,
+            displayName=None,
+            deleted=None,
+            href=None,
+        ),
     ),
     CreateChartRequest(
         name="2025899139",
         displayName="Page Fans",
         description="",
         chartType="Other",
-        chartUrl="https://us-east-2.quicksight.aws.amazon.com/sn/dashboards/552315335",
+        chartUrl="https://dashboards.example.com/embed/1234/sheets/2025899139",
         tables=None,
         tags=None,
         owner=None,
-        service="quicksight_source_test",
+        service=EntityReference(
+            id="c3eb265f-5445-4ad3-ba5e-797d3a3071bb",
+            type="dashboardService",
+            name=None,
+            fullyQualifiedName=None,
+            description=None,
+            displayName=None,
+            deleted=None,
+            href=None,
+        ),
     ),
 ]
+
+
+def mock_get_dashboard_embed_url(AwsAccountId, DashboardId, IdentityType, Namespace):
+    return {"EmbedUrl": "https://dashboards.example.com/embed/1234"}
 
 
 class QuickSightUnitTest(TestCase):
@@ -154,11 +192,10 @@ class QuickSightUnitTest(TestCase):
             mock_quicksight_config["source"],
             self.config.workflowConfig.openMetadataServerConfig,
         )
-        self.quicksight.dashboard_url = (
-            "https://us-east-2.quicksight.aws.amazon.com/sn/dashboards/552315335"
-        )
+        self.quicksight.dashboard_url = "https://dashboards.example.com/embed/1234"
         self.quicksight.context.__dict__["dashboard"] = MOCK_DASHBOARD
         self.quicksight.context.__dict__["dashboard_service"] = MOCK_DASHBOARD_SERVICE
+        self.quicksight.client.get_dashboard_embed_url = mock_get_dashboard_embed_url
 
     @pytest.mark.order(1)
     def test_dashboard(self):

@@ -23,7 +23,6 @@ from metadata.generated.schema.entity.services.connections.dashboard.tableauConn
 )
 from metadata.ingestion.connections.test_connections import (
     SourceConnectionException,
-    TestConnectionResult,
     TestConnectionStep,
     test_connection_steps,
 )
@@ -85,7 +84,7 @@ def get_connection(connection: TableauConnection) -> TableauServerConnection:
         )
 
 
-def test_connection(client: TableauServerConnection, _) -> TestConnectionResult:
+def test_connection(client: TableauServerConnection) -> None:
     """
     Test connection
     """
@@ -113,4 +112,4 @@ def test_connection(client: TableauServerConnection, _) -> TestConnectionResult:
         ),
     ]
 
-    return test_connection_steps(steps)
+    test_connection_steps(steps)

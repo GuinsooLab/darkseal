@@ -16,8 +16,8 @@ import React from 'react';
 import TagsContainer from './tags-container';
 
 const tagList = [
-  { fqn: 'tag 1', source: 'Classification' },
-  { fqn: 'tag 2', source: 'Classification' },
+  { fqn: 'tag 1', source: 'Tag' },
+  { fqn: 'tag 2', source: 'Tag' },
   { fqn: 'tag 3', source: 'Glossary' },
 ];
 
@@ -66,10 +66,8 @@ describe('Test TagsContainer Component', () => {
         onSelectionChange={onSelectionChange}
       />
     );
-    const cancelButton = getByTestId(container, 'cancelAssociatedTag');
-    const saveButton = getByTestId(container, 'saveAssociatedTag');
+    const buttons = getByTestId(container, 'buttons');
 
-    expect(cancelButton).toBeInTheDocument();
-    expect(saveButton).toBeInTheDocument();
+    expect(buttons.childElementCount).toBe(2);
   });
 });

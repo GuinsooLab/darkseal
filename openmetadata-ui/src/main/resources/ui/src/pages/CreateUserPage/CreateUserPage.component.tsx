@@ -14,12 +14,9 @@
 import { AxiosError } from 'axios';
 import PageContainerV1 from 'components/containers/PageContainerV1';
 import CreateUserComponent from 'components/CreateUser/CreateUser.component';
-import { LOADING_STATE } from 'enums/common.enum';
-import _ from 'lodash';
 import { observer } from 'mobx-react';
 import { LoadingState } from 'Models';
 import React, { useEffect, useState } from 'react';
-import { useTranslation } from 'react-i18next';
 import { useHistory, useParams } from 'react-router-dom';
 import { createBotWithPut } from 'rest/botsAPI';
 import { getRoles } from 'rest/rolesAPIV1';
@@ -29,17 +26,19 @@ import {
   GlobalSettingOptions,
   GlobalSettingsMenuCategory,
 } from '../../constants/GlobalSettings.constants';
+import { EntityType } from '../../enums/entity.enum';
 import { CreateUser } from '../../generated/api/teams/createUser';
+import { Bot } from '../../generated/entity/bot';
 import { Role } from '../../generated/entity/teams/role';
+import jsonData from '../../jsons/en';
 import { getSettingPath } from '../../utils/RouterUtils';
 import { showErrorToast, showSuccessToast } from '../../utils/ToastUtils';
 
 const CreateUserPage = () => {
   const history = useHistory();
-  const { t } = useTranslation();
 
   const [roles, setRoles] = useState<Array<Role>>([]);
-  const [status, setStatus] = useState<LoadingState>(LOADING_STATE.INITIAL);
+  const [status, setStatus] = useState<LoadingState>('initial');
 
   const { bot } = useParams<{ bot: string }>();
 
@@ -70,7 +69,7 @@ const CreateUserPage = () => {
     fallbackText?: string
   ) => {
     showErrorToast(error, fallbackText);
-    setStatus(LOADING_STATE.INITIAL);
+    setStatus('initial');
   };
 
   const checkBotInUse = async (name: string) => {
@@ -88,16 +87,13 @@ const CreateUserPage = () => {
    * @param userData Data for creating new user
    */
   const handleAddUserSave = async (userData: CreateUser) => {
-    setStatus(LOADING_STATE.WAITING);
     if (bot) {
       const isBotExists = await checkBotInUse(userData.name);
       if (isBotExists) {
-        setStatus(LOADING_STATE.INITIAL);
-        showErrorToast(
-          t('message.entity-already-exists', { entity: userData.name })
-        );
+        showErrorToast(`${userData.name} bot already exists.`);
       } else {
         try {
+          setStatus('waiting');
           // Create a user with isBot:true
           const userResponse = await createUserWithPut({
             ...userData,
@@ -106,53 +102,53 @@ const CreateUserPage = () => {
 
           // Create a bot entity with botUser data
           const botResponse = await createBotWithPut({
-            botUser: _.toString(userResponse.fullyQualifiedName),
+            botUser: { id: userResponse.id, type: EntityType.USER },
             name: userResponse.name,
             displayName: userResponse.displayName,
             description: userResponse.description,
-          });
+          } as Bot);
 
           if (botResponse) {
-            setStatus(LOADING_STATE.SUCCESS);
-            showSuccessToast(
-              t('server.create-entity-success', { entity: t('label.bot') })
-            );
+            setStatus('success');
+            showSuccessToast(`Bot created successfully`);
             setTimeout(() => {
-              setStatus(LOADING_STATE.INITIAL);
+              setStatus('initial');
 
               goToUserListPage();
             }, 500);
           } else {
             handleSaveFailure(
-              t('server.create-entity-error', { entity: t('label.bot') })
+              jsonData['api-error-messages']['create-bot-error']
             );
           }
         } catch (error) {
           handleSaveFailure(
             error as AxiosError,
-            t('server.create-entity-error', { entity: t('label.bot') })
+            jsonData['api-error-messages']['create-bot-error']
           );
         }
       }
     } else {
       try {
+        setStatus('waiting');
+
         const response = await createUser(userData);
 
         if (response) {
-          setStatus(LOADING_STATE.SUCCESS);
+          setStatus('success');
           setTimeout(() => {
-            setStatus(LOADING_STATE.WAITING);
+            setStatus('initial');
             goToUserListPage();
           }, 500);
         } else {
           handleSaveFailure(
-            t('server.create-entity-error', { entity: t('label.user') })
+            jsonData['api-error-messages']['create-user-error']
           );
         }
       } catch (error) {
         handleSaveFailure(
           error as AxiosError,
-          t('server.create-entity-error', { entity: t('label.user') })
+          jsonData['api-error-messages']['create-user-error']
         );
       }
     }
@@ -172,7 +168,7 @@ const CreateUserPage = () => {
       setRoles([]);
       showErrorToast(
         err as AxiosError,
-        t('server.entity-fetch-error', { entity: t('label.role-plural') })
+        jsonData['api-error-messages']['fetch-roles-error']
       );
     }
   };

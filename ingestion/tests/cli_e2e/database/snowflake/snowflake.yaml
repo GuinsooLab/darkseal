@@ -1,6 +1,6 @@
 source:
   type: snowflake
-  serviceName: e2e_snowflake
+  serviceName: local_snowflake
   serviceConnection:
     config:
       username: $E2E_SNOWFLAKE_USERNAME
@@ -20,6 +20,7 @@ source:
       schemaFilterPattern:
         excludes:
         - information_schema.*
+      
 sink:
   type: metadata-rest
   config: {}

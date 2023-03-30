@@ -71,7 +71,7 @@ export const INGESTION_ACTION_TYPE = {
 
 export const PIPELINE_TYPE_LOCALIZATION = {
   dataInsight: 'data-insight',
-  dbt: 'dbt-lowercase',
+  dbt: 'dbt',
   elasticSearchReindex: 'elastic-search-re-index',
   lineage: 'lineage',
   metadata: 'metadata',

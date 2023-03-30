@@ -40,8 +40,6 @@ export interface LabelCountSkeletonProps extends SkeletonProps, Partial<Key> {
   labelProps?: SkeletonProps;
   selectProps?: SkeletonProps;
   countProps?: SkeletonProps;
-  firstColSize?: number;
-  secondColSize?: number;
 }
 
 export type EntityListSkeletonProps = SkeletonInterface &

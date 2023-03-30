@@ -13,7 +13,7 @@
 
 import { AxiosResponse } from 'axios';
 import { Operation } from 'fast-json-patch';
-import { PagingWithoutTotal, RestoreRequestType } from 'Models';
+import { RestoreRequestType } from 'Models';
 import { ServicePageData } from 'pages/service';
 import { TabSpecificField } from '../enums/entity.enum';
 import { Topic } from '../generated/entity/data/topic';
@@ -39,20 +39,19 @@ export const getTopicVersion = async (id: string, version: string) => {
 };
 
 export const getTopics = async (
-  service: string,
-  fields: string,
-  paging?: PagingWithoutTotal
+  serviceName: string,
+  arrQueryFields: string | string[],
+  paging?: string
 ) => {
+  const url = `${getURLWithQueryFields(
+    `/topics`,
+    arrQueryFields
+  )}&service=${serviceName}${paging ? paging : ''}`;
+
   const response = await APIClient.get<{
     data: ServicePageData[];
     paging: Paging;
-  }>(`/topics`, {
-    params: {
-      service,
-      fields,
-      ...paging,
-    },
-  });
+  }>(url);
 
   return response.data;
 };
@@ -68,7 +67,7 @@ export const getTopicDetails = (
 
 export const getTopicByFqn = async (
   fqn: string,
-  arrQueryFields: string[] | string | TabSpecificField[]
+  arrQueryFields: string | TabSpecificField[]
 ) => {
   const url = getURLWithQueryFields(
     `/topics/name/${fqn}`,

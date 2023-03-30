@@ -13,7 +13,6 @@
 
 import { AxiosError } from 'axios';
 import React, { useEffect, useRef, useState } from 'react';
-import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 import { getSuggestions } from 'rest/miscAPI';
 import { FQN_SEPARATOR_CHAR } from '../../constants/char.constants';
@@ -65,7 +64,6 @@ type MlModelSource = {
 } & CommonSource;
 
 const Suggestions = ({ searchText, isOpen, setIsOpen }: SuggestionProp) => {
-  const { t } = useTranslation();
   const [options, setOptions] = useState<Array<Option>>([]);
   const [tableSuggestions, setTableSuggestions] = useState<TableSource[]>([]);
   const [topicSuggestions, setTopicSuggestions] = useState<TopicSource[]>([]);
@@ -114,28 +112,28 @@ const Suggestions = ({ searchText, isOpen, setIsOpen }: SuggestionProp) => {
     let icon = '';
     switch (index) {
       case SearchIndex.TOPIC:
-        label = t('label.topic-plural');
+        label = 'Topics';
         icon = Icons.TOPIC_GREY;
 
         break;
       case SearchIndex.DASHBOARD:
-        label = t('label.dashboard-plural');
+        label = 'Dashboards';
         icon = Icons.DASHBOARD_GREY;
 
         break;
       case SearchIndex.PIPELINE:
-        label = t('label.pipeline-plural');
+        label = 'Pipelines';
         icon = Icons.PIPELINE_GREY;
 
         break;
       case SearchIndex.MLMODEL:
-        label = t('label.ml-model-plural');
+        label = 'ML Models';
         icon = Icons.MLMODAL;
 
         break;
       case SearchIndex.TABLE:
       default:
-        label = t('label.table-plural');
+        label = 'Tables';
         icon = Icons.TABLE_GREY;
 
         break;

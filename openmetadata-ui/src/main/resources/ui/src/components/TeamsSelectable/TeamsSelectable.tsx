@@ -12,11 +12,10 @@
  */
 
 import { TreeSelect } from 'antd';
-import { t } from 'i18next';
 import React, { useEffect, useState } from 'react';
 import { getTeamsHierarchy } from 'rest/teamsAPI';
-import { getEntityName } from 'utils/EntityUtils';
 import { TeamHierarchy } from '../../generated/entity/teams/teamHierarchy';
+import { getEntityName } from '../../utils/CommonUtils';
 import SVGIcons from '../../utils/SvgUtils';
 import { showErrorToast } from '../../utils/ToastUtils';
 
@@ -33,9 +32,7 @@ const TeamsSelectable = ({
   showTeamsAlert,
   onSelectionChange,
   filterJoinable,
-  placeholder = t('label.search-for-type', {
-    type: t('label.team-plural-lowercase'),
-  }),
+  placeholder = 'Search for teams',
 }: Props) => {
   const [value, setValue] = useState<Array<string>>();
   const [noTeam, setNoTeam] = useState<boolean>(false);
@@ -103,7 +100,7 @@ const TeamsSelectable = ({
             <SVGIcons alt="info" icon="info" title="Info" width="16px" />
           </div>
           <div className="tw-font-semibold tw-px-1">
-            {t('message.no-data-available')}
+            There is no team available.
           </div>
         </div>
       )}

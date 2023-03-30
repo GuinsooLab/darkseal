@@ -53,19 +53,11 @@ const AddTeamForm: React.FC<AddTeamFormType> = ({
 
   const validationMessages = useMemo(
     () => ({
-      required: t('message.field-text-is-required', {
-        fieldText: '${label}',
-      }),
+      required: '${label} is required',
       string: {
-        range: t('message.entity-size-in-between', {
-          entity: '${label}',
-          min: '${min}',
-          max: '${max}',
-        }),
+        range: '${label} must be between ${min} and ${max}.',
       },
-      whitespace: t('message.entity-not-contain-whitespace', {
-        entity: '${label}',
-      }),
+      whitespace: '${label} is required',
     }),
     []
   );
@@ -158,10 +150,7 @@ const AddTeamForm: React.FC<AddTeamFormType> = ({
               },
             },
           ]}>
-          <Input
-            data-testid="name"
-            placeholder={t('label.enter-entity', { entity: t('label.name') })}
-          />
+          <Input data-testid="name" placeholder={t('label.enter-name')} />
         </Form.Item>
         <Form.Item
           label={t('label.display-name')}

@@ -23,7 +23,6 @@ import org.openmetadata.schema.api.tests.CreateTestSuite;
 import org.openmetadata.schema.tests.TestCase;
 import org.openmetadata.schema.tests.TestSuite;
 import org.openmetadata.schema.type.EntityReference;
-import org.openmetadata.schema.type.Include;
 import org.openmetadata.service.Entity;
 import org.openmetadata.service.resources.EntityResourceTest;
 import org.openmetadata.service.util.ResultList;
@@ -69,14 +68,14 @@ public class TestSuiteResourceTest extends EntityResourceTest<TestSuite, CreateT
 
     for (int i = 0; i < 5; i++) {
       CreateTestCase createTestCase =
-          testCaseResourceTest.createRequest("test_testSuite_1_" + i).withTestSuite(testSuite1.getFullyQualifiedName());
+          testCaseResourceTest.createRequest("test_testSuite_1_" + i).withTestSuite(testSuite1.getEntityReference());
       TestCase testCase = testCaseResourceTest.createAndCheckEntity(createTestCase, ADMIN_AUTH_HEADERS);
       testCases1.add(testCase.getEntityReference());
     }
 
     for (int i = 5; i < 10; i++) {
       CreateTestCase create =
-          testCaseResourceTest.createRequest("test_testSuite_2_" + i).withTestSuite(testSuite2.getFullyQualifiedName());
+          testCaseResourceTest.createRequest("test_testSuite_2_" + i).withTestSuite(testSuite2.getEntityReference());
       TestCase testCase = testCaseResourceTest.createAndCheckEntity(create, ADMIN_AUTH_HEADERS);
       testCases2.add(testCase.getEntityReference());
     }
@@ -95,13 +94,13 @@ public class TestSuiteResourceTest extends EntityResourceTest<TestSuite, CreateT
         NOT_FOUND,
         "testSuite instance for " + testSuite1.getId() + " not found");
     Map<String, String> queryParams = new HashMap<>();
-    queryParams.put("include", Include.ALL.value());
+    queryParams.put("include", "all");
     TestSuite deletedTestSuite = getEntity(testSuite1.getId(), queryParams, null, ADMIN_AUTH_HEADERS);
     assertEquals(testSuite1.getId(), deletedTestSuite.getId());
     assertEquals(deletedTestSuite.getDeleted(), true);
   }
 
-  public ResultList<TestSuite> getTestSuites(Integer limit, String fields, Map<String, String> authHeaders)
+  public static ResultList<TestSuite> getTestSuites(Integer limit, String fields, Map<String, String> authHeaders)
       throws HttpResponseException {
     WebTarget target = getResource("testSuite");
     target = limit != null ? target.queryParam("limit", limit) : target;

@@ -11,7 +11,7 @@ source:
       databaseSchema: schema_name
   sourceConfig:
     config:
-      type: DatabaseMetadata
+      generateSampleData: false
 sink:
   type: metadata-rest
   config: {}

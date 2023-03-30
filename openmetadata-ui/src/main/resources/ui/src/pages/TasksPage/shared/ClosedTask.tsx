@@ -13,7 +13,6 @@
 
 import UserPopOverCard from 'components/common/PopOverCard/UserPopOverCard';
 import ProfilePicture from 'components/common/ProfilePicture/ProfilePicture';
-import { t } from 'i18next';
 import { toLower } from 'lodash';
 import React, { FC } from 'react';
 import { Thread } from '../../../generated/entity/feed/thread';
@@ -41,7 +40,7 @@ const ClosedTask: FC<ClosedTaskProps> = ({ task }) => {
           </span>{' '}
         </span>
       </UserPopOverCard>
-      <span className="tw-ml-1"> {t('label.closed-this-task-lowercase')} </span>
+      <span className="tw-ml-1"> closed this task </span>
       <span className="tw-ml-1" data-testid="task-closedAt">
         {toLower(getDayTimeByTimeStamp(task?.closedAt as number))}
       </span>

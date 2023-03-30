@@ -11,7 +11,6 @@
  *  limitations under the License.
  */
 
-import i18n from 'utils/i18next/LocalUtil';
 import { FormValidationRulesType } from '../../../enums/form.enum';
 import { FormValidationRules } from '../../../interface/genericForm.interface';
 import { DropDownListItem } from '../../dropdown/types';
@@ -25,34 +24,34 @@ import { DBT_SOURCES, GCS_CONFIG } from './DBTFormEnum';
 
 export const DBTSources: Array<DropDownListItem> = [
   {
-    label: i18n.t('label.local-config-source'),
+    label: 'Local Config Source',
     value: DBT_SOURCES.local,
   },
   {
-    label: i18n.t('label.http-config-source'),
+    label: 'HTTP Config Source',
     value: DBT_SOURCES.http,
   },
   {
-    label: i18n.t('label.cloud-config-source'),
+    label: 'Cloud Config Source',
     value: DBT_SOURCES.cloud,
   },
   {
-    label: i18n.t('label.s3-config-source'),
+    label: 'S3 Config Source',
     value: DBT_SOURCES.s3,
   },
   {
-    label: i18n.t('label.gcs-config-source'),
+    label: 'GCS Config Source',
     value: DBT_SOURCES.gcs,
   },
 ];
 
 export const GCSCreds: Array<DropDownListItem> = [
   {
-    label: i18n.t('label.gcs-credential-value'),
+    label: 'GCS Credentials Values',
     value: GCS_CONFIG.GCSValues,
   },
   {
-    label: i18n.t('label.gcs-credential-path'),
+    label: 'GCS Credentials Path',
     value: GCS_CONFIG.GCSCredentialsPath,
   },
 ];

@@ -11,7 +11,6 @@
  *  limitations under the License.
  */
 
-import { t } from 'i18next';
 import React, { FC, ReactNode } from 'react';
 import { Area, AreaChart, Tooltip } from 'recharts';
 
@@ -26,12 +25,8 @@ const CustomTooltip = ({
   if (active && payload && payload.length) {
     return (
       <div className="tw-py-1.5 tw-px-1 tw-bg-black tw-opacity-50 tw-rounded tw-text-white tw-text-xs tw-font-medium">
-        <div>
-          {t('label.value')} {payload[0].value}
-        </div>
-        <div>
-          {t('label.date')} {payload[0].payload.date.toString()}
-        </div>
+        <div>Value {payload[0].value}</div>
+        <div>Date {payload[0].payload.date.toString()}</div>
       </div>
     );
   }
@@ -78,9 +73,9 @@ const TableProfilerGraph: FC<Props> = ({
         />
         <Area
           dataKey="value"
-          fill="#004AB3FF"
+          fill="#004AB3"
           fillOpacity="0.4"
-          stroke="#004AB3FF"
+          stroke="#004AB3"
           type="monotone"
         />
       </AreaChart>

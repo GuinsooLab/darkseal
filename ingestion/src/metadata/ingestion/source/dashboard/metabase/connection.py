@@ -13,7 +13,6 @@
 Source connection handler
 """
 import json
-from functools import partial
 from typing import Any, Dict
 
 import requests
@@ -21,12 +20,7 @@ import requests
 from metadata.generated.schema.entity.services.connections.dashboard.metabaseConnection import (
     MetabaseConnection,
 )
-from metadata.ingestion.connections.test_connections import (
-    SourceConnectionException,
-    TestConnectionResult,
-    TestConnectionStep,
-    test_connection_steps,
-)
+from metadata.ingestion.connections.test_connections import SourceConnectionException
 
 
 def get_connection(connection: MetabaseConnection) -> Dict[str, Any]:
@@ -56,24 +50,15 @@ def get_connection(connection: MetabaseConnection) -> Dict[str, Any]:
         raise SourceConnectionException(msg) from exc
 
 
-def test_connection(client, _) -> TestConnectionResult:
+def test_connection(client) -> None:
     """
     Test connection
     """
-
-    def custom_executor():
-        result = requests.get(  # pylint: disable=missing-timeout
+    try:
+        requests.get(  # pylint: disable=missing-timeout
             client["connection"].hostPort + "/api/dashboard",
             headers=client["metabase_session"],
         )
-
-        return list(result)
-
-    steps = [
-        TestConnectionStep(
-            function=partial(custom_executor),
-            name="Get Dashboard",
-        ),
-    ]
-
-    return test_connection_steps(steps)
+    except Exception as exc:
+        msg = f"Unknown error connecting with {client}: {exc}."
+        raise SourceConnectionException(msg) from exc

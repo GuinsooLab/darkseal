@@ -16,13 +16,11 @@
   - '@Sachin-chaurasiya'
   - '@shahsank3t'
   - '@ShaileshParmar11'
-  - '@karanh37'
   - '@harshach'
   - '@mohityadav766'
   - '@sureshms'
   - '@akash-jain-10'
   - '@Vj-L'
-  - '@dhruvinmaniar123'
   - '@ShilpaVernekar'
   - '@snyk-bot'
   - '@dependabot'
@@ -44,7 +42,6 @@ UI:
   - '@Sachin-chaurasiya'
   - '@shahsank3t'
   - '@ShaileshParmar11'
-  - '@karanh37'
 
 backend:
   - '@harshach'
@@ -54,7 +51,6 @@ backend:
 devops:
   - '@akash-jain-10'
   - '@Vj-L'
-  - '@dhruvinmaniar123'
 
 documentation:
   - '@ShilpaVernekar'

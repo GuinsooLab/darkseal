@@ -24,7 +24,6 @@ import java.nio.file.Paths;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Base64;
 import java.util.Calendar;
 import java.util.Collection;
@@ -171,12 +170,12 @@ public final class CommonUtil {
     return IOUtils.toString(Objects.requireNonNull(loader.getResourceAsStream(file)), UTF_8);
   }
 
-  /** Return list of entries that are modifiable for performing sort and other operations */
+  /** Return list of entiries that are modifiable for performing sort and other operations */
   @SafeVarargs
   public static <T> List<T> listOf(T... entries) {
     if (entries == null) {
       return Collections.emptyList();
     }
-    return new ArrayList<>(Arrays.asList(entries));
+    return new ArrayList<>(List.of(entries));
   }
 }

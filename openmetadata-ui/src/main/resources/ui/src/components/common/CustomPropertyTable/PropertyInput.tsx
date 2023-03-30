@@ -11,7 +11,7 @@
  *  limitations under the License.
  */
 
-import { CheckOutlined, CloseOutlined } from '@ant-design/icons';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import React, { ChangeEvent, FC, useState } from 'react';
 import { Button } from '../../buttons/Button/Button';
 
@@ -67,7 +67,7 @@ export const PropertyInput: FC<PropertInputProps> = ({
           theme="primary"
           variant="contained"
           onMouseDown={onCancel}>
-          <CloseOutlined />
+          <FontAwesomeIcon className="tw-w-3.5 tw-h-3.5" icon="times" />
         </Button>
         <Button
           className="tw-px-1 tw-py-1 tw-rounded tw-text-sm"
@@ -76,7 +76,7 @@ export const PropertyInput: FC<PropertInputProps> = ({
           theme="primary"
           variant="contained"
           onClick={handleSave}>
-          <CheckOutlined />
+          <FontAwesomeIcon className="tw-w-3.5 tw-h-3.5" icon="check" />
         </Button>
       </div>
     </div>

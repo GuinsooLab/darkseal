@@ -11,7 +11,6 @@
  *  limitations under the License.
  */
 
-import { t } from 'i18next';
 import React from 'react';
 import SVGIcons from '../../utils/SvgUtils';
 
@@ -34,7 +33,7 @@ const LoginButton = ({
     <button className="tw-signin-button tw-mx-auto" {...props}>
       {svgIcon}
       <span className="tw-ml-3 tw-font-medium tw-text-grey-muted tw-text-xl">
-        {t('label.sign-in-with-sso', { sso: ssoBrandName })}
+        Sign in with {ssoBrandName}
       </span>
     </button>
   );

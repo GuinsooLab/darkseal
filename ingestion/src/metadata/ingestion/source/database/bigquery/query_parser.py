@@ -36,6 +36,7 @@ class BigqueryQueryParserSource(QueryParserSource, ABC):
 
     def __init__(self, config: WorkflowSource, metadata_config: OpenMetadataConnection):
         super().__init__(config, metadata_config)
+
         self.project_id = self.set_project_id()
         self.database = self.project_id
 
@@ -57,7 +58,7 @@ class BigqueryQueryParserSource(QueryParserSource, ABC):
             start_time=start_time,
             end_time=end_time,
             region=self.service_connection.usageLocation,
-            filters=self.filters,
+            filters=self.filters,  # pylint: disable=no-member
             result_limit=self.source_config.resultLimit,
         )
 

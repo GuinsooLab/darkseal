@@ -152,13 +152,10 @@ public class LineageRepository {
     if (upstreamDepth == 0) {
       return;
     }
-    List<EntityRelationshipRecord> records = new ArrayList<>();
-    // pipeline information is not maintained
-    if (entityType == Entity.PIPELINE) {
-      records = dao.relationshipDAO().findFromPipleine(id.toString(), Relationship.UPSTREAM.ordinal());
-    } else {
-      records = dao.relationshipDAO().findFrom(id.toString(), entityType, Relationship.UPSTREAM.ordinal());
-    }
+    // from this id ---> find other ids
+    List<EntityRelationshipRecord> records =
+        dao.relationshipDAO().findFrom(id.toString(), entityType, Relationship.UPSTREAM.ordinal());
+
     final List<EntityReference> upstreamEntityReferences = new ArrayList<>();
     for (EntityRelationshipRecord entityRelationshipRecord : records) {
       EntityReference ref =
@@ -170,8 +167,8 @@ public class LineageRepository {
           .getUpstreamEdges()
           .add(new Edge().withFromEntity(ref.getId()).withToEntity(id).withLineageDetails(lineageDetails));
     }
+
     lineage.getNodes().addAll(upstreamEntityReferences);
-    // from this id ---> find other ids
 
     upstreamDepth--;
     // Recursively add upstream nodes and edges
@@ -185,12 +182,10 @@ public class LineageRepository {
     if (downstreamDepth == 0) {
       return;
     }
-    List<EntityRelationshipRecord> records = new ArrayList<>();
-    if (entityType == Entity.PIPELINE) {
-      records = dao.relationshipDAO().findToPipeline(id.toString(), Relationship.UPSTREAM.ordinal());
-    } else {
-      records = dao.relationshipDAO().findTo(id.toString(), entityType, Relationship.UPSTREAM.ordinal());
-    }
+    // from other ids ---> to this id
+    List<EntityRelationshipRecord> records =
+        dao.relationshipDAO().findTo(id.toString(), entityType, Relationship.UPSTREAM.ordinal());
+
     final List<EntityReference> downstreamEntityReferences = new ArrayList<>();
     for (EntityRelationshipRecord entityRelationshipRecord : records) {
       EntityReference ref =

@@ -13,8 +13,6 @@
 
 import { Button, Form, FormProps, Input, Select, Space } from 'antd';
 import { AxiosError } from 'axios';
-import { CreateTestCase } from 'generated/api/tests/createTestCase';
-import { t } from 'i18next';
 import { isEmpty } from 'lodash';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useParams } from 'react-router-dom';
@@ -22,6 +20,7 @@ import { getListTestCase, getListTestDefinitions } from 'rest/testAPI';
 import { API_RES_MAX_SIZE } from '../../../constants/constants';
 import { CSMode } from '../../../enums/codemirror.enum';
 import { ProfilerDashboardType } from '../../../enums/table.enum';
+import { EntityReference } from '../../../generated/entity/services/ingestionPipelines/ingestionPipeline';
 import {
   TestCase,
   TestCaseParameterValue,
@@ -58,7 +57,7 @@ const TestCaseForm: React.FC<TestCaseFormProps> = ({
   const markdownRef = useRef<EditorContentRef>();
   const [testDefinitions, setTestDefinitions] = useState<TestDefinition[]>([]);
   const [selectedTestType, setSelectedTestType] = useState<string | undefined>(
-    initialValue?.testDefinition
+    initialValue?.testDefinition?.id
   );
   const [testCases, setTestCases] = useState<TestCase[]>([]);
   const [sqlQuery, setSqlQuery] = useState({
@@ -99,11 +98,9 @@ const TestCaseForm: React.FC<TestCaseFormProps> = ({
   };
 
   const getSelectedTestDefinition = () => {
-    const testType = initialValue?.testSuite ?? selectedTestType;
+    const testType = initialValue?.testDefinition?.id ?? selectedTestType;
 
-    return testDefinitions.find(
-      (definition) => definition.fullyQualifiedName === testType
-    );
+    return testDefinitions.find((definition) => definition.id === testType);
   };
 
   const GenerateParamsField = useCallback(() => {
@@ -115,9 +112,9 @@ const TestCaseForm: React.FC<TestCaseFormProps> = ({
           <Form.Item
             data-testid="sql-editor-container"
             key={name}
-            label={t('label.sql-uppercase-query')}
+            label="SQL Query"
             name={name}
-            tooltip={t('message.queries-result-test')}>
+            tooltip="Queries returning 1 or more rows will result in the test failing.">
             <SchemaEditor
               className="profiler-setting-sql-editor"
               mode={{ name: CSMode.SQL }}
@@ -131,7 +128,7 @@ const TestCaseForm: React.FC<TestCaseFormProps> = ({
         );
       }
 
-      return <ParameterForm definition={selectedDefinition} table={table} />;
+      return <ParameterForm definition={selectedDefinition} />;
     }
 
     return;
@@ -163,10 +160,13 @@ const TestCaseForm: React.FC<TestCaseFormProps> = ({
       name: value.testName,
       entityLink: generateEntityLink(decodedEntityFQN, isColumnFqn),
       parameterValues: parameterValues as TestCaseParameterValue[],
-      testDefinition: value.testTypeId,
+      testDefinition: {
+        id: value.testTypeId,
+        type: 'testDefinition',
+      },
       description: markdownRef.current?.getEditorContent(),
-      testSuite: '',
-    } as CreateTestCase;
+      testSuite: {} as EntityReference,
+    };
   };
 
   const handleFormSubmit: FormProps['onFinish'] = (value) => {
@@ -197,7 +197,7 @@ const TestCaseForm: React.FC<TestCaseFormProps> = ({
   const handleValueChange: FormProps['onValuesChange'] = (value) => {
     if (value.testTypeId) {
       const testType = testDefinitions.find(
-        (test) => test.fullyQualifiedName === value.testTypeId
+        (test) => test.id === value.testTypeId
       );
       setSelectedTestType(value.testTypeId);
       const testCount = testCases.filter((test) =>
@@ -226,7 +226,7 @@ const TestCaseForm: React.FC<TestCaseFormProps> = ({
       testName: replaceAllSpacialCharWith_(
         initialValue?.name ?? getNameFromFQN(decodedEntityFQN)
       ),
-      testTypeId: initialValue?.testDefinition,
+      testTypeId: initialValue?.testDefinition?.id,
       params: initialValue?.parameterValues?.length
         ? getParamsValue()
         : undefined,
@@ -242,56 +242,45 @@ const TestCaseForm: React.FC<TestCaseFormProps> = ({
       onFinish={handleFormSubmit}
       onValuesChange={handleValueChange}>
       <Form.Item
-        label={`${t('label.name')}:`}
+        label="Name:"
         name="testName"
         rules={[
           {
             required: true,
-            message: `${t('label.field-required', { field: t('label.name') })}`,
+            message: 'Name is required!',
           },
           {
             pattern: /^[A-Za-z0-9_]*$/g,
-            message: t('message.special-character-not-allowed'),
+            message: 'Spacial character is not allowed!',
           },
           {
             validator: (_, value) => {
               if (testCases.some((test) => test.name === value)) {
-                return Promise.reject(
-                  t('message.entity-already-exists', {
-                    entity: t('label.name'),
-                  })
-                );
+                return Promise.reject('Name already exist!');
               }
 
               return Promise.resolve();
             },
           },
         ]}>
-        <Input placeholder={t('message.enter-test-case-name')} />
+        <Input placeholder="Enter test case name" />
       </Form.Item>
       <Form.Item
-        label={`${t('label.test-type')}`}
+        label="Test Type:"
         name="testTypeId"
-        rules={[
-          {
-            required: true,
-            message: `${t('label.field-required', {
-              field: t('label.test-type'),
-            })}`,
-          },
-        ]}>
+        rules={[{ required: true, message: 'Test type is required' }]}>
         <Select
           options={testDefinitions.map((suite) => ({
             label: suite.name,
-            value: suite.fullyQualifiedName,
+            value: suite.id,
           }))}
-          placeholder={t('label.select-field', { field: t('label.test-type') })}
+          placeholder="Select test type"
         />
       </Form.Item>
 
       {GenerateParamsField()}
 
-      <Form.Item label={`${t('label.description')}`} name="description">
+      <Form.Item label="Description:" name="description">
         <RichTextEditor
           initialValue={initialValue?.description || ''}
           ref={markdownRef}
@@ -303,9 +292,9 @@ const TestCaseForm: React.FC<TestCaseFormProps> = ({
 
       <Form.Item noStyle>
         <Space className="tw-w-full tw-justify-end" size={16}>
-          <Button onClick={onBack}>{t('label.back')}</Button>
+          <Button onClick={onBack}>Back</Button>
           <Button data-testid="submit-test" htmlType="submit" type="primary">
-            {t('label.submit')}
+            Submit
           </Button>
         </Space>
       </Form.Item>

@@ -12,7 +12,6 @@
  */
 
 import { Button, Divider, Input, Space, Typography } from 'antd';
-import { t } from 'i18next';
 import { capitalize } from 'lodash';
 import React, { FC } from 'react';
 import { AuthType } from '../../generated/api/teams/createUser';
@@ -53,7 +52,7 @@ const AuthMechanism: FC<Props> = ({
       <>
         <Space className="w-full tw-justify-between">
           <Typography.Text className="tw-text-base">
-            {t('label.om-jwt-token')}
+            Darkseal JWT Token
           </Typography.Text>
           <Space>
             {JWTToken ? (
@@ -64,7 +63,7 @@ const AuthMechanism: FC<Props> = ({
                 size="small"
                 type="default"
                 onClick={onTokenRevoke}>
-                {t('label.revoke-token')}
+                Revoke token
               </Button>
             ) : (
               <Button
@@ -72,13 +71,15 @@ const AuthMechanism: FC<Props> = ({
                 size="small"
                 type="primary"
                 onClick={onEdit}>
-                {t('label.generate-new-token')}
+                Generate New Token
               </Button>
             )}
           </Space>
         </Space>
         <Divider style={{ margin: '8px 0px' }} />
-        <Typography.Paragraph>{t('message.jwt-token')}</Typography.Paragraph>
+        <Typography.Paragraph>
+          Token you have generated that can be used to access the Darkseal API.
+        </Typography.Paragraph>
 
         {JWTToken ? (
           <>
@@ -104,7 +105,7 @@ const AuthMechanism: FC<Props> = ({
                 <>
                   <SVGIcons alt="warning" icon="error" />
                   <span className="tw-ml-1 tw-align-middle">
-                    {t('message.token-has-no-expiry')}
+                    This token has no expiration date.
                   </span>
                 </>
               )}
@@ -114,7 +115,7 @@ const AuthMechanism: FC<Props> = ({
           <div
             className="tw-no-description tw-text-sm tw-mt-4"
             data-testid="no-token">
-            {t('message.no-token-available')}
+            No token available
           </div>
         )}
       </>
@@ -134,14 +135,14 @@ const AuthMechanism: FC<Props> = ({
             size="small"
             type="primary"
             onClick={onEdit}>
-            {t('label.edit')}
+            Edit
           </Button>
         </Space>
         <Divider style={{ margin: '8px 0px' }} />
 
         <Space className="w-full" direction="vertical">
           <>
-            <Typography.Text>{t('label.account-email')}</Typography.Text>
+            <Typography.Text>Account Email</Typography.Text>
             <Space className="w-full tw-justify-between ant-space-authMechanism">
               <Input
                 readOnly
@@ -154,7 +155,7 @@ const AuthMechanism: FC<Props> = ({
 
           {authConfig?.secretKey && (
             <>
-              <Typography.Text>{t('label.secret-key')}</Typography.Text>
+              <Typography.Text>SecretKey</Typography.Text>
               <Space className="w-full tw-justify-between ant-space-authMechanism">
                 <Input.Password
                   readOnly
@@ -167,7 +168,7 @@ const AuthMechanism: FC<Props> = ({
           )}
           {authConfig?.privateKey && (
             <>
-              <Typography.Text>{t('label.private-key')}</Typography.Text>
+              <Typography.Text>PrivateKey</Typography.Text>
               <Space className="w-full tw-justify-between ant-space-authMechanism">
                 <Input.Password
                   readOnly
@@ -180,7 +181,7 @@ const AuthMechanism: FC<Props> = ({
           )}
           {authConfig?.clientSecret && (
             <>
-              <Typography.Text>{t('label.client-secret')}</Typography.Text>
+              <Typography.Text>ClientSecret</Typography.Text>
               <Space className="w-full tw-justify-between ant-space-authMechanism">
                 <Input.Password
                   readOnly
@@ -193,7 +194,7 @@ const AuthMechanism: FC<Props> = ({
           )}
           {authConfig?.audience && (
             <>
-              <Typography.Text>{t('label.audience')}</Typography.Text>
+              <Typography.Text>Audience</Typography.Text>
               <Space className="w-full tw-justify-between ant-space-authMechanism">
                 <Input
                   readOnly
@@ -206,7 +207,7 @@ const AuthMechanism: FC<Props> = ({
           )}
           {authConfig?.clientId && (
             <>
-              <Typography.Text>{t('label.client-id')}</Typography.Text>
+              <Typography.Text>ClientId</Typography.Text>
               <Space className="w-full tw-justify-between ant-space-authMechanism">
                 <Input
                   readOnly
@@ -219,7 +220,7 @@ const AuthMechanism: FC<Props> = ({
           )}
           {authConfig?.email && (
             <>
-              <Typography.Text>{t('label.email')}</Typography.Text>
+              <Typography.Text>Email</Typography.Text>
               <Space className="w-full tw-justify-between ant-space-authMechanism">
                 <Input readOnly data-testid="email" value={authConfig?.email} />
                 <CopyToClipboardButton copyText={authConfig?.email} />
@@ -228,7 +229,7 @@ const AuthMechanism: FC<Props> = ({
           )}
           {authConfig?.orgURL && (
             <>
-              <Typography.Text>{t('label.org-url')}</Typography.Text>
+              <Typography.Text>OrgURL</Typography.Text>
               <Space className="w-full tw-justify-between ant-space-authMechanism">
                 <Input
                   readOnly
@@ -241,7 +242,7 @@ const AuthMechanism: FC<Props> = ({
           )}
           {authConfig?.scopes && (
             <>
-              <Typography.Text>{t('label.scope-plural')}</Typography.Text>
+              <Typography.Text>Scopes</Typography.Text>
               <Space className="w-full tw-justify-between ant-space-authMechanism">
                 <Input
                   readOnly
@@ -256,7 +257,7 @@ const AuthMechanism: FC<Props> = ({
           )}
           {authConfig?.domain && (
             <>
-              <Typography.Text>{t('label.domain')}</Typography.Text>
+              <Typography.Text>Domain</Typography.Text>
               <Space className="w-full tw-justify-between ant-space-authMechanism">
                 <Input
                   readOnly
@@ -269,7 +270,7 @@ const AuthMechanism: FC<Props> = ({
           )}
           {authConfig?.authority && (
             <>
-              <Typography.Text>{t('label.authority')}</Typography.Text>
+              <Typography.Text>Authority</Typography.Text>
               <Space className="w-full tw-justify-between ant-space-authMechanism">
                 <Input
                   readOnly
@@ -282,7 +283,7 @@ const AuthMechanism: FC<Props> = ({
           )}
           {authConfig?.tokenEndpoint && (
             <>
-              <Typography.Text>{t('label.token-end-point')}</Typography.Text>
+              <Typography.Text>TokenEndpoint</Typography.Text>
               <Space className="w-full tw-justify-between ant-space-authMechanism">
                 <Input
                   readOnly

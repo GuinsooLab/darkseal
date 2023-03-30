@@ -156,7 +156,7 @@ const mockOnChange = jest.fn();
 const mockState = {
   dbtConfigSource: '',
   dbtConfigSourceType: DBT_SOURCES.local,
-  ingestionName: i18n.t('label.dbt-lowercase'),
+  ingestionName: i18n.t('label.dbt-uppercase'),
   gcsConfigType: GCS_CONFIG.GCSValues,
 } as unknown as AddIngestionState;
 

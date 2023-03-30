@@ -60,6 +60,3 @@ export const getQueryStringForSchemaTables = (
   schemaName: DatabaseSchema
 ) =>
   `(service.name:${serviceName.name}) AND (database.name:${databaseName.name}) AND (databaseSchema.name:${schemaName.name})`;
-
-export const defaultFields = `${TabSpecificField.TAGS}, ${TabSpecificField.OWNER},
-${TabSpecificField.USAGE_SUMMARY}`;

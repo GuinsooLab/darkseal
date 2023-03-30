@@ -11,7 +11,7 @@
  *  limitations under the License.
  */
 
-import { PlusOutlined } from '@ant-design/icons';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { ObjectFieldTemplateProps } from '@rjsf/core';
 import classNames from 'classnames';
 import React, { Fragment, FunctionComponent } from 'react';
@@ -45,7 +45,7 @@ export const ObjectFieldTemplate: FunctionComponent<ObjectFieldTemplateProps> =
               onClick={() => {
                 props.onAddClick(props.schema)();
               }}>
-              <PlusOutlined />
+              <FontAwesomeIcon icon="plus" />
             </Button>
           )}
         </div>

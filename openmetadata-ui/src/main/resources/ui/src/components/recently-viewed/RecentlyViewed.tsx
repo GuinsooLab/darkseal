@@ -12,13 +12,11 @@
  */
 
 import React, { FunctionComponent, useEffect, useState } from 'react';
-import { useTranslation } from 'react-i18next';
 import { EntityReference } from '../../generated/type/entityReference';
 import { getRecentlyViewedData, prepareLabel } from '../../utils/CommonUtils';
 import { EntityListWithAntd } from '../EntityList/EntityList';
 
 const RecentlyViewed: FunctionComponent = () => {
-  const { t } = useTranslation();
   const recentlyViewedData = getRecentlyViewedData();
   const [data, setData] = useState<Array<EntityReference>>([]);
   const [isLoading, setIsloading] = useState<boolean>(false);
@@ -48,10 +46,10 @@ const RecentlyViewed: FunctionComponent = () => {
   return (
     <EntityListWithAntd
       entityList={data}
-      headerTextLabel={t('label.recent-views')}
+      headerTextLabel="Recent Views"
       loading={isLoading}
-      noDataPlaceholder={<>{t('message.no-recently-viewed-date')}</>}
-      testIDText={t('label.recently-viewed')}
+      noDataPlaceholder={<>No recently viewed data.</>}
+      testIDText="Recently Viewed"
     />
   );
 };

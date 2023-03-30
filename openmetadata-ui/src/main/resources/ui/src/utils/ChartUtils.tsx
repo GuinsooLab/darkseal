@@ -11,7 +11,7 @@
  *  limitations under the License.
  */
 
-import { isString, toString } from 'lodash';
+import { toString } from 'lodash';
 import React from 'react';
 import { LegendProps } from 'recharts';
 import { getStatisticsDisplayValue } from './CommonUtils';
@@ -20,15 +20,13 @@ export const tooltipFormatter = (
   value: string | number,
   tickFormatter?: string
 ) => {
-  if (isString(value)) {
-    return value;
-  }
+  const numValue = Number(value);
 
   return (
     <>
       {tickFormatter
-        ? `${value.toFixed(2)}${tickFormatter}`
-        : getStatisticsDisplayValue(value)}
+        ? `${numValue.toFixed(2)}${tickFormatter}`
+        : getStatisticsDisplayValue(numValue)}
     </>
   );
 };

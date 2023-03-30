@@ -15,11 +15,10 @@ import { Button, Space, Table, Tooltip, Typography } from 'antd';
 import { ColumnsType } from 'antd/lib/table';
 import { isUndefined } from 'lodash';
 import React, { FC, useEffect, useMemo, useState } from 'react';
-import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 import {
-  NO_DATA_PLACEHOLDER,
   PRIMERY_COLOR,
+  SECONDARY_COLOR,
   SUCCESS_COLOR,
 } from '../../../constants/constants';
 import { NO_PERMISSION_FOR_ACTION } from '../../../constants/HelperTextUtil';
@@ -52,7 +51,6 @@ const ColumnProfileTable: FC<ColumnProfileTableProps> = ({
   hasEditAccess,
   columns = [],
 }) => {
-  const { t } = useTranslation();
   const [searchText, setSearchText] = useState<string>('');
   const [data, setData] = useState<ModifiedColumn[]>(columns);
   const [columnTestSummary, setColumnTestSummary] =
@@ -61,7 +59,7 @@ const ColumnProfileTable: FC<ColumnProfileTableProps> = ({
   const tableColumn: ColumnsType<ModifiedColumn> = useMemo(() => {
     return [
       {
-        title: t('label.name'),
+        title: 'Name',
         dataIndex: 'name',
         key: 'name',
         width: 250,
@@ -81,7 +79,7 @@ const ColumnProfileTable: FC<ColumnProfileTableProps> = ({
         sorter: (col1, col2) => col1.name.localeCompare(col2.name),
       },
       {
-        title: t('label.data-type'),
+        title: 'Data Type',
         dataIndex: 'dataTypeDisplay',
         key: 'dataType',
         width: 250,
@@ -95,7 +93,7 @@ const ColumnProfileTable: FC<ColumnProfileTableProps> = ({
         sorter: (col1, col2) => col1.dataType.localeCompare(col2.dataType),
       },
       {
-        title: `${t('label.null')} %`,
+        title: 'Null %',
         dataIndex: 'profile',
         key: 'nullProportion',
         width: 200,
@@ -112,13 +110,13 @@ const ColumnProfileTable: FC<ColumnProfileTableProps> = ({
           (col2.profile?.nullProportion || 0),
       },
       {
-        title: `${t('label.unique')} %`,
+        title: 'Unique %',
         dataIndex: 'profile',
         key: 'uniqueProportion',
         width: 200,
         render: (profile: ColumnProfile) => (
           <ProfilerProgressWidget
-            strokeColor={PRIMERY_COLOR}
+            strokeColor={SECONDARY_COLOR}
             value={profile?.uniqueProportion || 0}
           />
         ),
@@ -127,7 +125,7 @@ const ColumnProfileTable: FC<ColumnProfileTableProps> = ({
           (col2.profile?.uniqueProportion || 0),
       },
       {
-        title: `${t('label.distinct')} %`,
+        title: 'Distinct %',
         dataIndex: 'profile',
         key: 'distinctProportion',
         width: 200,
@@ -142,7 +140,7 @@ const ColumnProfileTable: FC<ColumnProfileTableProps> = ({
           (col2.profile?.distinctProportion || 0),
       },
       {
-        title: t('label.value-count'),
+        title: 'Value Count',
         dataIndex: 'profile',
         key: 'valuesCount',
         width: 120,
@@ -152,10 +150,9 @@ const ColumnProfileTable: FC<ColumnProfileTableProps> = ({
           (col1.profile?.valuesCount || 0) - (col2.profile?.valuesCount || 0),
       },
       {
-        title: t('label.test-plural'),
+        title: 'Tests',
         dataIndex: 'testCount',
         key: 'Tests',
-        fixed: 'right',
         render: (_, record) => (
           <Link
             data-testid={`${record.name}-test-count`}
@@ -170,11 +167,10 @@ const ColumnProfileTable: FC<ColumnProfileTableProps> = ({
         sorter: (col1, col2) => (col1.testCount || 0) - (col2.testCount || 0),
       },
       {
-        title: t('label.status'),
+        title: 'Status',
         dataIndex: 'dataQualityTest',
         key: 'dataQualityTest',
         width: 120,
-        fixed: 'right',
         render: (_, record) => {
           const summary =
             columnTestSummary?.[
@@ -196,23 +192,18 @@ const ColumnProfileTable: FC<ColumnProfileTableProps> = ({
               ))}
             </Space>
           ) : (
-            <Typography.Text> {NO_DATA_PLACEHOLDER} </Typography.Text>
+            <Typography.Text> --- </Typography.Text>
           );
         },
       },
       {
-        title: t('label.action-plural'),
+        title: 'Actions',
         dataIndex: 'actions',
         key: 'actions',
-        fixed: 'right',
         render: (_, record) => (
           <Tooltip
             placement="bottom"
-            title={
-              hasEditAccess
-                ? t('label.add-entity', { entity: t('label.test') })
-                : NO_PERMISSION_FOR_ACTION
-            }>
+            title={hasEditAccess ? 'Add Test' : NO_PERMISSION_FOR_ACTION}>
             <Link
               to={getAddDataQualityTableTestPath(
                 ProfilerDashboardType.COLUMN,
@@ -280,7 +271,7 @@ const ColumnProfileTable: FC<ColumnProfileTableProps> = ({
     <div data-testid="column-profile-table-container">
       <div className="tw-w-2/6">
         <Searchbar
-          placeholder={t('message.find-in-table')}
+          placeholder="Find in table..."
           searchValue={searchText}
           typingInterval={500}
           onSearch={handleSearchAction}

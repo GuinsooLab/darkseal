@@ -19,9 +19,7 @@ import { usePermissionProvider } from 'components/PermissionProvider/PermissionP
 import { ResourceEntity } from 'components/PermissionProvider/PermissionProvider.interface';
 import { isEmpty, isUndefined, uniqueId } from 'lodash';
 import React, { FC, useMemo, useState } from 'react';
-import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
-import { getEntityName } from 'utils/EntityUtils';
 import {
   NO_PERMISSION_FOR_ACTION,
   NO_PERMISSION_TO_VIEW,
@@ -30,6 +28,7 @@ import { EntityType } from '../../../enums/entity.enum';
 import { Operation } from '../../../generated/entity/policies/policy';
 import { Role } from '../../../generated/entity/teams/role';
 import { Paging } from '../../../generated/type/paging';
+import { getEntityName } from '../../../utils/CommonUtils';
 import {
   checkPermission,
   LIST_CAP,
@@ -47,7 +46,6 @@ interface RolesListProps {
 }
 
 const RolesList: FC<RolesListProps> = ({ roles, fetchRoles }) => {
-  const { t } = useTranslation();
   const [selectedRole, setSelectedRole] = useState<Role>();
 
   const { permissions } = usePermissionProvider();
@@ -69,7 +67,7 @@ const RolesList: FC<RolesListProps> = ({ roles, fetchRoles }) => {
   const columns: ColumnsType<Role> = useMemo(() => {
     return [
       {
-        title: t('label.name'),
+        title: 'Name',
         dataIndex: 'name',
         width: '200px',
         key: 'name',
@@ -83,7 +81,7 @@ const RolesList: FC<RolesListProps> = ({ roles, fetchRoles }) => {
         ),
       },
       {
-        title: t('label.description'),
+        title: 'Description',
         dataIndex: 'description',
         key: 'description',
         render: (_, record) => (
@@ -91,7 +89,7 @@ const RolesList: FC<RolesListProps> = ({ roles, fetchRoles }) => {
         ),
       },
       {
-        title: t('label.policy-plural'),
+        title: 'Policies',
         dataIndex: 'policies',
         width: '250px',
         key: 'policies',
@@ -152,7 +150,7 @@ const RolesList: FC<RolesListProps> = ({ roles, fetchRoles }) => {
         },
       },
       {
-        title: t('label.action-plural'),
+        title: 'Actions',
         dataIndex: 'actions',
         width: '80px',
         key: 'actions',
@@ -161,9 +159,7 @@ const RolesList: FC<RolesListProps> = ({ roles, fetchRoles }) => {
             <Tooltip
               placement="left"
               title={
-                deleteRolePermission
-                  ? t('label.delete')
-                  : NO_PERMISSION_FOR_ACTION
+                deleteRolePermission ? 'Delete' : NO_PERMISSION_FOR_ACTION
               }>
               <Button
                 data-testid={`delete-action-${getEntityName(record)}`}
@@ -197,9 +193,9 @@ const RolesList: FC<RolesListProps> = ({ roles, fetchRoles }) => {
         <DeleteWidgetModal
           afterDeleteAction={fetchRoles}
           allowSoftDelete={false}
-          deleteMessage={t('message.are-you-sure-delete-entity', {
-            entity: getEntityName(selectedRole),
-          })}
+          deleteMessage={`Are you sure you want to delete ${getEntityName(
+            selectedRole
+          )}`}
           entityId={selectedRole.id}
           entityName={getEntityName(selectedRole)}
           entityType={EntityType.ROLE}

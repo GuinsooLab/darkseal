@@ -41,7 +41,7 @@ def get_connection(connection: SQLiteConnection) -> Engine:
     )
 
 
-def test_connection(engine: Engine, _) -> None:
+def test_connection(engine: Engine) -> None:
     """
     Test connection
     """
