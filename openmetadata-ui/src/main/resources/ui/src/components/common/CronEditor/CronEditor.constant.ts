@@ -11,34 +11,33 @@
  *  limitations under the License.
  */
 
-import i18n from 'utils/i18next/LocalUtil';
 import { Combination, ToDisplay } from './CronEditor.interface';
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 export const getPeriodOptions = () => {
   return [
     {
-      label: i18n.t('label.none'),
+      label: 'none',
       value: '',
       prep: '',
     },
     {
-      label: i18n.t('label.minute-plural'),
+      label: 'minutes',
       value: 'minute',
       prep: '',
     },
     {
-      label: i18n.t('label.hour'),
+      label: 'hour',
       value: 'hour',
       prep: 'at',
     },
     {
-      label: i18n.t('label.day'),
+      label: 'day',
       value: 'day',
       prep: 'at',
     },
     {
-      label: i18n.t('label.week'),
+      label: 'week',
       value: 'week',
       prep: 'on',
     } /* ,
@@ -108,31 +107,31 @@ const ordinalSuffix = (n: number) => {
 export const getDayOptions = () => {
   return [
     {
-      label: i18n.t('label.sunday'),
+      label: 'Sunday',
       value: 0,
     },
     {
-      label: i18n.t('label.monday'),
+      label: 'Monday',
       value: 1,
     },
     {
-      label: i18n.t('label.tuesday'),
+      label: 'Tuesday',
       value: 2,
     },
     {
-      label: i18n.t('label.wednesday'),
+      label: 'Wednesday',
       value: 3,
     },
     {
-      label: i18n.t('label.thursday'),
+      label: 'Thursday',
       value: 4,
     },
     {
-      label: i18n.t('label.friday'),
+      label: 'Friday',
       value: 5,
     },
     {
-      label: i18n.t('label.saturday'),
+      label: 'Saturday',
       value: 6,
     },
   ];
@@ -149,18 +148,18 @@ export const getMonthDaysOptions = () => {
 
 export const monthsList = () => {
   return [
-    i18n.t('label.january'),
-    i18n.t('label.february'),
-    i18n.t('label.march'),
-    i18n.t('label.april'),
-    i18n.t('label.may'),
-    i18n.t('label.june'),
-    i18n.t('label.july'),
-    i18n.t('label.august'),
-    i18n.t('label.september'),
-    i18n.t('label.october'),
-    i18n.t('label.november'),
-    i18n.t('label.december'),
+    'January',
+    'February',
+    'March',
+    'April',
+    'May',
+    'June',
+    'July',
+    'August',
+    'September',
+    'October',
+    'November',
+    'December',
   ];
 };
 
@@ -195,11 +194,4 @@ export const getMonthCron = (value: any) => {
 
 export const getYearCron = (value: any) => {
   return `${value.min} ${value.hour} ${value.dom} ${value.mon} *`;
-};
-
-export const SELECTED_PERIOD_OPTIONS = {
-  hour: 'selectedHourOption',
-  day: 'selectedDayOption',
-  week: 'selectedWeekOption',
-  minute: 'selectedMinuteOption',
 };

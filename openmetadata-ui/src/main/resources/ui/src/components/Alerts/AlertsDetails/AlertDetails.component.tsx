@@ -18,11 +18,6 @@ import TitleBreadcrumb from 'components/common/title-breadcrumb/title-breadcrumb
 import { TitleBreadcrumbProps } from 'components/common/title-breadcrumb/title-breadcrumb.interface';
 import PageHeader from 'components/header/PageHeader.component';
 import { HeaderProps } from 'components/header/PageHeader.interface';
-import {
-  Effect,
-  EventSubscription,
-  SubscriptionType,
-} from 'generated/events/eventSubscription';
 import { isArray } from 'lodash';
 import React, { Fragment } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -30,16 +25,27 @@ import { Link } from 'react-router-dom';
 import { ReactComponent as IconDelete } from '../../../assets/svg/ic-delete.svg';
 import { ReactComponent as IconEdit } from '../../../assets/svg/ic-edit.svg';
 import {
+  AlertAction,
+  AlertActionType,
+} from '../../../generated/alerts/alertAction';
+import {
+  Alerts,
+  AlertTriggerType,
+  Effect,
+} from '../../../generated/alerts/alerts';
+import {
   EDIT_LINK_PATH,
   getAlertActionTypeDisplayName,
   getAlertsActionTypeIcon,
   getDisplayNameForEntities,
+  getDisplayNameForTriggerType,
   getFunctionDisplayName,
 } from '../../../utils/Alerts/AlertsUtil';
 import { getHostNameFromURL } from '../../../utils/CommonUtils';
 
 interface AlertDetailsComponentProps {
-  alerts: EventSubscription;
+  alerts: Alerts;
+  alertActions: AlertAction[];
   onDelete: () => void;
   pageHeaderData?: HeaderProps['data'];
   breadcrumb?: TitleBreadcrumbProps['titleLinks'];
@@ -49,6 +55,7 @@ interface AlertDetailsComponentProps {
 
 export const AlertDetailsComponent = ({
   alerts,
+  alertActions,
   onDelete,
   pageHeaderData,
   allowDelete = true,
@@ -88,8 +95,14 @@ export const AlertDetailsComponent = ({
             <Typography.Title className="m-0" level={5}>
               {t('label.trigger')}
             </Typography.Title>
+            <Typography.Text type="secondary">
+              {getDisplayNameForTriggerType(
+                alerts?.triggerConfig.type ?? AlertTriggerType.AllDataAssets
+              )}
+              :
+            </Typography.Text>
             <Typography.Text data-testid="display-name-entities">
-              {alerts?.filteringRules.resources
+              {alerts?.triggerConfig.entities
                 ?.map(getDisplayNameForEntities)
                 ?.join(', ')}
             </Typography.Text>
@@ -99,7 +112,7 @@ export const AlertDetailsComponent = ({
             {t('label.filter-plural')}
           </Typography.Title>
           <Typography.Paragraph>
-            {alerts?.filteringRules?.rules?.map((filter) => {
+            {alerts?.filteringRules?.map((filter) => {
               const conditions = isArray(filter.condition)
                 ? filter.condition.join(', ')
                 : filter.condition;
@@ -123,106 +136,108 @@ export const AlertDetailsComponent = ({
             {t('label.destination')}
           </Typography.Title>
           <Row gutter={[16, 16]}>
-            <Col key={alerts.name} span={8}>
-              {alerts.subscriptionType === SubscriptionType.ActivityFeed ? (
-                <Space size={16}>
-                  {getAlertsActionTypeIcon(alerts.subscriptionType)}
+            {alertActions.map((action) => (
+              <Col key={action.name} span={8}>
+                {action.alertActionType === AlertActionType.ActivityFeed ? (
+                  <Space size={16}>
+                    {getAlertsActionTypeIcon(action.alertActionType)}
 
-                  {getAlertActionTypeDisplayName(
-                    alerts.subscriptionType ?? SubscriptionType.GenericWebhook
-                  )}
-                </Space>
-              ) : (
-                <Card
-                  className="h-full"
-                  title={
-                    <Space size={16}>
-                      {getAlertsActionTypeIcon(alerts.subscriptionType)}
-
-                      {getAlertActionTypeDisplayName(
-                        alerts.subscriptionType ??
-                          SubscriptionType.GenericWebhook
-                      )}
-                    </Space>
-                  }>
-                  <Space direction="vertical" size={8}>
-                    {alerts.subscriptionType === SubscriptionType.Email && (
-                      <>
-                        <Typography.Text>
-                          {t('label.send-to')}:{' '}
-                          <div>
-                            {alerts.subscriptionConfig?.receivers?.map(
-                              (rec) => (
-                                <Tag key={rec}>{rec}</Tag>
-                              )
-                            )}
-                          </div>
-                        </Typography.Text>
-                        <Typography.Text>
-                          <Space size={16}>
-                            <span>
-                              {alerts.subscriptionConfig.sendToAdmins ? (
-                                <CheckCircleOutlined />
-                              ) : (
-                                <CloseCircleOutlined />
-                              )}{' '}
-                              {t('label.admin-plural')}
-                            </span>
-                            <span>
-                              {alerts.subscriptionConfig.sendToOwners ? (
-                                <CheckCircleOutlined />
-                              ) : (
-                                <CloseCircleOutlined />
-                              )}{' '}
-                              {t('label.owner-plural')}
-                            </span>
-                            <span>
-                              {alerts.subscriptionConfig.sendToFollowers ? (
-                                <CheckCircleOutlined />
-                              ) : (
-                                <CloseCircleOutlined />
-                              )}{' '}
-                              {t('label.follower-plural')}
-                            </span>
-                          </Space>
-                        </Typography.Text>
-                      </>
-                    )}
-                    {alerts.subscriptionType !== SubscriptionType.Email && (
-                      <>
-                        <Typography.Text>
-                          <Typography.Text type="secondary">
-                            {t('label.webhook')}:{' '}
-                          </Typography.Text>
-                          {getHostNameFromURL(
-                            alerts.subscriptionConfig?.endpoint ?? '-'
-                          )}
-                        </Typography.Text>
-                        <Typography.Text>
-                          <Typography.Text type="secondary">
-                            {t('label.batch-size')}:{' '}
-                          </Typography.Text>
-                          {alerts.batchSize}
-                        </Typography.Text>
-                        <Typography.Text>
-                          <Typography.Text type="secondary">
-                            {t('message.field-timeout-description')}:{' '}
-                          </Typography.Text>
-                          {alerts.timeout}
-                        </Typography.Text>
-                        <Typography.Text>
-                          <Typography.Text type="secondary">
-                            {t('label.secret-key')}:{' '}
-                          </Typography.Text>
-
-                          {alerts.subscriptionConfig?.secretKey ? '****' : '-'}
-                        </Typography.Text>
-                      </>
+                    {getAlertActionTypeDisplayName(
+                      action.alertActionType ?? AlertActionType.GenericWebhook
                     )}
                   </Space>
-                </Card>
-              )}
-            </Col>
+                ) : (
+                  <Card
+                    className="h-full"
+                    title={
+                      <Space size={16}>
+                        {getAlertsActionTypeIcon(action.alertActionType)}
+
+                        {getAlertActionTypeDisplayName(
+                          action.alertActionType ??
+                            AlertActionType.GenericWebhook
+                        )}
+                      </Space>
+                    }>
+                    <Space direction="vertical" size={8}>
+                      {action.alertActionType === AlertActionType.Email && (
+                        <>
+                          <Typography.Text>
+                            {t('label.send-to')}:{' '}
+                            <div>
+                              {action.alertActionConfig?.receivers?.map(
+                                (rec) => (
+                                  <Tag key={rec}>{rec}</Tag>
+                                )
+                              )}
+                            </div>
+                          </Typography.Text>
+                          <Typography.Text>
+                            <Space size={16}>
+                              <span>
+                                {action.alertActionConfig.sendToAdmins ? (
+                                  <CheckCircleOutlined />
+                                ) : (
+                                  <CloseCircleOutlined />
+                                )}{' '}
+                                {t('label.admin-plural')}
+                              </span>
+                              <span>
+                                {action.alertActionConfig.sendToOwners ? (
+                                  <CheckCircleOutlined />
+                                ) : (
+                                  <CloseCircleOutlined />
+                                )}{' '}
+                                {t('label.owner-plural')}
+                              </span>
+                              <span>
+                                {action.alertActionConfig.sendToFollowers ? (
+                                  <CheckCircleOutlined />
+                                ) : (
+                                  <CloseCircleOutlined />
+                                )}{' '}
+                                {t('label.follower-plural')}
+                              </span>
+                            </Space>
+                          </Typography.Text>
+                        </>
+                      )}
+                      {action.alertActionType !== AlertActionType.Email && (
+                        <>
+                          <Typography.Text>
+                            <Typography.Text type="secondary">
+                              {t('label.webhook')}:{' '}
+                            </Typography.Text>
+                            {getHostNameFromURL(
+                              action.alertActionConfig?.endpoint ?? '-'
+                            )}
+                          </Typography.Text>
+                          <Typography.Text>
+                            <Typography.Text type="secondary">
+                              {t('label.batch-size')}:{' '}
+                            </Typography.Text>
+                            {action.batchSize}
+                          </Typography.Text>
+                          <Typography.Text>
+                            <Typography.Text type="secondary">
+                              {t('message.field-timeout-description')}:{' '}
+                            </Typography.Text>
+                            {action.timeout}
+                          </Typography.Text>
+                          <Typography.Text>
+                            <Typography.Text type="secondary">
+                              {t('label.secret-key')}:{' '}
+                            </Typography.Text>
+
+                            {action.alertActionConfig?.secretKey ? '****' : '-'}
+                          </Typography.Text>
+                        </>
+                      )}
+                    </Space>
+                  </Card>
+                )}
+              </Col>
+            ))}
           </Row>
         </Card>
       </Col>

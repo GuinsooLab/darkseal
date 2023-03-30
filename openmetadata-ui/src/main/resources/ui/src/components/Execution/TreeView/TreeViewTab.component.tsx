@@ -61,9 +61,8 @@ const TreeViewTab = ({
         </Col>
         <Col>
           <Typography.Text className="p-b-0 m-b-0 font-medium">
-            {`${formatDateTimeFromSeconds(startTime)} ${t(
-              'label.to-lowercase'
-            )} ${formatDateTimeFromSeconds(endTime)}`}
+            {formatDateTimeFromSeconds(startTime)} to{' '}
+            {formatDateTimeFromSeconds(endTime)}
           </Typography.Text>
         </Col>
         <Col>
@@ -74,7 +73,7 @@ const TreeViewTab = ({
       {isEmpty(viewData) ? (
         <Empty
           className="my-4"
-          description={t('message.no-execution-runs-found')}
+          description={t('label.no-execution-runs-found')}
         />
       ) : (
         <Row className="w-full">

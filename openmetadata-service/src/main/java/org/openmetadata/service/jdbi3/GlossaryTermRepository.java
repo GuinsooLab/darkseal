@@ -103,9 +103,7 @@ public class GlossaryTermRepository extends EntityRepository<GlossaryTerm> {
   public void prepare(GlossaryTerm entity) throws IOException {
     // Validate parent term
     GlossaryTerm parentTerm =
-        entity.getParent() != null
-            ? getByName(null, entity.getParent().getFullyQualifiedName(), getFields("owner"))
-            : null;
+        entity.getParent() != null ? get(null, entity.getParent().getId(), getFields("owner")) : null;
     List<EntityReference> inheritedReviewers = null;
     EntityReference inheritedOwner = null;
     if (parentTerm != null) {
@@ -137,17 +135,34 @@ public class GlossaryTermRepository extends EntityRepository<GlossaryTerm> {
 
   @Override
   public void storeEntity(GlossaryTerm entity, boolean update) throws IOException {
-    // Relationships and fields such as parentTerm are derived and not stored as part of json
+    // Relationships and fields such as href are derived and not stored as part of json
+    List<TagLabel> tags = entity.getTags();
     EntityReference glossary = entity.getGlossary();
     EntityReference parentTerm = entity.getParent();
     List<EntityReference> relatedTerms = entity.getRelatedTerms();
     List<EntityReference> reviewers = entity.getReviewers();
+    EntityReference owner = entity.getOwner();
 
-    entity.withGlossary(null).withParent(null).withRelatedTerms(relatedTerms).withReviewers(null);
+    // Don't store owner, dashboard, href and tags as JSON. Build it on the fly based on relationships
+    entity
+        .withGlossary(null)
+        .withParent(null)
+        .withRelatedTerms(relatedTerms)
+        .withReviewers(null)
+        .withOwner(null)
+        .withHref(null)
+        .withTags(null);
+
     store(entity, update);
 
     // Restore the relationships
-    entity.withGlossary(glossary).withParent(parentTerm).withRelatedTerms(relatedTerms).withReviewers(reviewers);
+    entity
+        .withGlossary(glossary)
+        .withParent(parentTerm)
+        .withRelatedTerms(relatedTerms)
+        .withReviewers(reviewers)
+        .withOwner(owner)
+        .withTags(tags);
   }
 
   @Override
@@ -267,7 +282,7 @@ public class GlossaryTermRepository extends EntityRepository<GlossaryTerm> {
     protected void updateTags(String fqn, String fieldName, List<TagLabel> origTags, List<TagLabel> updatedTags)
         throws IOException {
       super.updateTags(fqn, fieldName, origTags, updatedTags);
-      List<String> targetFQNList = daoCollection.tagUsageDAO().getTargetFQNs(TagSource.CLASSIFICATION.ordinal(), fqn);
+      List<String> targetFQNList = daoCollection.tagUsageDAO().tagTargetFQN(fqn);
       for (String targetFQN : targetFQNList) {
         applyTags(updatedTags, targetFQN);
       }
@@ -332,9 +347,7 @@ public class GlossaryTermRepository extends EntityRepository<GlossaryTerm> {
         // Glossary term name changed - update the FQNs of the children terms to reflect this
         LOG.info("Glossary term name changed from {} to {}", original.getName(), updated.getName());
         daoCollection.glossaryTermDAO().updateFqn(original.getFullyQualifiedName(), updated.getFullyQualifiedName());
-        daoCollection
-            .tagUsageDAO()
-            .rename(TagSource.GLOSSARY.ordinal(), original.getFullyQualifiedName(), updated.getFullyQualifiedName());
+        daoCollection.tagUsageDAO().rename(original.getFullyQualifiedName(), updated.getFullyQualifiedName());
         recordChange("name", original.getName(), updated.getName());
       }
     }
@@ -350,9 +363,7 @@ public class GlossaryTermRepository extends EntityRepository<GlossaryTerm> {
       boolean glossaryChanged = !Objects.equals(oldGlossaryId, newGlossaryId);
 
       daoCollection.glossaryTermDAO().updateFqn(original.getFullyQualifiedName(), updated.getFullyQualifiedName());
-      daoCollection
-          .tagUsageDAO()
-          .rename(TagSource.GLOSSARY.ordinal(), original.getFullyQualifiedName(), updated.getFullyQualifiedName());
+      daoCollection.tagUsageDAO().rename(original.getFullyQualifiedName(), updated.getFullyQualifiedName());
       if (glossaryChanged) {
         updateGlossaryRelationship(original, updated);
         recordChange("glossary", original.getGlossary(), updated.getGlossary(), true, entityReferenceMatch);

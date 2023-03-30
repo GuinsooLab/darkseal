@@ -172,7 +172,16 @@ EXPECTED_PIPELINE = [
         ],
         tags=None,
         owner=None,
-        service="domopipeline_source_test",
+        service=EntityReference(
+            id="86ff3c40-7c51-4ff5-9727-738cead28d9a",
+            type="pipelineService",
+            name=None,
+            fullyQualifiedName=None,
+            description=None,
+            displayName=None,
+            deleted=None,
+            href=None,
+        ),
         extension=None,
     )
 ]

@@ -21,7 +21,10 @@ import {
   SearchHitBody,
   TableSearchSource,
 } from '../../interface/search.interface';
-import { EntityUnion, ExploreSearchIndex } from '../Explore/explore.interface';
+import {
+  EntityDetailsType,
+  ExploreSearchIndex,
+} from '../Explore/explore.interface';
 
 type Fields =
   | 'name'
@@ -72,7 +75,7 @@ export interface SearchedDataProps {
   showOnlyChildren?: boolean;
   isFilterSelected: boolean;
   handleSummaryPanelDisplay?: (
-    details: EntityUnion,
+    details: EntityDetailsType,
     entityType: string
   ) => void;
 }

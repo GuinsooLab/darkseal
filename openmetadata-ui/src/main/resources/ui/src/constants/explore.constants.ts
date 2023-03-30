@@ -27,19 +27,19 @@ export const MAX_RESULT_HITS = 10000;
 // as it is used only in unit tests it's not needed for translation
 export const tableSortingFields: SortingField[] = [
   {
-    name: t('label.last-updated'),
+    name: 'Last Updated',
     value: 'updatedAt',
   },
-  { name: t('label.weekly-usage'), value: 'usageSummary.weeklyStats.count' },
-  { name: t('label.relevance'), value: '_score' },
+  { name: 'Weekly Usage', value: 'usageSummary.weeklyStats.count' },
+  { name: 'Relevance', value: '_score' },
 ];
 
 export const entitySortingFields = [
   {
-    name: t('label.last-updated'),
+    name: 'Last Updated',
     value: 'updatedAt',
   },
-  { name: t('label.relevance'), value: '_score' },
+  { name: 'Relevance', value: '_score' },
 ];
 
 export interface ExploreTabInfo {
@@ -53,7 +53,7 @@ export interface ExploreTabInfo {
 
 export const tabsInfo: { [K in ExploreSearchIndex]: ExploreTabInfo } = {
   [SearchIndex.TABLE]: {
-    label: t('label.table-plural'),
+    label: t('label.tables'),
     sortingFields: tableSortingFields,
     sortField: INITIAL_SORT_FIELD,
     path: 'tables',
@@ -61,7 +61,7 @@ export const tabsInfo: { [K in ExploreSearchIndex]: ExploreTabInfo } = {
     selectedIcon: Icons.TABLE,
   },
   [SearchIndex.TOPIC]: {
-    label: t('label.topic-plural'),
+    label: t('label.topics'),
     sortingFields: entitySortingFields,
     sortField: INITIAL_SORT_FIELD,
     path: 'topics',
@@ -89,11 +89,5 @@ export const tabsInfo: { [K in ExploreSearchIndex]: ExploreTabInfo } = {
     sortingFields: entitySortingFields,
     sortField: INITIAL_SORT_FIELD,
     path: 'mlmodels',
-  },
-  [SearchIndex.CONTAINER]: {
-    label: t('label.container-plural'),
-    sortingFields: entitySortingFields,
-    sortField: INITIAL_SORT_FIELD,
-    path: 'containers',
   },
 };

@@ -29,7 +29,7 @@ class Singleton(ABCMeta):
         return cls._instances[cls]
 
     @classmethod
-    def clear_all(mcs):
+    def clear_all(cls):
         """
         Method to clear all singleton instances
         """

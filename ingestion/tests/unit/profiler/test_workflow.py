@@ -30,18 +30,14 @@ from metadata.generated.schema.entity.data.table import (
 from metadata.generated.schema.entity.services.connections.metadata.openMetadataConnection import (
     OpenMetadataConnection,
 )
-from metadata.generated.schema.entity.services.databaseService import DatabaseConnection
 from metadata.generated.schema.metadataIngestion.databaseServiceProfilerPipeline import (
     DatabaseServiceProfilerPipeline,
 )
 from metadata.generated.schema.type.entityReference import EntityReference
-from metadata.profiler.api.models import ProfilerProcessorConfig
-from metadata.profiler.api.workflow import ProfilerWorkflow
-from metadata.profiler.profiler.default import DefaultProfiler
-from metadata.profiler.profiler.interface.profiler_protocol import ProfilerProtocol
-from metadata.profiler.profiler.interface.sqlalchemy.sqa_profiler_interface import (
-    SQAProfilerInterface,
-)
+from metadata.interfaces.sqalchemy.sqa_profiler_interface import SQAProfilerInterface
+from metadata.orm_profiler.api.models import ProfilerProcessorConfig
+from metadata.orm_profiler.api.workflow import ProfilerWorkflow
+from metadata.orm_profiler.profiler.default import DefaultProfiler
 
 TABLE = Table(
     id=uuid.uuid4(),
@@ -56,9 +52,9 @@ TABLE = Table(
     ],
     database=EntityReference(id=uuid.uuid4(), name="db", type="database"),
     tableProfilerConfig=TableProfilerConfig(
-        profileSample=80.0,
-    ),  # type: ignore
-)  # type: ignore
+        profilerCo=80.0,
+    ),
+)
 
 config = {
     "source": {
@@ -74,16 +70,7 @@ config = {
             "hostPort": "http://localhost:8585/api",
             "authProvider": "openmetadata",
             "securityConfig": {
-                "jwtToken": (
-                    "eyJraWQiOiJHYjM4OWEtOWY3Ni1nZGpzLWE5MmotMDI0MmJrOTQzNTYiLCJ0eXAiOiJKV1"
-                    "QiLCJhbGciOiJSUzI1NiJ9.eyJzdWIiOiJhZG1pbiIsImlzQm90IjpmYWxzZSwiaXNzIjoib"
-                    "3Blbi1tZXRhZGF0YS5vcmciLCJpYXQiOjE2NjM5Mzg0NjIsImVtYWlsIjoiYWRtaW5Ab3Blb"
-                    "m1ldGFkYXRhLm9yZyJ9.tS8um_5DKu7HgzGBzS1VTA5uUjKWOCU0B_j08WXBiEC0mr0zNREk"
-                    "qVfwFDD-d24HlNEbrqioLsBuFRiwIWKc1m_ZlVQbG7P36RUxhuv2vbSp80FKyNM-Tj93FDzq"
-                    "91jsyNmsQhyNv_fNr3TXfzzSPjHt8Go0FMMP66weoKMgW2PbXlhVKwEuXUHyakLLzewm9UMe"
-                    "QaEiRzhiTMU3UkLXcKbYEJJvfNFcLwSl9W8JCO_l0Yj3ud-qt_nQYEZwqW6u5nfdQllN133i"
-                    "ikV4fM5QZsMCnm8Rq1mvLR0y9bmJiD7fwM1tmJ791TUWqmKaTnP49U493VanKpUAfzIiOiIbhg"
-                )
+                "jwtToken": "eyJraWQiOiJHYjM4OWEtOWY3Ni1nZGpzLWE5MmotMDI0MmJrOTQzNTYiLCJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9.eyJzdWIiOiJhZG1pbiIsImlzQm90IjpmYWxzZSwiaXNzIjoib3Blbi1tZXRhZGF0YS5vcmciLCJpYXQiOjE2NjM5Mzg0NjIsImVtYWlsIjoiYWRtaW5Ab3Blbm1ldGFkYXRhLm9yZyJ9.tS8um_5DKu7HgzGBzS1VTA5uUjKWOCU0B_j08WXBiEC0mr0zNREkqVfwFDD-d24HlNEbrqioLsBuFRiwIWKc1m_ZlVQbG7P36RUxhuv2vbSp80FKyNM-Tj93FDzq91jsyNmsQhyNv_fNr3TXfzzSPjHt8Go0FMMP66weoKMgW2PbXlhVKwEuXUHyakLLzewm9UMeQaEiRzhiTMU3UkLXcKbYEJJvfNFcLwSl9W8JCO_l0Yj3ud-qt_nQYEZwqW6u5nfdQllN133iikV4fM5QZsMCnm8Rq1mvLR0y9bmJiD7fwM1tmJ791TUWqmKaTnP49U493VanKpUAfzIiOiIbhg"
             },
         }
     },
@@ -111,7 +98,7 @@ class User(Base):
     "_validate_service_name",
     return_value=True,
 )
-def test_init_workflow(mocked_method, mocked_orm):  # pylint: disable=unused-argument
+def test_init_workflow(mocked_method, mocked_orm):
     """
     We can initialise the workflow from a config
     """
@@ -213,7 +200,7 @@ def test_filter_entities(mocked_method):
     "_validate_service_name",
     return_value=True,
 )
-def test_profile_def(mocked_method, mocked_orm):  # pylint: disable=unused-argument
+def test_profile_def(mocked_method, mocked_orm):
     """
     Validate the definitions of the profile in the JSON
     """
@@ -227,20 +214,14 @@ def test_profile_def(mocked_method, mocked_orm):  # pylint: disable=unused-argum
 
     profile_workflow = ProfilerWorkflow.create(profile_config)
     mocked_method.assert_called()
-
-    profiler_interface: SQAProfilerInterface = ProfilerProtocol.create(
-        _profiler_type=DatabaseConnection.__name__,
-        entity=TABLE,
-        entity_config=profile_workflow.get_config_for_entity(TABLE),
-        source_config=profile_workflow.source_config,
+    profiler_interface = profile_workflow.create_profiler_interface(
         service_connection_config=profile_workflow.config.source.serviceConnection.__root__.config,
-        ometa_client=None,
-        sqa_metadata=MetaData(),
+        table_entity=TABLE,
+        sqa_metadata_obj=MetaData(),
     )
-
-    profile_workflow.create_profiler(TABLE, profiler_interface)
+    profile_workflow.create_profiler_obj(TABLE, profiler_interface)
     profiler_obj_metrics = [
-        metric.name() for metric in profile_workflow.profiler.metrics
+        metric.name() for metric in profile_workflow.profiler_obj.metrics
     ]
 
     assert profile_workflow.profiler_config.profiler
@@ -257,9 +238,7 @@ def test_profile_def(mocked_method, mocked_orm):  # pylint: disable=unused-argum
     "_validate_service_name",
     return_value=True,
 )
-def test_default_profile_def(
-    mocked_method, mocked_orm  # pylint: disable=unused-argument
-):
+def test_default_profile_def(mocked_method, mocked_orm):
     """
     If no information is specified for the profiler, let's
     use the SimpleTableProfiler and SimpleProfiler
@@ -268,20 +247,15 @@ def test_default_profile_def(
     profile_workflow = ProfilerWorkflow.create(config)
     mocked_method.assert_called()
 
-    profiler_interface: SQAProfilerInterface = ProfilerProtocol.create(
-        _profiler_type=DatabaseConnection.__name__,
-        entity=TABLE,
-        entity_config=profile_workflow.get_config_for_entity(TABLE),
-        source_config=profile_workflow.source_config,
+    profiler_interface = profile_workflow.create_profiler_interface(
         service_connection_config=profile_workflow.config.source.serviceConnection.__root__.config,
-        ometa_client=None,
-        sqa_metadata=MetaData(),
+        table_entity=TABLE,
+        sqa_metadata_obj=MetaData(),
     )
-
-    profile_workflow.create_profiler(TABLE, profiler_interface)
+    profile_workflow.create_profiler_obj(TABLE, profiler_interface)
 
     assert isinstance(
-        profile_workflow.profiler,
+        profile_workflow.profiler_obj,
         DefaultProfiler,
     )
 

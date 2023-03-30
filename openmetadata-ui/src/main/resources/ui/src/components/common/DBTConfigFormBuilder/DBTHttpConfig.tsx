@@ -35,8 +35,6 @@ interface Props extends DBTFormCommonProps, DbtConfigHttp {
   handleRunResultsHttpPathChange: (value: string) => void;
   handleUpdateDescriptions: (value: boolean) => void;
   handleUpdateDBTClassification: (value: string) => void;
-  enableDebugLog: boolean;
-  handleEnableDebugLogCheck: (value: boolean) => void;
 }
 
 export const DBTHttpConfig: FunctionComponent<Props> = ({
@@ -54,8 +52,6 @@ export const DBTHttpConfig: FunctionComponent<Props> = ({
   handleUpdateDescriptions,
   dbtClassificationName,
   handleUpdateDBTClassification,
-  enableDebugLog,
-  handleEnableDebugLogCheck,
 }: Props) => {
   const [errors, setErrors] = useState<ErrorDbtHttp>();
   const { t } = useTranslation();
@@ -84,10 +80,10 @@ export const DBTHttpConfig: FunctionComponent<Props> = ({
     <Fragment>
       <Field>
         <label className="tw-block tw-form-label tw-mb-1" htmlFor="catalog-url">
-          {t('label.dbt-catalog-http-path')}
+          dbt Catalog HTTP Path
         </label>
         <p className="tw-text-grey-muted tw-mt-1 tw-mb-2 tw-text-xs">
-          {t('message.dbt-catalog-file-extract-path')}
+          dbt catalog file to extract dbt models with their column schemas.
         </p>
         <input
           className="tw-form-inputs tw-form-inputs-padding"
@@ -104,10 +100,11 @@ export const DBTHttpConfig: FunctionComponent<Props> = ({
         <label
           className="tw-block tw-form-label tw-mb-1"
           htmlFor="manifest-url">
-          {requiredField(t('message.dbt-manifest-file-path'))}
+          {requiredField('dbt Manifest HTTP Path')}
         </label>
         <p className="tw-text-grey-muted tw-mt-1 tw-mb-2 tw-text-xs">
-          {t('message.dbt-manifest-file-path')}
+          dbt manifest file path to extract dbt models and associate with
+          tables.
         </p>
         <input
           className="tw-form-inputs tw-form-inputs-padding"
@@ -147,8 +144,6 @@ export const DBTHttpConfig: FunctionComponent<Props> = ({
         dbtClassificationName={dbtClassificationName}
         dbtUpdateDescriptions={dbtUpdateDescriptions}
         descriptionId="http-update-description"
-        enableDebugLog={enableDebugLog}
-        handleEnableDebugLogCheck={handleEnableDebugLogCheck}
         handleUpdateDBTClassification={handleUpdateDBTClassification}
         handleUpdateDescriptions={handleUpdateDescriptions}
       />

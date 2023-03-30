@@ -13,12 +13,10 @@
 
 import { Button, Divider } from 'antd';
 import classNames from 'classnames';
-import { AggregationEntry } from 'interface/search.interface';
 import { isEmpty, isNil } from 'lodash';
 import React, { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { getSortedTierBucketList } from 'utils/EntityUtils';
-
+import { AggregationEntry } from '../../../interface/search.interface';
 import {
   compareAggregationKey,
   translateAggregationKeyToTitle,
@@ -45,19 +43,8 @@ const FacetFilter: React.FC<FacetFilterProps> = ({
    * we add an empty bucket with value `v` and 0 elements so the UI displays that the filter exists.
    */
   const aggregationEntries = useMemo(() => {
-    if (isEmpty(aggregations)) {
-      return [];
-    }
-
     if (isNil(filters) || isEmpty(filters)) {
-      const { 'tier.tagFQN': tier, ...restProps } = aggregations;
-
-      const sortedTiersList = {
-        ...tier,
-        buckets: getSortedTierBucketList(tier.buckets),
-      };
-
-      return Object.entries({ ...restProps, 'tier.tagFQN': sortedTiersList })
+      return Object.entries(aggregations)
         .filter(([, { buckets }]) => buckets.length)
         .sort(([key1], [key2]) => compareAggregationKey(key1, key2));
     }
@@ -113,16 +100,14 @@ const FacetFilter: React.FC<FacetFilterProps> = ({
   }, [aggregations]);
 
   return (
-    <div data-testid="face-filter">
+    <>
       <div className="sidebar-my-data-holder mt-2 mb-3">
         <Button
           className="text-primary cursor-pointer p-0"
           disabled={isEmpty(filters)}
           type="link"
           onClick={() => onClearFilter({})}>
-          {t('label.clear-entity', {
-            entity: t('label.all'),
-          })}
+          {t('label.clear-all')}
         </Button>
       </div>
       <hr className="m-y-xs" />
@@ -134,7 +119,7 @@ const FacetFilter: React.FC<FacetFilterProps> = ({
           data-testid="filter-container-deleted">
           <div className="flex">
             <div className="filters-title w-36 truncate custom-checkbox-label">
-              {t('label.show-deleted')}
+              Show Deleted
             </div>
           </div>
           <div
@@ -218,7 +203,7 @@ const FacetFilter: React.FC<FacetFilterProps> = ({
           </div>
         )
       )}
-    </div>
+    </>
   );
 };
 

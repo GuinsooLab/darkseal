@@ -9,16 +9,16 @@
 
   "properties": {
     "glossary": {
-      "description": "Name of the glossary that this term is part of.",
-      "$ref": "../../type/basic.json#/definitions/entityName"
+      "description": "Reference to the glossary that this term is part of.",
+      "$ref": "../../type/entityReference.json"
     },
     "parent": {
-      "description": "Fully qualified name of  the parent glossary term.",
-      "$ref": "../../type/basic.json#/definitions/fullyQualifiedEntityName"
+      "description": "Reference to the parent glossary term. When null, the term is at the root of the glossary.",
+      "$ref": "../../type/entityReference.json"
     },
     "name": {
       "description": "Preferred name for the glossary term.",
-      "$ref": "../../type/basic.json#/definitions/entityName"
+      "$ref": "../../entity/data/glossaryTerm.json#/definitions/name"
     },
     "displayName": {
       "description": "Display Name that identifies this glossary term.",
@@ -32,15 +32,12 @@
       "description": "Alternate names that are synonyms or near-synonyms for the glossary term.",
       "type": "array",
       "items": {
-        "$ref": "../../type/basic.json#/definitions/entityName"
+        "$ref": "../../entity/data/glossaryTerm.json#/definitions/name"
       }
     },
     "relatedTerms": {
-      "description": "Other array of glossary term fully qualified names that are related to this glossary term.",
-      "type" : "array",
-      "items": {
-        "$ref" : "../../type/basic.json#/definitions/fullyQualifiedEntityName"
-      }
+      "description": "Other glossary terms that are related to this glossary term.",
+      "$ref": "../../type/entityReference.json#/definitions/entityReferenceList"
     },
     "references": {
       "description": "Link to a reference from an external glossary.",
@@ -51,10 +48,7 @@
     },
     "reviewers": {
       "description": "User names of the reviewers for this glossary.",
-      "type" : "array",
-      "items" : {
-        "$ref" : "../../entity/teams/user.json#/definitions/entityName"
-      }
+      "$ref": "../../type/entityReference.json#/definitions/entityReferenceList"
     },
     "owner": {
       "description": "Owner of this glossary term.",

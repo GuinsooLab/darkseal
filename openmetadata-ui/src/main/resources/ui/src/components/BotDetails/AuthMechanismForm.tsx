@@ -13,13 +13,14 @@
 
 import { Button, Form, Input, Modal, Select, Space, Typography } from 'antd';
 import { AxiosError } from 'axios';
-import _, { isEmpty } from 'lodash';
+import { isEmpty } from 'lodash';
 import React, { FC, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { checkEmailInUse } from 'rest/auth-API';
 import { createBotWithPut } from 'rest/botsAPI';
 import { createUserWithPut, getUserByName } from 'rest/userAPI';
 import { validEmailRegEx } from '../../constants/regex.constants';
+import { EntityType } from '../../enums/entity.enum';
 import { SsoServiceType } from '../../generated/auth/ssoAuth';
 import { Bot } from '../../generated/entity/bot';
 import {
@@ -171,7 +172,7 @@ const AuthMechanismForm: FC<Props> = ({
         name: botData.name,
         description: botData.description,
         displayName: botData.displayName,
-        botUser: _.toString(response.fullyQualifiedName),
+        botUser: { id: response.id, type: EntityType.USER },
       });
       setIsConfirmationModalOpen(false);
     } catch (error) {
@@ -474,7 +475,7 @@ const AuthMechanismForm: FC<Props> = ({
               <Input
                 data-testid="oktaEmail"
                 name="oktaEmail"
-                placeholder={t('label.okta-service-account-email')}
+                placeholder={t('label.okta-email')}
                 value={ssoClientConfig?.email}
                 onChange={handleOnChange}
               />

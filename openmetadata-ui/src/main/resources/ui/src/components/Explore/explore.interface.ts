@@ -12,10 +12,7 @@
  */
 
 import { DefaultOptionType } from 'antd/lib/select';
-import { SORT_ORDER } from 'enums/common.enum';
-import { Container } from 'generated/entity/data/container';
-import { Database } from 'generated/entity/data/database';
-import { DatabaseSchema } from 'generated/entity/data/databaseSchema';
+import { JsonTree } from 'react-awesome-query-builder';
 import { SearchIndex } from '../../enums/search.enum';
 import { Dashboard } from '../../generated/entity/data/dashboard';
 import { Mlmodel } from '../../generated/entity/data/mlmodel';
@@ -23,8 +20,8 @@ import { Pipeline } from '../../generated/entity/data/pipeline';
 import { Table } from '../../generated/entity/data/table';
 import { Topic } from '../../generated/entity/data/topic';
 import { SearchResponse } from '../../interface/search.interface';
+import { FilterObject } from '../AdvancedSearch/AdvancedSearch.interface';
 import { SearchDropdownOption } from '../SearchDropdown/SearchDropdown.interface';
-import { FilterObject } from './AdvanceSearchProvider/AdvanceSearchProvider.interface';
 
 export type UrlParams = {
   searchQuery: string;
@@ -36,8 +33,7 @@ export type ExploreSearchIndex =
   | SearchIndex.PIPELINE
   | SearchIndex.DASHBOARD
   | SearchIndex.MLMODEL
-  | SearchIndex.TOPIC
-  | SearchIndex.CONTAINER;
+  | SearchIndex.TOPIC;
 
 export type ExploreSearchIndexKey =
   | 'TABLE'
@@ -53,6 +49,8 @@ export interface ExploreProps {
 
   searchResults?: SearchResponse<ExploreSearchIndex>;
 
+  advancedSearchJsonTree?: JsonTree;
+  onChangeAdvancedSearchJsonTree: (jsonTree: JsonTree | undefined) => void;
   onChangeAdvancedSearchQueryFilter: (
     queryFilter: Record<string, unknown> | undefined
   ) => void;
@@ -67,7 +65,7 @@ export interface ExploreProps {
   onChangeSortValue: (sortValue: string) => void;
 
   sortOrder: string;
-  onChangeSortOder: (sortOder: SORT_ORDER) => void;
+  onChangeSortOder: (sortOder: string) => void;
 
   showDeleted: boolean;
   onChangeShowDeleted: (showDeleted: boolean) => void;
@@ -100,18 +98,9 @@ export interface SearchInputProps {
   handleClear: () => void;
 }
 
-// Type for all the explore tab entities
-export type EntityUnion =
-  | Table
-  | Topic
-  | Dashboard
-  | Pipeline
-  | Mlmodel
-  | Container
-  | DatabaseSchema
-  | Database;
+export type EntityDetailsType = Table | Topic | Dashboard | Pipeline | Mlmodel;
 
 export interface EntityDetailsObjectInterface {
-  details: EntityUnion;
+  details: EntityDetailsType;
   entityType: string;
 }

@@ -21,8 +21,7 @@
       "eventData": {
         "description": "Web analytic data captured",
         "oneOf": [
-          {"$ref": "webAnalyticEventType/pageViewEvent.json"},
-          {"$ref": "webAnalyticEventType/customEvent.json"}
+          {"$ref": "webAnalyticEventType/pageViewEvent.json"}
         ]
       }
     },

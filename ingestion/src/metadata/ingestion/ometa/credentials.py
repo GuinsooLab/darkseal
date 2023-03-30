@@ -137,8 +137,7 @@ def get_api_version(api_version: str) -> str:
     Returns:
          str
     """
-    if api_version is None:
-        api_version = os.environ.get("APCA_API_VERSION")
+    api_version = api_version or os.environ.get("APCA_API_VERSION")
     if api_version is None:
         api_version = "v1"
 

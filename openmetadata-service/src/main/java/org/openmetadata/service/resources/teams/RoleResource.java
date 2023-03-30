@@ -48,6 +48,7 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.core.UriInfo;
 import lombok.extern.slf4j.Slf4j;
+import org.openmetadata.schema.EntityInterface;
 import org.openmetadata.schema.api.data.RestoreEntity;
 import org.openmetadata.schema.api.teams.CreateRole;
 import org.openmetadata.schema.entity.teams.Role;
@@ -57,6 +58,7 @@ import org.openmetadata.schema.type.Include;
 import org.openmetadata.service.Entity;
 import org.openmetadata.service.OpenMetadataApplicationConfig;
 import org.openmetadata.service.jdbi3.CollectionDAO;
+import org.openmetadata.service.jdbi3.EntityRepository;
 import org.openmetadata.service.jdbi3.ListFilter;
 import org.openmetadata.service.jdbi3.RoleRepository;
 import org.openmetadata.service.resources.Collection;
@@ -184,7 +186,7 @@ public class RoleResource extends EntityResource<Role, RoleRepository> {
   public EntityHistory listVersions(
       @Context UriInfo uriInfo,
       @Context SecurityContext securityContext,
-      @Parameter(description = "Id of the role", schema = @Schema(type = "UUID")) @PathParam("id") UUID id)
+      @Parameter(description = "role Id", schema = @Schema(type = "string")) @PathParam("id") UUID id)
       throws IOException {
     return super.listVersionsInternal(securityContext, id);
   }
@@ -194,7 +196,7 @@ public class RoleResource extends EntityResource<Role, RoleRepository> {
   @Path("/{id}")
   @Operation(
       operationId = "getRoleByID",
-      summary = "Get a role by id",
+      summary = "Get a role",
       tags = "roles",
       description = "Get a role by `id`.",
       responses = {
@@ -207,7 +209,7 @@ public class RoleResource extends EntityResource<Role, RoleRepository> {
   public Role get(
       @Context UriInfo uriInfo,
       @Context SecurityContext securityContext,
-      @Parameter(description = "Id of the role", schema = @Schema(type = "UUID")) @PathParam("id") UUID id,
+      @PathParam("id") UUID id,
       @Parameter(
               description = "Fields requested in the returned resource",
               schema = @Schema(type = "string", example = FIELDS))
@@ -241,7 +243,7 @@ public class RoleResource extends EntityResource<Role, RoleRepository> {
   public Role getByName(
       @Context UriInfo uriInfo,
       @Context SecurityContext securityContext,
-      @Parameter(description = "Name of the role", schema = @Schema(type = "string")) @PathParam("name") String name,
+      @PathParam("name") String name,
       @Parameter(
               description = "Fields requested in the returned resource",
               schema = @Schema(type = "string", example = FIELDS))
@@ -276,7 +278,7 @@ public class RoleResource extends EntityResource<Role, RoleRepository> {
   public Role getVersion(
       @Context UriInfo uriInfo,
       @Context SecurityContext securityContext,
-      @Parameter(description = "Id of the role", schema = @Schema(type = "UUID")) @PathParam("id") UUID id,
+      @Parameter(description = "Role Id", schema = @Schema(type = "string")) @PathParam("id") UUID id,
       @Parameter(
               description = "Role version number in the form `major`.`minor`",
               schema = @Schema(type = "string", example = "0.1 or 1.1"))
@@ -340,7 +342,7 @@ public class RoleResource extends EntityResource<Role, RoleRepository> {
   public Response patch(
       @Context UriInfo uriInfo,
       @Context SecurityContext securityContext,
-      @Parameter(description = "Id of the role", schema = @Schema(type = "UUID")) @PathParam("id") UUID id,
+      @PathParam("id") UUID id,
       @RequestBody(
               description = "JsonPatch with array of operations",
               content =
@@ -375,7 +377,7 @@ public class RoleResource extends EntityResource<Role, RoleRepository> {
           @QueryParam("hardDelete")
           @DefaultValue("false")
           boolean hardDelete,
-      @Parameter(description = "Id of the role", schema = @Schema(type = "UUID")) @PathParam("id") UUID id)
+      @PathParam("id") UUID id)
       throws IOException {
     // A role has a strong relationship with a policy. Recursively delete the policy that the role contains, to avoid
     // leaving a dangling policy without a role.
@@ -411,7 +413,7 @@ public class RoleResource extends EntityResource<Role, RoleRepository> {
   @Path("/restore")
   @Operation(
       operationId = "restore",
-      summary = "Restore a soft deleted role",
+      summary = "Restore a soft deleted role.",
       tags = "roles",
       description = "Restore a soft deleted role.",
       responses = {
@@ -430,11 +432,11 @@ public class RoleResource extends EntityResource<Role, RoleRepository> {
     if (nullOrEmpty(create.getPolicies())) {
       throw new IllegalArgumentException("At least one policy is required to create a role");
     }
-    return copy(new Role(), create, user).withPolicies(getEntityReferences(Entity.POLICY, create.getPolicies()));
+    return copy(new Role(), create, user).withPolicies(create.getPolicies());
   }
 
   public static EntityReference getRole(String roleName) {
-    RoleRepository roleRepository = (RoleRepository) Entity.getEntityRepository(Entity.ROLE);
-    return roleRepository.dao.findEntityReferenceByName(roleName);
+    EntityRepository<EntityInterface> dao = Entity.getEntityRepository(Entity.ROLE);
+    return dao.dao.findEntityReferenceByName(roleName);
   }
 }

@@ -16,7 +16,6 @@ import org.openmetadata.schema.tests.TestCase;
 import org.openmetadata.schema.tests.TestCaseParameter;
 import org.openmetadata.schema.tests.TestCaseParameterValue;
 import org.openmetadata.schema.tests.TestDefinition;
-import org.openmetadata.schema.tests.TestSuite;
 import org.openmetadata.schema.tests.type.TestCaseResult;
 import org.openmetadata.schema.type.ChangeDescription;
 import org.openmetadata.schema.type.ChangeEvent;
@@ -64,12 +63,10 @@ public class TestCaseRepository extends EntityRepository<TestCase> {
     EntityUtil.validateEntityLink(entityLink);
 
     // validate test definition and test suite
-    TestSuite testSuite = Entity.getEntity(test.getTestSuite(), "", Include.NON_DELETED);
-    test.setTestSuite(testSuite.getEntityReference());
-
-    TestDefinition testDefinition = Entity.getEntity(test.getTestDefinition(), "", Include.NON_DELETED);
-    test.setTestDefinition(testDefinition.getEntityReference());
-
+    Entity.getEntityReferenceById(Entity.TEST_DEFINITION, test.getTestDefinition().getId(), Include.NON_DELETED);
+    Entity.getEntityReferenceById(Entity.TEST_SUITE, test.getTestSuite().getId(), Include.NON_DELETED);
+    TestDefinition testDefinition =
+        Entity.getEntity(test.getTestDefinition(), EntityUtil.Fields.EMPTY_FIELDS, Include.NON_DELETED);
     validateTestParameters(test.getParameterValues(), testDefinition.getParameterDefinition());
   }
 
@@ -105,15 +102,16 @@ public class TestCaseRepository extends EntityRepository<TestCase> {
 
   @Override
   public void storeEntity(TestCase test, boolean update) throws IOException {
+    EntityReference owner = test.getOwner();
     EntityReference testSuite = test.getTestSuite();
     EntityReference testDefinition = test.getTestDefinition();
 
     // Don't store owner, database, href and tags as JSON. Build it on the fly based on relationships
-    test.withTestSuite(null).withTestDefinition(null);
+    test.withOwner(null).withHref(null).withTestSuite(null).withTestDefinition(null);
     store(test, update);
 
     // Restore the relationships
-    test.withTestSuite(testSuite).withTestDefinition(testDefinition);
+    test.withOwner(owner).withTestSuite(testSuite).withTestDefinition(testDefinition);
   }
 
   @Override

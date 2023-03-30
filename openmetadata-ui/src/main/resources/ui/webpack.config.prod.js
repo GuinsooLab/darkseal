@@ -214,10 +214,6 @@ module.exports = {
           from: path.join(__dirname, 'public/robots.txt'),
           to: outputPath,
         },
-        {
-          from: path.join(__dirname, 'public/locales'),
-          to: outputPath,
-        },
       ],
     }),
     // Build progress bar

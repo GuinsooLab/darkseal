@@ -12,17 +12,16 @@
  */
 
 import { Select } from 'antd';
-import { AxiosError } from 'axios';
 import { EntityTags, TagOption } from 'Models';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { showErrorToast } from 'utils/ToastUtils';
 import { FQN_SEPARATOR_CHAR } from '../../constants/char.constants';
 import { getAllTagsForOptions, getTagOptions } from '../../utils/TagsUtils';
 
 export const AddTags = ({
   setTags,
 }: {
+  selectedTags?: Array<EntityTags>;
   setTags?: (tags: EntityTags[]) => void;
 }) => {
   const [isTagLoading, setIsTagLoading] = useState<boolean>(false);
@@ -34,14 +33,10 @@ export const AddTags = ({
 
   const fetchTags = async () => {
     setIsTagLoading(true);
-    try {
-      const tags = await getAllTagsForOptions();
-      setTagList(tags.map((t) => t.fullyQualifiedName || t.name));
-    } catch (error) {
-      showErrorToast(error as AxiosError);
-    } finally {
-      setIsTagLoading(false);
-    }
+    const tags = await getAllTagsForOptions();
+    setTagList(tags.map((t) => t.fullyQualifiedName || t.name));
+
+    setIsTagLoading(false);
   };
 
   const tagsList = useMemo(() => {
@@ -58,17 +53,12 @@ export const AddTags = ({
   }, [tagList]);
 
   const onClickSelect = useCallback(() => {
-    if (tagList.length === 0) {
-      fetchTags();
-    }
-  }, [tagList]);
+    fetchTags();
+  }, []);
 
-  const handleChange = useCallback(
-    (value: string[]) => {
-      setSelectedTags(value);
-    },
-    [setSelectedTags]
-  );
+  const handleChange = useCallback((value: string[]) => {
+    setSelectedTags && setSelectedTags(value);
+  }, []);
 
   tagsList.forEach((tag) =>
     options.push(<Select.Option key={tag.label}>{tag.value}</Select.Option>)
@@ -82,8 +72,6 @@ export const AddTags = ({
 
   return (
     <Select
-      allowClear
-      id="select-tags"
       loading={isTagLoading}
       mode="multiple"
       placeholder={t('label.add-entity', {

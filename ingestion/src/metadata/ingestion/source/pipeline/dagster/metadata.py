@@ -36,10 +36,12 @@ from metadata.generated.schema.entity.services.connections.pipeline.dagsterConne
 from metadata.generated.schema.metadataIngestion.workflow import (
     Source as WorkflowSource,
 )
+from metadata.generated.schema.type.entityReference import EntityReference
 from metadata.generated.schema.type.tagLabel import TagLabel
 from metadata.ingestion.api.source import InvalidSourceException
 from metadata.ingestion.models.ometa_classification import OMetaTagAndClassification
 from metadata.ingestion.models.pipeline_status import OMetaPipelineStatus
+from metadata.ingestion.source.connections import get_connection
 from metadata.ingestion.source.pipeline.dagster.queries import (
     DAGSTER_PIPELINE_DETAILS_GRAPHQL,
     GRAPHQL_QUERY_FOR_JOBS,
@@ -63,6 +65,18 @@ class DagsterSource(PipelineServiceSource):
     Implements the necessary methods ot extract
     Pipeline metadata from Dagster's metadata db
     """
+
+    config: WorkflowSource
+
+    def __init__(
+        self,
+        config: WorkflowSource,
+        metadata_config: OpenMetadataConnection,
+    ):
+        self.service_connection = config.serviceConnection.__root__.config
+        self.client = get_connection(self.service_connection)
+        super().__init__(config, metadata_config)
+        # Create the connection to the database
 
     @classmethod
     def create(cls, config_dict, metadata_config: OpenMetadataConnection):
@@ -98,7 +112,7 @@ class DagsterSource(PipelineServiceSource):
                 ),
                 labelType="Automated",
                 state="Suggested",
-                source="Classification",
+                source="Tag",
             )
         ]
 
@@ -148,7 +162,9 @@ class DagsterSource(PipelineServiceSource):
             displayName=pipeline_details["name"],
             description=pipeline_details.get("description", ""),
             tasks=task_list,
-            service=self.context.pipeline_service.fullyQualifiedName.__root__,
+            service=EntityReference(
+                id=self.context.pipeline_service.id.__root__, type="pipelineService"
+            ),
             tags=self.get_tag_labels(self.context.repository_name),
         )
 

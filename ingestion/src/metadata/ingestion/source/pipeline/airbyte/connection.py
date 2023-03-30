@@ -26,7 +26,7 @@ def get_connection(connection: AirbyteConnection) -> AirbyteClient:
     return AirbyteClient(connection)
 
 
-def test_connection(client: AirbyteClient, _) -> None:
+def test_connection(client: AirbyteClient) -> None:
     """
     Test connection
     """

@@ -95,7 +95,7 @@ public class TestDefinitionResource extends EntityResource<TestDefinition, TestD
   @Operation(
       operationId = "listTestDefinitions",
       summary = "List test definitions",
-      tags = "testDefinitions",
+      tags = "TestDefinitions",
       description =
           "Get a list of test definitions, optionally filtered by `service` it belongs to. Use `fields` "
               + "parameter to get only necessary fields. Use cursor-based pagination to limit the number "
@@ -167,8 +167,8 @@ public class TestDefinitionResource extends EntityResource<TestDefinition, TestD
   @Operation(
       operationId = "listAllTestDefinitionVersion",
       summary = "List test definition versions",
-      tags = "testDefinitions",
-      description = "Get a list of all the versions of a test definition identified by `Id`",
+      tags = "TestDefinitions",
+      description = "Get a list of all the versions of a test definition identified by `id`",
       responses = {
         @ApiResponse(
             responseCode = "200",
@@ -178,7 +178,7 @@ public class TestDefinitionResource extends EntityResource<TestDefinition, TestD
   public EntityHistory listVersions(
       @Context UriInfo uriInfo,
       @Context SecurityContext securityContext,
-      @Parameter(description = "Id of the test definition", schema = @Schema(type = "UUID")) @PathParam("id") UUID id)
+      @Parameter(description = "Test Definition Id", schema = @Schema(type = "string")) @PathParam("id") UUID id)
       throws IOException {
     return super.listVersionsInternal(securityContext, id);
   }
@@ -186,9 +186,9 @@ public class TestDefinitionResource extends EntityResource<TestDefinition, TestD
   @GET
   @Path("/{id}")
   @Operation(
-      summary = "Get a test definition by Id",
-      tags = "testDefinitions",
-      description = "Get a Test Definition by `Id`.",
+      summary = "Get a Test Definition",
+      tags = "TestDefinitions",
+      description = "Get a Test Definition by `id`.",
       responses = {
         @ApiResponse(
             responseCode = "200",
@@ -199,7 +199,7 @@ public class TestDefinitionResource extends EntityResource<TestDefinition, TestD
       })
   public TestDefinition get(
       @Context UriInfo uriInfo,
-      @Parameter(description = "Id of the test definition", schema = @Schema(type = "UUID")) @PathParam("id") UUID id,
+      @PathParam("id") UUID id,
       @Context SecurityContext securityContext,
       @Parameter(
               description = "Fields requested in the returned resource",
@@ -221,7 +221,7 @@ public class TestDefinitionResource extends EntityResource<TestDefinition, TestD
   @Operation(
       operationId = "getTestDefinitionByName",
       summary = "Get a test definition by name",
-      tags = "testDefinitions",
+      tags = "TestDefinitions",
       description = "Get a test definition by `name`.",
       responses = {
         @ApiResponse(
@@ -229,12 +229,11 @@ public class TestDefinitionResource extends EntityResource<TestDefinition, TestD
             description = "The test definition",
             content =
                 @Content(mediaType = "application/json", schema = @Schema(implementation = TestDefinition.class))),
-        @ApiResponse(responseCode = "404", description = "Test Definition for instance {name} is not found")
+        @ApiResponse(responseCode = "404", description = "Test Definition for instance {id} is not found")
       })
   public TestDefinition getByName(
       @Context UriInfo uriInfo,
-      @Parameter(description = "Name of the test definition", schema = @Schema(type = "string")) @PathParam("name")
-          String name,
+      @PathParam("name") String name,
       @Context SecurityContext securityContext,
       @Parameter(
               description = "Fields requested in the returned resource",
@@ -255,9 +254,9 @@ public class TestDefinitionResource extends EntityResource<TestDefinition, TestD
   @Path("/{id}/versions/{version}")
   @Operation(
       operationId = "getSpecificTestDefinitionVersion",
-      summary = "Get a version of the test definition",
-      tags = "testDefinitions",
-      description = "Get a version of the test definition by given `Id`",
+      summary = "Get a version of the TestDefinition",
+      tags = "TestDefinitions",
+      description = "Get a version of the test definition by given `id`",
       responses = {
         @ApiResponse(
             responseCode = "200",
@@ -271,7 +270,7 @@ public class TestDefinitionResource extends EntityResource<TestDefinition, TestD
   public TestDefinition getVersion(
       @Context UriInfo uriInfo,
       @Context SecurityContext securityContext,
-      @Parameter(description = "Id of the test definition", schema = @Schema(type = "UUID")) @PathParam("id") UUID id,
+      @Parameter(description = "Test Definition Id", schema = @Schema(type = "string")) @PathParam("id") UUID id,
       @Parameter(
               description = "Test Definition version number in the form `major`.`minor`",
               schema = @Schema(type = "string", example = "0.1 or 1.1"))
@@ -284,8 +283,8 @@ public class TestDefinitionResource extends EntityResource<TestDefinition, TestD
   @POST
   @Operation(
       operationId = "createTestDefinition",
-      summary = "Create a test definition",
-      tags = "testDefinitions",
+      summary = "Create a Test Definition",
+      tags = "TestDefinitions",
       description = "Create a Test definition.",
       responses = {
         @ApiResponse(
@@ -307,14 +306,14 @@ public class TestDefinitionResource extends EntityResource<TestDefinition, TestD
   @Operation(
       operationId = "patchTestDefinition",
       summary = "Update a test definition",
-      tags = "testDefinitions",
-      description = "Update an existing Test Definition using JsonPatch.",
+      tags = "TestDefinitions",
+      description = "Update an existing topic using JsonPatch.",
       externalDocs = @ExternalDocumentation(description = "JsonPatch RFC", url = "https://tools.ietf.org/html/rfc6902"))
   @Consumes(MediaType.APPLICATION_JSON_PATCH_JSON)
   public Response updateDescription(
       @Context UriInfo uriInfo,
       @Context SecurityContext securityContext,
-      @Parameter(description = "Id of the test definition", schema = @Schema(type = "UUID")) @PathParam("id") UUID id,
+      @PathParam("id") UUID id,
       @RequestBody(
               description = "JsonPatch with array of operations",
               content =
@@ -332,8 +331,8 @@ public class TestDefinitionResource extends EntityResource<TestDefinition, TestD
   @Operation(
       operationId = "createOrUpdateTestDefinition",
       summary = "Update test definition",
-      tags = "testDefinitions",
-      description = "Create a test definition, if it does not exist, or update an existing test definition.",
+      tags = "TestDefinitions",
+      description = "Create a definition, it it does not exist or update an existing test definition.",
       responses = {
         @ApiResponse(
             responseCode = "200",
@@ -352,7 +351,7 @@ public class TestDefinitionResource extends EntityResource<TestDefinition, TestD
   @Operation(
       operationId = "deleteTestDefinition",
       summary = "Delete a test definition",
-      tags = "testDefinitions",
+      tags = "TestDefinitions",
       description = "Delete a test definition by `id`.",
       responses = {
         @ApiResponse(responseCode = "200", description = "OK"),
@@ -365,7 +364,7 @@ public class TestDefinitionResource extends EntityResource<TestDefinition, TestD
           @QueryParam("hardDelete")
           @DefaultValue("false")
           boolean hardDelete,
-      @Parameter(description = "Id of the test definition", schema = @Schema(type = "UUID")) @PathParam("id") UUID id)
+      @Parameter(description = "Topic Id", schema = @Schema(type = "UUID")) @PathParam("id") UUID id)
       throws IOException {
     return delete(uriInfo, securityContext, id, false, hardDelete);
   }
@@ -375,7 +374,7 @@ public class TestDefinitionResource extends EntityResource<TestDefinition, TestD
   @Operation(
       operationId = "deleteTestDefinitionByName",
       summary = "Delete a test definition",
-      tags = "testDefinitions",
+      tags = "TestDefinitions",
       description = "Delete a test definition by `name`.",
       responses = {
         @ApiResponse(responseCode = "200", description = "OK"),
@@ -388,7 +387,7 @@ public class TestDefinitionResource extends EntityResource<TestDefinition, TestD
           @QueryParam("hardDelete")
           @DefaultValue("false")
           boolean hardDelete,
-      @Parameter(description = "Name of the test definition", schema = @Schema(type = "string")) @PathParam("name")
+      @Parameter(description = "Name of the TestDefinition", schema = @Schema(type = "string")) @PathParam("name")
           String name)
       throws IOException {
     return deleteByName(uriInfo, securityContext, name, false, hardDelete);
@@ -398,8 +397,8 @@ public class TestDefinitionResource extends EntityResource<TestDefinition, TestD
   @Path("/restore")
   @Operation(
       operationId = "restore",
-      summary = "Restore a soft deleted test definition",
-      tags = "testDefinitions",
+      summary = "Restore a soft deleted TestDefinition.",
+      tags = "TestDefinitions",
       description = "Restore a soft deleted TestDefinition.",
       responses = {
         @ApiResponse(

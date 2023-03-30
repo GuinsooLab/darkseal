@@ -20,7 +20,6 @@ import { ExtraInfo } from 'Models';
 import React, { FC, useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
-import { getEntityName } from 'utils/EntityUtils';
 import { FQN_SEPARATOR_CHAR } from '../../constants/char.constants';
 import { EntityField } from '../../constants/Feeds.constants';
 import { OwnerType } from '../../enums/user.enum';
@@ -214,15 +213,13 @@ const DashboardVersion: FC<DashboardVersionProp> = ({
   const tableColumn: ColumnsType<EntityReference> = useMemo(
     () => [
       {
-        title: t('label.chart-entity', {
-          entity: t('label.name'),
-        }),
+        title: t('label.chart-name'),
         dataIndex: 'name',
         key: 'name',
         render: (text, record) => (
           <Link target="_blank" to={{ pathname: text }}>
             <Space>
-              <span>{getEntityName(record)}</span>
+              <span>{record.displayName}</span>
               <SVGIcons
                 alt="external-link"
                 className="tw-align-middle"
@@ -234,9 +231,7 @@ const DashboardVersion: FC<DashboardVersionProp> = ({
         ),
       },
       {
-        title: t('label.chart-entity', {
-          entity: t('label.type'),
-        }),
+        title: t('label.chart-type'),
         dataIndex: 'type',
         key: 'type',
       },

@@ -13,8 +13,7 @@
 
 import { Card, Col, Row, Statistic, Typography } from 'antd';
 import { AxiosError } from 'axios';
-import DataDistributionHistogram from 'components/Chart/DataDistributionHistogram.component';
-import { first, isString, last, sortBy } from 'lodash';
+import { sortBy } from 'lodash';
 import React, { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useParams } from 'react-router-dom';
@@ -24,7 +23,6 @@ import {
   INITIAL_COUNT_METRIC_VALUE,
   INITIAL_MATH_METRIC_VALUE,
   INITIAL_PROPORTION_METRIC_VALUE,
-  INITIAL_QUARTILE_METRIC_VALUE,
   INITIAL_SUM_METRIC_VALUE,
   INITIAL_TEST_RESULT_SUMMARY,
 } from '../../../constants/profiler.constant';
@@ -60,10 +58,6 @@ const ProfilerTab: React.FC<ProfilerTabProps> = ({
   const [sumMetrics, setSumMetrics] = useState<MetricChartType>(
     INITIAL_SUM_METRIC_VALUE
   );
-  const [isMinMaxStringData, setIsMinMaxStringData] = useState(false);
-  const [quartileMetrics, setQuartileMetrics] = useState<MetricChartType>(
-    INITIAL_QUARTILE_METRIC_VALUE
-  );
   const [tableTests, setTableTests] = useState<TableTestsType>({
     tests: [],
     results: INITIAL_TEST_RESULT_SUMMARY,
@@ -72,9 +66,7 @@ const ProfilerTab: React.FC<ProfilerTabProps> = ({
   const tableState = useMemo(
     () => [
       {
-        title: t('label.entity-count', {
-          entity: t('label.row'),
-        }),
+        title: t('label.row-count'),
         value: tableProfile?.rowCount || 0,
       },
       {
@@ -111,20 +103,12 @@ const ProfilerTab: React.FC<ProfilerTabProps> = ({
     ];
   }, [tableTests]);
 
-  const { firstDay, currentDay } = useMemo(() => {
-    return {
-      firstDay: last(profilerData),
-      currentDay: first(profilerData),
-    };
-  }, [profilerData]);
-
   const createMetricsChartData = () => {
     const updateProfilerData = sortBy(profilerData, 'timestamp');
     const countMetricData: MetricChartType['data'] = [];
     const proportionMetricData: MetricChartType['data'] = [];
     const mathMetricData: MetricChartType['data'] = [];
     const sumMetricData: MetricChartType['data'] = [];
-    const quartileMetricData: MetricChartType['data'] = [];
     updateProfilerData.forEach((col) => {
       const x = getFormattedDateFromSeconds(col.timestamp);
 
@@ -146,9 +130,10 @@ const ProfilerTab: React.FC<ProfilerTabProps> = ({
       mathMetricData.push({
         name: x,
         timestamp: col.timestamp || 0,
-        max: col.max || 0,
-        min: col.min || 0,
+        max: (col.max as number) || 0,
+        min: (col.min as number) || 0,
         mean: col.mean || 0,
+        median: col.median || 0,
       });
 
       proportionMetricData.push({
@@ -157,15 +142,6 @@ const ProfilerTab: React.FC<ProfilerTabProps> = ({
         distinctProportion: Math.round((col.distinctProportion || 0) * 100),
         nullProportion: Math.round((col.nullProportion || 0) * 100),
         uniqueProportion: Math.round((col.uniqueProportion || 0) * 100),
-      });
-
-      quartileMetricData.push({
-        name: x,
-        timestamp: col.timestamp || 0,
-        firstQuartile: col.firstQuartile || 0,
-        thirdQuartile: col.thirdQuartile || 0,
-        interQuartileRange: col.interQuartileRange || 0,
-        median: col.median || 0,
       });
     });
 
@@ -193,11 +169,6 @@ const ProfilerTab: React.FC<ProfilerTabProps> = ({
       ...item,
       latestValue: sumMetricData[sumMetricData.length - 1]?.[item.dataKey] || 0,
     }));
-    const quartileMetricInfo = quartileMetrics.information.map((item) => ({
-      ...item,
-      latestValue:
-        quartileMetricData[quartileMetricData.length - 1]?.[item.dataKey] || 0,
-    }));
 
     setCountMetrics((pre) => ({
       ...pre,
@@ -219,17 +190,6 @@ const ProfilerTab: React.FC<ProfilerTabProps> = ({
       information: sumMetricInfo,
       data: sumMetricData,
     }));
-    setQuartileMetrics((pre) => ({
-      ...pre,
-      information: quartileMetricInfo,
-      data: quartileMetricData,
-    }));
-
-    // only min/max category can be string
-    const isMinMaxString =
-      isString(updateProfilerData[0]?.min) ||
-      isString(updateProfilerData[0]?.max);
-    setIsMinMaxStringData(isMinMaxString);
   };
 
   const fetchAllTests = async () => {
@@ -265,10 +225,7 @@ const ProfilerTab: React.FC<ProfilerTabProps> = ({
   }, []);
 
   return (
-    <Row
-      className="m-b-lg"
-      data-testid="profiler-tab-container"
-      gutter={[16, 16]}>
+    <Row data-testid="profiler-tab-container" gutter={[16, 16]}>
       <Col span={8}>
         <Card className="tw-rounded-md tw-border tw-h-full">
           <Row gutter={16}>
@@ -330,39 +287,10 @@ const ProfilerTab: React.FC<ProfilerTabProps> = ({
         />
       </Col>
       <Col span={24}>
-        <ProfilerDetailsCard
-          chartCollection={mathMetrics}
-          name="math"
-          // only min/max category can be string
-          showYAxisCategory={isMinMaxStringData}
-        />
+        <ProfilerDetailsCard chartCollection={mathMetrics} name="math" />
       </Col>
       <Col span={24}>
         <ProfilerDetailsCard chartCollection={sumMetrics} name="sum" />
-      </Col>
-      <Col span={24}>
-        <ProfilerDetailsCard
-          chartCollection={quartileMetrics}
-          name="quartile"
-        />
-      </Col>
-      <Col span={24}>
-        <Card className="shadow-none" data-testid="histogram-metrics">
-          <Row gutter={[16, 16]}>
-            <Col span={4}>
-              <Typography.Text
-                className="text-grey-body"
-                data-testid="data-distribution-title">
-                {t('label.data-distribution')}
-              </Typography.Text>
-            </Col>
-            <Col span={20}>
-              <DataDistributionHistogram
-                data={{ firstDayData: firstDay, currentDayData: currentDay }}
-              />
-            </Col>
-          </Row>
-        </Card>
       </Col>
     </Row>
   );

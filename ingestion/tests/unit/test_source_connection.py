@@ -557,6 +557,16 @@ class SourceConnectionTest(TestCase):
         assert expected_url == get_connection_url_common(mariadb_conn_obj)
 
     def test_postgres_url(self):
+        # connection arguments without db
+        expected_url = "postgresql+psycopg2://openmetadata_user:@localhost:5432"
+        postgres_conn_obj = PostgresConnection(
+            username="openmetadata_user",
+            hostPort="localhost:5432",
+            scheme=PostgresScheme.postgresql_psycopg2,
+            database=None,
+        )
+        assert expected_url == get_connection_url_common(postgres_conn_obj)
+
         # connection arguments with db
         expected_url = "postgresql+psycopg2://openmetadata_user:@localhost:5432/default"
         postgres_conn_obj = PostgresConnection(
@@ -735,7 +745,7 @@ class SourceConnectionTest(TestCase):
             username="user",
             password=None,
             hostPort="localhost:443",
-            database="postgres",
+            database=None,
             connectionArguments=None,
             scheme=PostgresScheme.postgresql_psycopg2,
         )

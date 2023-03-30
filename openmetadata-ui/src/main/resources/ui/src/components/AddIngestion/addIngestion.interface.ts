@@ -133,8 +133,6 @@ export interface AddIngestionState {
   timeoutSeconds: number;
   topicFilterPattern: FilterPattern;
   useFqnFilter: boolean;
-  processPii: boolean;
-  overrideOwner: boolean;
 }
 
 export enum ShowFilter {

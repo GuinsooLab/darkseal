@@ -11,29 +11,14 @@
  *  limitations under the License.
  */
 
-import {
-  Button,
-  Col,
-  Popover,
-  Radio,
-  RadioChangeEvent,
-  Row,
-  Space,
-  Tag,
-  Typography,
-} from 'antd';
+import { Button, Popover, Space, Typography } from 'antd';
 import Table, { ColumnsType } from 'antd/lib/table';
-import classNames from 'classnames';
-import ErrorPlaceHolder from 'components/common/error-with-placeholder/ErrorPlaceHolder';
-import SchemaEditor from 'components/schema-editor/SchemaEditor';
-import { CSMode } from 'enums/codemirror.enum';
-import { ERROR_PLACEHOLDER_TYPE } from 'enums/common.enum';
 import { cloneDeep, isEmpty, isUndefined } from 'lodash';
 import { EntityTags, TagOption } from 'Models';
 import React, { FC, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { getEntityName } from 'utils/EntityUtils';
 import { Field } from '../../../generated/entity/data/topic';
+import { getEntityName } from '../../../utils/CommonUtils';
 import SVGIcons from '../../../utils/SvgUtils';
 import { getTableExpandableConfig } from '../../../utils/TableUtils';
 import { fetchTagsAndGlossaryTerms } from '../../../utils/TagsUtils';
@@ -45,11 +30,7 @@ import RichTextEditorPreviewer from '../../common/rich-text-editor/RichTextEdito
 import { ModalWithMarkdownEditor } from '../../Modals/ModalWithMarkdownEditor/ModalWithMarkdownEditor';
 import TagsContainer from '../../Tag/TagsContainer/tags-container';
 import TagsViewer from '../../Tag/TagsViewer/tags-viewer';
-import {
-  CellRendered,
-  SchemaViewType,
-  TopicSchemaFieldsProps,
-} from './TopicSchema.interface';
+import { CellRendered, TopicSchemaFieldsProps } from './TopicSchema.interface';
 
 const TopicSchemaFields: FC<TopicSchemaFieldsProps> = ({
   messageSchema,
@@ -67,9 +48,6 @@ const TopicSchemaFields: FC<TopicSchemaFieldsProps> = ({
   const [tagList, setTagList] = useState<TagOption[]>([]);
   const [isTagLoading, setIsTagLoading] = useState<boolean>(false);
   const [tagFetchFailed, setTagFetchFailed] = useState<boolean>(false);
-  const [viewType, setViewType] = useState<SchemaViewType>(
-    SchemaViewType.FIELDS
-  );
 
   const fetchTags = async () => {
     setIsTagLoading(true);
@@ -84,22 +62,26 @@ const TopicSchemaFields: FC<TopicSchemaFieldsProps> = ({
     }
   };
 
-  const handleFieldTagsChange = async (
-    selectedTags: EntityTags[] = [],
-    field: Field
-  ) => {
-    const selectedField = isUndefined(editFieldTags) ? field : editFieldTags;
-    const newSelectedTags: TagOption[] = selectedTags.map((tag) => ({
-      fqn: tag.tagFQN,
-      source: tag.source,
-    }));
+  const handleFieldTagsChange = async (selectedTags: EntityTags[] = []) => {
+    if (!isUndefined(editFieldTags)) {
+      const newSelectedTags: TagOption[] = selectedTags.map((tag) => ({
+        fqn: tag.tagFQN,
+        source: tag.source,
+      }));
 
-    const schema = cloneDeep(messageSchema);
+      const schema = cloneDeep(messageSchema);
 
-    updateFieldTags(schema?.schemaFields, selectedField?.name, newSelectedTags);
+      updateFieldTags(
+        schema?.schemaFields,
+        editFieldTags?.name,
+        newSelectedTags
+      );
 
-    await onUpdate(schema);
-    setEditFieldTags(undefined);
+      await onUpdate(schema);
+      setEditFieldTags(undefined);
+    } else {
+      setEditFieldTags(undefined);
+    }
   };
 
   const handleAddTagClick = (record: Field) => {
@@ -179,7 +161,9 @@ const TopicSchemaFields: FC<TopicSchemaFieldsProps> = ({
     return (
       <>
         {isReadOnly ? (
-          <TagsViewer sizeCap={-1} tags={tags || []} />
+          <Space wrap>
+            <TagsViewer sizeCap={-1} tags={tags || []} />
+          </Space>
         ) : (
           <Space
             align={styleFlag ? 'start' : 'center'}
@@ -196,7 +180,7 @@ const TopicSchemaFields: FC<TopicSchemaFieldsProps> = ({
               tagList={tagList}
               type="label"
               onCancel={() => setEditFieldTags(undefined)}
-              onSelectionChange={(tags) => handleFieldTagsChange(tags, record)}
+              onSelectionChange={handleFieldTagsChange}
             />
           </Space>
         )}
@@ -256,71 +240,22 @@ const TopicSchemaFields: FC<TopicSchemaFieldsProps> = ({
     ]
   );
 
-  const handleViewChange = (e: RadioChangeEvent) => {
-    setViewType(e.target.value);
-  };
-
   return (
-    <Row className="mt-4" gutter={[16, 16]}>
-      <Col>
-        <Space>
-          <Typography.Text type="secondary">
-            {t('label.schema')}
-          </Typography.Text>
-          <Tag>{messageSchema?.schemaType ?? ''}</Tag>
-        </Space>
-      </Col>
-      {isEmpty(messageSchema?.schemaFields) &&
-      isEmpty(messageSchema?.schemaText) ? (
-        <ErrorPlaceHolder type={ERROR_PLACEHOLDER_TYPE.VIEW}>
-          {t('message.no-schema-data-available')}
-        </ErrorPlaceHolder>
-      ) : (
-        <>
-          {!isEmpty(messageSchema?.schemaFields) && (
-            <Col span={24}>
-              <Radio.Group value={viewType} onChange={handleViewChange}>
-                <Radio.Button value={SchemaViewType.FIELDS}>
-                  {t('label.field-plural')}
-                </Radio.Button>
-                <Radio.Button value={SchemaViewType.TEXT}>
-                  {t('label.text')}
-                </Radio.Button>
-              </Radio.Group>
-            </Col>
-          )}
-          <Col span={24}>
-            {viewType === SchemaViewType.TEXT ||
-            isEmpty(messageSchema?.schemaFields) ? (
-              messageSchema?.schemaText && (
-                <SchemaEditor
-                  editorClass={classNames('table-query-editor')}
-                  mode={{ name: CSMode.JAVASCRIPT }}
-                  options={{
-                    styleActiveLine: false,
-                  }}
-                  value={messageSchema?.schemaText ?? ''}
-                />
-              )
-            ) : (
-              <Table
-                bordered
-                className={className}
-                columns={columns}
-                data-testid="topic-schema-fields-table"
-                dataSource={messageSchema?.schemaFields}
-                expandable={{
-                  ...getTableExpandableConfig<Field>(),
-                  rowExpandable: (record) => !isEmpty(record.children),
-                }}
-                pagination={false}
-                rowKey="name"
-                size="small"
-              />
-            )}
-          </Col>
-        </>
-      )}
+    <>
+      <Table
+        bordered
+        className={className}
+        columns={columns}
+        data-testid="topic-schema-fields-table"
+        dataSource={messageSchema?.schemaFields}
+        expandable={{
+          ...getTableExpandableConfig<Field>(),
+          rowExpandable: (record) => !isEmpty(record.children),
+        }}
+        pagination={false}
+        rowKey="name"
+        size="small"
+      />
       {editFieldDescription && (
         <ModalWithMarkdownEditor
           header={`${t('label.edit-entity', {
@@ -335,7 +270,7 @@ const TopicSchemaFields: FC<TopicSchemaFieldsProps> = ({
           onSave={handleFieldDescriptionChange}
         />
       )}
-    </Row>
+    </>
   );
 };
 

@@ -97,7 +97,7 @@ const MetadataToESConfigForm = ({
       <Divider />
       <Form.Item
         className="switch-item"
-        label={t('label.use-ssl-uppercase')}
+        label={t('label.use-ssl')}
         name="useSSL">
         <Switch />
       </Form.Item>

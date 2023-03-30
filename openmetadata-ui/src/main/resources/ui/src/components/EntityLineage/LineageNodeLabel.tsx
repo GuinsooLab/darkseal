@@ -12,10 +12,7 @@
  */
 
 import { Button } from 'antd';
-import { EntityLineageNodeType } from 'enums/entity.enum';
-import { get } from 'lodash';
 import React from 'react';
-import { useTranslation } from 'react-i18next';
 import SVGIcons, { Icons } from 'utils/SvgUtils';
 import { EntityReference } from '../../generated/type/entityReference';
 import { getDataLabel } from '../../utils/EntityLineageUtils';
@@ -27,63 +24,6 @@ interface LineageNodeLabelProps {
   isExpanded?: boolean;
 }
 
-const TableExpandButton = ({
-  node,
-  onNodeExpand,
-  isExpanded,
-}: LineageNodeLabelProps) => {
-  if (node.type !== 'table') {
-    return null;
-  }
-
-  return (
-    <Button
-      ghost
-      className="custom-node-expand-button p-0"
-      icon={
-        <SVGIcons
-          alt="plus"
-          icon={isExpanded ? Icons.ICON_MINUS : Icons.ICON_PLUS}
-          width="16px"
-        />
-      }
-      size="small"
-      type="text"
-      onClick={(e) => {
-        e.stopPropagation();
-        onNodeExpand && onNodeExpand(!isExpanded, node);
-      }}
-    />
-  );
-};
-
-const EntityLabel = ({ node }: LineageNodeLabelProps) => {
-  const { t } = useTranslation();
-  if (node.type === EntityLineageNodeType.LOAD_MORE) {
-    return (
-      <div className="w-72">
-        <span>{t('label.load-more')}</span>
-        <span className="load-more-node-sizes p-x-xs">{`(${get(
-          node,
-          'pagination_data.childrenLength'
-        )})`}</span>
-      </div>
-    );
-  }
-
-  return (
-    <>
-      <span className="m-r-xs">{getEntityIcon(node.type)}</span>
-      {getDataLabel(
-        node.displayName,
-        node.fullyQualifiedName,
-        false,
-        node.type
-      )}
-    </>
-  );
-};
-
 const LineageNodeLabel = ({
   node,
   onNodeExpand,
@@ -91,13 +31,33 @@ const LineageNodeLabel = ({
 }: LineageNodeLabelProps) => {
   return (
     <>
-      <TableExpandButton
-        isExpanded={isExpanded}
-        node={node}
-        onNodeExpand={onNodeExpand}
-      />
+      {node.type === 'table' ? (
+        <Button
+          ghost
+          className="custom-node-expand-button p-0"
+          icon={
+            <SVGIcons
+              alt="plus"
+              icon={isExpanded ? Icons.ICON_MINUS : Icons.ICON_PLUS}
+              width="16px"
+            />
+          }
+          size="small"
+          type="text"
+          onClick={(e) => {
+            e.stopPropagation();
+            onNodeExpand && onNodeExpand(!isExpanded, node);
+          }}
+        />
+      ) : null}
       <p className="flex items-center m-0 p-y-sm">
-        <EntityLabel node={node} />
+        <span className="m-r-xs">{getEntityIcon(node.type)}</span>
+        {getDataLabel(
+          node.displayName,
+          node.fullyQualifiedName,
+          false,
+          node.type
+        )}
       </p>
     </>
   );

@@ -11,17 +11,16 @@
  *  limitations under the License.
  */
 
-import { Space, Typography } from 'antd';
+import { Typography } from 'antd';
 import classNames from 'classnames';
-import { t } from 'i18next';
 import React from 'react';
 import AddPlaceHolder from '../../../assets/img/add-placeholder.svg';
 import NoDataFoundPlaceHolder from '../../../assets/img/no-data-placeholder.svg';
-import { ERROR_PLACEHOLDER_TYPE, SIZE } from '../../../enums/common.enum';
+import { SIZE } from '../../../enums/common.enum';
 
 type Props = {
   children?: React.ReactNode;
-  type?: ERROR_PLACEHOLDER_TYPE;
+  type?: string;
   buttonLabel?: string;
   buttonListener?: () => void;
   heading?: string;
@@ -47,37 +46,34 @@ const ErrorPlaceHolder = ({
 }: Props) => {
   const { Paragraph, Link } = Typography;
 
-  return type === ERROR_PLACEHOLDER_TYPE.ADD ? (
-    <div
-      className={classNames(classes, 'h-full flex-center')}
-      data-testid={dataTestId}>
-      <Space align="center" className="w-full" direction="vertical" size={10}>
+  return type === 'ADD_DATA' ? (
+    <div data-testid={dataTestId}>
+      <div className="flex-center flex-col tw-mt-24 " data-testid="error">
+        {' '}
         <img data-testid="no-data-image" src={AddPlaceHolder} width={size} />
+      </div>
+      <div className="tw-flex tw-flex-col tw-items-center tw-mt-10 tw-text-base tw-font-medium">
+        {description ? (
+          description
+        ) : (
+          <>
+            <Paragraph style={{ marginBottom: '4px' }}>
+              {' '}
+              Adding a new {heading} is easy, just give it a spin!
+            </Paragraph>
+            <Paragraph>
+              {' '}
+              Still need help? Refer to our{' '}
+              <Link href={doc} target="_blank">
+                docs
+              </Link>{' '}
+              for more information.
+            </Paragraph>
+          </>
+        )}
 
-        <div className="text-center text-base font-medium">
-          {description ? (
-            description
-          ) : (
-            <>
-              <Paragraph style={{ marginBottom: '4px' }}>
-                {' '}
-                {t('message.adding-new-entity-is-easy-just-give-it-a-spin', {
-                  entity: heading,
-                })}
-              </Paragraph>
-              <Paragraph>
-                {t('label.refer-to-our')}{' '}
-                <Link href={doc} target="_blank">
-                  {t('label.doc-plural')}
-                </Link>{' '}
-                {t('label.for-more-info')}
-              </Paragraph>
-            </>
-          )}
-
-          <div className="text-lg text-center">{buttons}</div>
-        </div>
-      </Space>
+        <div className="tw-text-lg tw-text-center">{buttons}</div>
+      </div>
     </div>
   ) : (
     <div
@@ -97,20 +93,18 @@ const ErrorPlaceHolder = ({
       ) : (
         <div className="tw-flex tw-flex-col tw-items-center tw-mt-8 tw-text-base tw-font-medium">
           <Typography.Text className="tw-text-sm">
-            {t('message.no-data-available')}
+            No Data Available
           </Typography.Text>
           <Typography.Text className="tw-text-sm">
-            {t('message.adding-new-entity-is-easy-just-give-it-a-spin', {
-              entity: heading,
-            })}
+            Go ahead and add a new {heading}!
           </Typography.Text>
           {doc ? (
             <Typography.Text className="tw-text-sm">
-              {t('label.refer-to-our')}{' '}
+              Still need help? Refer to our{' '}
               <Typography.Link href={doc} target="_blank">
-                {t('label.doc-plural')}
+                docs
               </Typography.Link>{' '}
-              {t('label.for-more-info')}
+              for more information.
             </Typography.Text>
           ) : (
             ''

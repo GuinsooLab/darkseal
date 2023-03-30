@@ -22,7 +22,7 @@ from metadata.generated.schema.entity.services.connections.metadata.openMetadata
 )
 from metadata.generated.schema.type.queryParserData import ParsedData, QueryParserData
 from metadata.generated.schema.type.tableQuery import TableQueries, TableQuery
-from metadata.ingestion.api.processor import Processor
+from metadata.ingestion.api.processor import Processor, ProcessorStatus
 from metadata.ingestion.lineage.models import ConnectionTypeDialectMapper, Dialect
 from metadata.ingestion.lineage.parser import LineageParser
 from metadata.utils.logger import ingestion_logger
@@ -58,7 +58,7 @@ def parse_sql_statement(record: TableQuery, dialect: Dialect) -> Optional[Parsed
         databaseSchema=record.databaseSchema,
         sql=record.query,
         userName=record.userName,
-        date=int(start_date.__root__.timestamp()),
+        date=start_date.__root__.strftime("%Y-%m-%d"),
         serviceName=record.serviceName,
         duration=record.duration,
     )
@@ -72,9 +72,15 @@ class QueryParserProcessor(Processor):
         config (QueryParserProcessorConfig):
         metadata_config (MetadataServerConfig):
         connection_type (str):
+
+    Attributes:
+        config (QueryParserProcessorConfig):
+        metadata_config (MetadataServerConfig):
+        status (ProcessorStatus):
     """
 
     config: ConfigModel
+    status: ProcessorStatus
 
     def __init__(
         self,
@@ -82,9 +88,10 @@ class QueryParserProcessor(Processor):
         metadata_config: OpenMetadataConnection,
         connection_type: str,
     ):
-        super().__init__()
+
         self.config = config
         self.metadata_config = metadata_config
+        self.status = ProcessorStatus()
         self.connection_type = connection_type
 
     @classmethod
@@ -117,3 +124,6 @@ class QueryParserProcessor(Processor):
 
     def close(self):
         pass
+
+    def get_status(self) -> ProcessorStatus:
+        return self.status

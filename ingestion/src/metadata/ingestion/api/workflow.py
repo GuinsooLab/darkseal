@@ -59,7 +59,7 @@ logger = ingestion_logger()
 T = TypeVar("T")
 
 SUCCESS_THRESHOLD_VALUE = 90
-REPORTS_INTERVAL_SECONDS = 60
+REPORTS_INTERVAL_SECONDS = 30
 
 
 class InvalidWorkflowJSONException(Exception):
@@ -82,6 +82,7 @@ class Workflow(WorkflowStatusMixin):
     stage: Stage
     sink: Sink
     bulk_sink: BulkSink
+    report = {}
 
     def __init__(
         self, config: OpenMetadataWorkflowConfig
@@ -194,17 +195,21 @@ class Workflow(WorkflowStatusMixin):
 
         try:
             for record in self.source.next_record():
+                self.report["Source"] = self.source.get_status().as_obj()
                 if hasattr(self, "processor"):
                     processed_record = self.processor.process(record)
                 else:
                     processed_record = record
                 if hasattr(self, "stage"):
                     self.stage.stage_record(processed_record)
+                    self.report["Stage"] = self.stage.get_status().as_obj()
                 if hasattr(self, "sink"):
                     self.sink.write_record(processed_record)
+                    self.report["sink"] = self.sink.get_status().as_obj()
             if hasattr(self, "bulk_sink"):
                 self.stage.close()
                 self.bulk_sink.write_records()
+                self.report["Bulk_Sink"] = self.bulk_sink.get_status().as_obj()
 
             # If we reach this point, compute the success % and update the associated Ingestion Pipeline status
             self.update_ingestion_status_at_end()
@@ -238,7 +243,10 @@ class Workflow(WorkflowStatusMixin):
         as OK or KO depending on the success rate.
         """
         pipeline_state = PipelineState.success
-        if SUCCESS_THRESHOLD_VALUE <= self._get_source_success() < 100:
+        if (
+            self._get_source_success() >= SUCCESS_THRESHOLD_VALUE
+            and self._get_source_success() < 100
+        ):
             pipeline_state = PipelineState.partialSuccess
         self.set_ingestion_pipeline_status(pipeline_state)
 
@@ -296,10 +304,7 @@ class Workflow(WorkflowStatusMixin):
         :param service_type: source workflow service type
         :return:
         """
-        if (
-            not self.config.source.serviceConnection
-            and not self.metadata.config.forceEntityOverwriting
-        ):
+        if not self.config.source.serviceConnection:
             service_name = self.config.source.serviceName
             try:
                 service: ServiceWithConnectionType = cast(

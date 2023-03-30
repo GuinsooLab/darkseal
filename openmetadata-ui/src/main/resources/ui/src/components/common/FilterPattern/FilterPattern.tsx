@@ -63,7 +63,7 @@ const FilterPattern = ({
         <Col className="d-flex flex-col">
           <label htmlFor={`${type}FilterPatternCheckbox`}>{`${capitalize(
             type
-          )} ${t('label.filter-pattern')}`}</label>
+          )} Filter Pattern`}</label>
           <Typography.Text
             className="text-grey-muted m-t-xss"
             data-testid="filter-pattern-info">

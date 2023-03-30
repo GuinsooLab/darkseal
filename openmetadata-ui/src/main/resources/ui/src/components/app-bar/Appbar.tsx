@@ -14,37 +14,29 @@
 import { Button, Typography } from 'antd';
 import { AxiosError } from 'axios';
 import { CookieStorage } from 'cookie-storage';
-import { isEmpty, isString } from 'lodash';
+import { isEmpty } from 'lodash';
 import { observer } from 'mobx-react';
-import Qs from 'qs';
 import React, { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Link, useHistory, useLocation } from 'react-router-dom';
+import { Link, useHistory, useLocation, useRouteMatch } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import { getVersion } from 'rest/miscAPI';
 import { extractDetailsFromToken } from 'utils/AuthProvider.util';
-import { getEntityName } from 'utils/EntityUtils';
 import appState from '../../AppState';
-import { ReactComponent as IconDoc } from '../../assets/svg/doc.svg';
-import { ReactComponent as IconSlackGrey } from '../../assets/svg/slack-grey.svg';
-import { ReactComponent as IconVersionBlack } from '../../assets/svg/version-black.svg';
 import {
-  getExplorePath,
+  getExplorePathWithSearch,
   getTeamAndUserDetailsPath,
   getUserPath,
   ROUTES,
   TERM_ADMIN,
   TERM_USER,
 } from '../../constants/constants';
-import {
-  urlGitbookDocs,
-  urlGithubRepo,
-  urlJoinSlack,
-} from '../../constants/URL.constants';
+import { urlGithubRepo } from '../../constants/URL.constants';
 import { useAuth } from '../../hooks/authHooks';
 import jsonData from '../../jsons/en';
 import {
   addToRecentSearched,
+  getEntityName,
   getNonDeletedTeams,
 } from '../../utils/CommonUtils';
 import SVGIcons, { Icons } from '../../utils/SvgUtils';
@@ -67,23 +59,13 @@ const Appbar: React.FC = (): JSX.Element => {
     isTourRoute,
     onLogoutHandler,
   } = useAuthContext();
-
-  const parsedQueryString = Qs.parse(
-    location.search.startsWith('?')
-      ? location.search.substr(1)
-      : location.search
-  );
-
-  const searchQuery = isString(parsedQueryString.search)
-    ? parsedQueryString.search
-    : '';
-
+  const match = useRouteMatch<{ searchQuery: string }>({
+    path: ROUTES.EXPLORE_WITH_SEARCH,
+  });
+  const searchQuery = match?.params?.searchQuery;
   const [searchValue, setSearchValue] = useState(searchQuery);
-
   const [isOpen, setIsOpen] = useState<boolean>(false);
   const [isFeatureModalOpen, setIsFeatureModalOpen] = useState<boolean>(false);
-  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-  // @ts-ignore
   const [version, setVersion] = useState<string>('');
 
   const handleFeatureModal = (value: boolean) => {
@@ -91,8 +73,6 @@ const Appbar: React.FC = (): JSX.Element => {
   };
 
   const handleSearchChange = (value: string) => {
-    console.debug(`handleSearchChange value=${value}`);
-
     setSearchValue(value);
     value ? setIsOpen(true) : setIsOpen(false);
   };
@@ -101,46 +81,33 @@ const Appbar: React.FC = (): JSX.Element => {
     {
       name: (
         <span>
-          <span className="tw-text-grey-muted">{`${t('GitHub')}`}</span>
+          <span className="tw-text-grey-muted">{`${t('label.version')} ${
+            (version ? version : '?').split('-')[0]
+          }`}</span>
         </span>
       ),
       to: urlGithubRepo,
       isOpenNewTab: true,
       disabled: false,
       icon: (
-        <IconVersionBlack
+        <SVGIcons
+          alt="Version icon"
           className="tw-align-middle tw--mt-0.5 tw-mr-0.5"
-          height={12}
-          name="Version icon"
-          width={12}
+          icon={Icons.VERSION_BLACK}
+          width="16"
         />
       ),
     },
     {
-      name: t('label.doc-plural'),
-      to: urlGitbookDocs,
-      isOpenNewTab: true,
+      name: t('label.api-uppercase'),
+      to: ROUTES.SWAGGER,
       disabled: false,
       icon: (
-        <IconDoc
+        <SVGIcons
+          alt="API icon"
           className="tw-align-middle tw--mt-0.5 tw-mr-0.5"
-          height={12}
-          name="Doc icon"
-          width={12}
-        />
-      ),
-    },
-    {
-      name: t('label.slack'),
-      to: urlJoinSlack,
-      disabled: false,
-      isOpenNewTab: true,
-      icon: (
-        <IconSlackGrey
-          className="tw-align-middle tw--mt-0.5 tw-mr-0.5"
-          height={12}
-          name="slack icon"
-          width={12}
+          icon={Icons.API}
+          width="16"
         />
       ),
     },
@@ -148,19 +115,19 @@ const Appbar: React.FC = (): JSX.Element => {
       name: (
         <Button
           className="focus:no-underline hover:underline flex-shrink p-0"
-          data-testid="tutorial"
+          data-testid="tour"
           type="text"
           onClick={() => history.push(ROUTES.TOUR)}>
-          {t('Tutorial')}
+          {t('label.tour')}
         </Button>
       ),
       disabled: false,
       icon: (
         <SVGIcons
           alt="tour-con"
-          className="align-middle tw-mr-0.5"
+          className="align-middle tw-mr-0.5 tour-button"
           icon={Icons.TOUR}
-          width="12"
+          width="16"
         />
       ),
     },
@@ -225,9 +192,7 @@ const Appbar: React.FC = (): JSX.Element => {
           : null}
         {teams.length > 0 ? (
           <div>
-            <span className="tw-text-grey-muted tw-text-xs">
-              {t('label.team-plural')}
-            </span>
+            <span className="tw-text-grey-muted tw-text-xs">Teams</span>
             {teams.map((t, i) => (
               <Typography.Paragraph
                 className="ant-typography-ellipsis-custom text-sm"
@@ -264,15 +229,16 @@ const Appbar: React.FC = (): JSX.Element => {
   const searchHandler = (value: string) => {
     setIsOpen(false);
     addToRecentSearched(value);
-    if (location.pathname.startsWith(ROUTES.EXPLORE)) {
-      // Already on explore page, only push search change
-      history.push({
-        search: Qs.stringify({ ...parsedQueryString, search: value }),
-      });
-    } else {
-      // Outside Explore page
-      history.push(getExplorePath({ search: value }));
-    }
+    history.push({
+      pathname: getExplorePathWithSearch(
+        encodeURIComponent(value),
+        // this is for if user is searching from another page
+        location.pathname.startsWith(ROUTES.EXPLORE)
+          ? appState.explorePageTab
+          : 'tables'
+      ),
+      search: location.search,
+    });
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -283,7 +249,7 @@ const Appbar: React.FC = (): JSX.Element => {
   };
 
   const handleOnclick = () => {
-    searchHandler(searchValue);
+    searchHandler(searchValue ?? '');
   };
 
   const fetchOMVersion = () => {
@@ -300,7 +266,7 @@ const Appbar: React.FC = (): JSX.Element => {
   };
 
   useEffect(() => {
-    setSearchValue(searchQuery);
+    setSearchValue(decodeURIComponent(searchQuery || ''));
   }, [searchQuery]);
 
   useEffect(() => {

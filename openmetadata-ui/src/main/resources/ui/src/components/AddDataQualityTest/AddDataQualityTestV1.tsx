@@ -13,13 +13,10 @@
 
 import { Col, Row, Typography } from 'antd';
 import { AxiosError } from 'axios';
-import { CreateTestCase } from 'generated/api/tests/createTestCase';
-import { t } from 'i18next';
-import { isUndefined, toString } from 'lodash';
-import { default as React, useCallback, useMemo, useState } from 'react';
+import { isUndefined } from 'lodash';
+import React, { useCallback, useMemo, useState } from 'react';
 import { useHistory, useParams } from 'react-router-dom';
 import { createTestCase, createTestSuites } from 'rest/testAPI';
-import { getEntityName } from 'utils/EntityUtils';
 import {
   getDatabaseDetailsPath,
   getDatabaseSchemaDetailsPath,
@@ -33,10 +30,12 @@ import { PageLayoutType } from '../../enums/layout.enum';
 import { ServiceCategory } from '../../enums/service.enum';
 import { ProfilerDashboardType } from '../../enums/table.enum';
 import { OwnerType } from '../../enums/user.enum';
+import { CreateTestCase } from '../../generated/api/tests/createTestCase';
 import { TestCase } from '../../generated/tests/testCase';
 import { TestSuite } from '../../generated/tests/testSuite';
 import {
   getCurrentUserId,
+  getEntityName,
   getPartialNameFromTableFQN,
 } from '../../utils/CommonUtils';
 import { getTestSuitePath } from '../../utils/RouterUtils';
@@ -58,16 +57,14 @@ import TestCaseForm from './components/TestCaseForm';
 import { addTestSuiteRightPanel, INGESTION_DATA } from './rightPanelData';
 import TestSuiteIngestion from './TestSuiteIngestion';
 
-const AddDataQualityTestV1: React.FC<AddDataQualityTestProps> = ({
-  table,
-}: AddDataQualityTestProps) => {
+const AddDataQualityTestV1: React.FC<AddDataQualityTestProps> = ({ table }) => {
   const { entityTypeFQN, dashboardType } = useParams<Record<string, string>>();
   const isColumnFqn = dashboardType === ProfilerDashboardType.COLUMN;
   const history = useHistory();
   const [activeServiceStep, setActiveServiceStep] = useState(1);
   const [selectedTestSuite, setSelectedTestSuite] =
     useState<SelectTestSuiteType>();
-  const [testCaseData, setTestCaseData] = useState<CreateTestCase>();
+  const [testCaseData, setTestCaseData] = useState<TestCase>();
   const [testSuiteData, setTestSuiteData] = useState<TestSuite>();
   const [testCaseRes, setTestCaseRes] = useState<TestCase>();
   const [addIngestion, setAddIngestion] = useState(false);
@@ -119,7 +116,7 @@ const AddDataQualityTestV1: React.FC<AddDataQualityTestProps> = ({
           url: getTableTabPath(entityTypeFQN, 'profiler'),
         },
         {
-          name: t('label.add-entity-test', { entity: t('label.column') }),
+          name: 'Add Column Test',
           url: '',
           activeTitle: true,
         },
@@ -127,7 +124,7 @@ const AddDataQualityTestV1: React.FC<AddDataQualityTestProps> = ({
       data.push(...colVal);
     } else {
       data.push({
-        name: t('label.add-entity-test', { entity: t('label.table') }),
+        name: 'Add Table Test',
         url: '',
         activeTitle: true,
       });
@@ -150,7 +147,7 @@ const AddDataQualityTestV1: React.FC<AddDataQualityTestProps> = ({
     setActiveServiceStep((pre) => pre - 1);
   };
 
-  const handleTestCaseBack = (testCase: CreateTestCase) => {
+  const handleTestCaseBack = (testCase: TestCase) => {
     setTestCaseData(testCase);
     handleCancelClick();
   };
@@ -160,7 +157,7 @@ const AddDataQualityTestV1: React.FC<AddDataQualityTestProps> = ({
     setActiveServiceStep(2);
   };
 
-  const handleFormSubmit = async (data: CreateTestCase) => {
+  const handleFormSubmit = async (data: TestCase) => {
     setTestCaseData(data);
     if (isUndefined(selectedTestSuite)) {
       return;
@@ -180,7 +177,10 @@ const AddDataQualityTestV1: React.FC<AddDataQualityTestProps> = ({
         parameterValues,
         owner,
         testDefinition,
-        testSuite: toString(selectedSuite?.fullyQualifiedName),
+        testSuite: {
+          id: selectedSuite?.id || '',
+          type: 'testSuite',
+        },
       };
       if (isNewTestSuite && isUndefined(testSuiteData)) {
         const testSuitePayload = {
@@ -189,10 +189,10 @@ const AddDataQualityTestV1: React.FC<AddDataQualityTestProps> = ({
           owner,
         };
         const testSuiteResponse = await createTestSuites(testSuitePayload);
-        testCasePayload.testSuite = testSuiteResponse.fullyQualifiedName || '';
+        testCasePayload.testSuite.id = testSuiteResponse.id || '';
         setTestSuiteData(testSuiteResponse);
       } else if (!isUndefined(testSuiteData)) {
-        testCasePayload.testSuite = testSuiteData.fullyQualifiedName || '';
+        testCasePayload.testSuite.id = testSuiteData.id || '';
       }
 
       const testCaseResponse = await createTestCase(testCasePayload);
@@ -216,15 +216,16 @@ const AddDataQualityTestV1: React.FC<AddDataQualityTestProps> = ({
     } else if (activeServiceStep > 2) {
       const successName = selectedTestSuite?.isNewTestSuite
         ? `${testSuiteData?.name} & ${testCaseRes?.name}`
-        : testCaseRes?.name || t('label.test-case') || '';
+        : testCaseRes?.name || 'Test case';
 
       const successMessage = selectedTestSuite?.isNewTestSuite ? undefined : (
         <span>
-          <span className="tw-mr-1 tw-font-semibold">{`"${successName}"`}</span>
+          <span className="tw-mr-1 tw-font-semibold">
+            &quot;{successName}&quot;
+          </span>
           <span>
-            {`${t('message.has-been-created-successfully')}.`}
-            &nbsp;
-            {t('message.this-will-pick-in-next-run')}
+            has been created successfully. This will be picked up in the next
+            run.
           </span>
         </span>
       );
@@ -237,7 +238,7 @@ const AddDataQualityTestV1: React.FC<AddDataQualityTestProps> = ({
           showIngestionButton={selectedTestSuite?.isNewTestSuite || false}
           state={FormSubmitType.ADD}
           successMessage={successMessage}
-          viewServiceText={t('message.view-test-suite')}
+          viewServiceText="View Test Suite"
         />
       );
     }
@@ -255,9 +256,6 @@ const AddDataQualityTestV1: React.FC<AddDataQualityTestProps> = ({
       classes="tw-max-w-full-hd tw-h-full tw-pt-4"
       header={<TitleBreadcrumb titleLinks={breadcrumb} />}
       layout={PageLayoutType['2ColRTL']}
-      pageTitle={t('label.add-entity', {
-        entity: t('label.data-quality-test'),
-      })}
       rightPanel={
         <RightPanel
           data={
@@ -289,9 +287,7 @@ const AddDataQualityTestV1: React.FC<AddDataQualityTestProps> = ({
             <Typography.Paragraph
               className="tw-heading tw-text-base"
               data-testid="header">
-              {t('label.add-entity-test', {
-                entity: isColumnFqn ? t('label.column') : t('label.table'),
-              })}
+              {`Add ${isColumnFqn ? 'Column' : 'Table'} Test`}
             </Typography.Paragraph>
           </Col>
           <Col span={24}>

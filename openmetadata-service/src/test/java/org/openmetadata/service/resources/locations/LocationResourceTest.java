@@ -49,9 +49,8 @@ public class LocationResourceTest extends EntityResourceTest<Location, CreateLoc
   public LocationResourceTest() {
     super(Entity.LOCATION, Location.class, LocationList.class, "locations", LocationResource.FIELDS);
     // TODO quoted location is not allowed by the Location listPrefix APIs
-    // TODO "." is not allowed
-    // supportedNameCharacters = "_'+#- .()$/" + EntityResourceTest.RANDOM_STRING_GENERATOR.generate(1);
-    supportedNameCharacters = "_'-";
+    // supportedNameCharacters = "_'-.";
+    supportedNameCharacters = supportedNameCharacters.replaceAll("[ &.]", ""); // Space not supported
   }
 
   @Override
@@ -74,7 +73,12 @@ public class LocationResourceTest extends EntityResourceTest<Location, CreateLoc
       throws HttpResponseException {
     assertEquals(createRequest.getPath(), location.getPath());
     // Validate service
-    assertReference(createRequest.getService(), location.getService());
+    EntityReference expectedService = createRequest.getService();
+    if (expectedService != null) {
+      TestUtils.validateEntityReference(location.getService());
+      assertEquals(expectedService.getId(), location.getService().getId());
+      assertEquals(expectedService.getType(), location.getService().getType());
+    }
     TestUtils.validateTags(createRequest.getTags(), location.getTags());
   }
 
@@ -172,7 +176,7 @@ public class LocationResourceTest extends EntityResourceTest<Location, CreateLoc
     }
   }
 
-  public Location updateLocation(CreateLocation create, Status status, Map<String, String> authHeaders)
+  public static Location updateLocation(CreateLocation create, Status status, Map<String, String> authHeaders)
       throws HttpResponseException {
     return TestUtils.put(getResource("locations"), create, Location.class, status, authHeaders);
   }
@@ -197,7 +201,7 @@ public class LocationResourceTest extends EntityResourceTest<Location, CreateLoc
     return location;
   }
 
-  public LocationList listPrefixes(
+  public static LocationList listPrefixes(
       String fields, String fqn, Integer limitParam, String before, String after, Map<String, String> authHeaders)
       throws HttpResponseException {
     String encodedFqn = URLEncoder.encode(fqn, StandardCharsets.UTF_8);

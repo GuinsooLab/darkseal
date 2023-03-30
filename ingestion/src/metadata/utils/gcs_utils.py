@@ -13,6 +13,8 @@
 Utils module to convert different file types from gcs buckets into a dataframe
 """
 
+import gzip
+import json
 import traceback
 from typing import Any
 
@@ -21,19 +23,16 @@ import pandas as pd
 from pandas import DataFrame
 from pyarrow.parquet import ParquetFile
 
-from metadata.ingestion.source.database.datalake.utils import (
-    read_from_avro,
-    read_from_json,
-)
 from metadata.utils.constants import CHUNKSIZE
 from metadata.utils.logger import utils_logger
 
 logger = utils_logger()
 
 
-def get_file_text(client: Any, key: str, bucket_name: str):
-    bucket = client.get_bucket(bucket_name)
-    return bucket.get_blob(key).download_as_string()
+def _get_json_text(key: str, text: str) -> str:
+    if key.endswith(".gz"):
+        return gzip.decompress(text)
+    return text
 
 
 def read_csv_from_gcs(  # pylint: disable=inconsistent-return-statements
@@ -75,12 +74,30 @@ def read_tsv_from_gcs(  # pylint: disable=inconsistent-return-statements
         logger.warning(f"Error reading CSV from GCS - {exc}")
 
 
-def read_json_from_gcs(client: Any, key: str, bucket_name: str) -> DataFrame:
+def read_json_from_gcs(  # pylint: disable=inconsistent-return-statements
+    client: Any, key: str, bucket_name: str
+) -> DataFrame:
     """
     Read the json file from the gcs bucket and return a dataframe
     """
-    json_text = get_file_text(client=client, key=key, bucket_name=bucket_name)
-    return read_from_json(key=key, json_text=json_text)
+
+    try:
+        bucket = client.get_bucket(bucket_name)
+        text = bucket.get_blob(key).download_as_string()
+        data = json.loads(_get_json_text(key, text))
+        if isinstance(data, list):
+            return [pd.DataFrame.from_records(data)]
+        return [
+            pd.DataFrame.from_dict(
+                dict(  # pylint: disable=consider-using-dict-comprehension
+                    [(k, pd.Series(v)) for k, v in data.items()]
+                )
+            )
+        ]
+
+    except ValueError as verr:
+        logger.debug(traceback.format_exc())
+        logger.warning(f"Error reading JSON from GCS - {verr}")
 
 
 def read_parquet_from_gcs(key: str, bucket_name: str) -> DataFrame:
@@ -91,11 +108,3 @@ def read_parquet_from_gcs(key: str, bucket_name: str) -> DataFrame:
     gcs = gcsfs.GCSFileSystem()
     file = gcs.open(f"gs://{bucket_name}/{key}")
     return [ParquetFile(file).read().to_pandas()]
-
-
-def read_avro_from_gcs(client: Any, key: str, bucket_name: str) -> DataFrame:
-    """
-    Read the avro file from the gcs bucket and return a dataframe
-    """
-    avro_text = get_file_text(client=client, key=key, bucket_name=bucket_name)
-    return read_from_avro(avro_text)

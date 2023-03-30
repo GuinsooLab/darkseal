@@ -23,7 +23,7 @@ import { ResourceEntity } from 'components/PermissionProvider/PermissionProvider
 import { FQN_SEPARATOR_CHAR } from 'constants/char.constants';
 import { PAGE_SIZE_LARGE, ROUTES } from 'constants/constants';
 import { GLOSSARIES_DOCS } from 'constants/docs.constants';
-import { ERROR_PLACEHOLDER_TYPE, LOADING_STATE } from 'enums/common.enum';
+import { LOADING_STATE } from 'enums/common.enum';
 import { compare } from 'fast-json-patch';
 import { Glossary } from 'generated/entity/data/glossary';
 import { GlossaryTerm } from 'generated/entity/data/glossaryTerm';
@@ -231,32 +231,28 @@ const GlossaryPage = () => {
 
   if (glossaries.length === 0 && !isLoading) {
     return (
-      <PageContainerV1>
-        <ErrorPlaceHolder
-          buttons={
-            <Button
-              ghost
-              data-testid="add-glossary"
-              disabled={!createGlossaryPermission}
-              size="middle"
-              type="primary"
-              onClick={handleAddGlossaryClick}>
-              {t('label.add-new-entity', { entity: t('label.glossary') })}
-            </Button>
-          }
-          doc={GLOSSARIES_DOCS}
-          heading={t('label.glossary')}
-          type={ERROR_PLACEHOLDER_TYPE.ADD}
-        />
-      </PageContainerV1>
+      <ErrorPlaceHolder
+        buttons={
+          <Button
+            ghost
+            className="tw-h-8 tw-rounded tw-my-3"
+            data-testid="add-new-glossary"
+            disabled={!createGlossaryPermission}
+            type="primary"
+            onClick={handleAddGlossaryClick}>
+            {t('label.add-new-entity', { entity: t('label.glossary') })}
+          </Button>
+        }
+        doc={GLOSSARIES_DOCS}
+        heading={t('label.glossary')}
+        type="ADD_DATA"
+      />
     );
   }
 
   return (
     <PageContainerV1>
-      <PageLayoutV1
-        leftPanel={<GlossaryLeftPanel glossaries={glossaries} />}
-        pageTitle={t('label.glossary')}>
+      <PageLayoutV1 leftPanel={<GlossaryLeftPanel glossaries={glossaries} />}>
         {isRightPanelLoading ? (
           // Loader for right panel data
           <Loader />

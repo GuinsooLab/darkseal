@@ -14,7 +14,6 @@
 import { Button, Card, Col, Popover, Row, Typography } from 'antd';
 import { AxiosError } from 'axios';
 import classNames from 'classnames';
-import { t } from 'i18next';
 import { LoadingState, TableDetail } from 'Models';
 import React, { useEffect, useState } from 'react';
 import { getTags } from 'rest/tagAPI';
@@ -118,7 +117,7 @@ const TierCard = ({
           <Row>
             <Col span={21}>
               <Typography.Title className="m-b-0" level={5}>
-                {t('label.edit-entity', { entity: t('label.tier') })}
+                Edit Tier
               </Typography.Title>
             </Col>
             <Col span={3}>
@@ -128,7 +127,8 @@ const TierCard = ({
                   data-testid="remove-tier"
                   type="link"
                   onClick={removeTier}>
-                  {t('label.clear-entity', { entity: t('label.tier') })}
+                  {' '}
+                  Clear Tier
                 </Button>
               ) : (
                 ''

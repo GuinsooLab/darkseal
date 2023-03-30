@@ -12,10 +12,7 @@
 """
 Source connection handler
 """
-from functools import partial
-
 from sqlalchemy.engine import Engine
-from sqlalchemy.inspection import inspect
 
 from metadata.generated.schema.entity.services.connections.database.verticaConnection import (
     VerticaConnection,
@@ -25,12 +22,7 @@ from metadata.ingestion.connections.builders import (
     get_connection_args_common,
     get_connection_url_common,
 )
-from metadata.ingestion.connections.test_connections import (
-    TestConnectionResult,
-    TestConnectionStep,
-    test_connection_db_common,
-)
-from metadata.ingestion.source.database.vertica.queries import VERTICA_LIST_DATABASES
+from metadata.ingestion.connections.test_connections import test_connection_db_common
 
 
 def get_connection(connection: VerticaConnection) -> Engine:
@@ -44,37 +36,8 @@ def get_connection(connection: VerticaConnection) -> Engine:
     )
 
 
-def test_connection(engine: Engine, _) -> TestConnectionResult:
+def test_connection(engine: Engine) -> None:
     """
     Test connection
     """
-    inspector = inspect(engine)
-
-    def custom_executor(engine, statement):
-        cursor = engine.execute(statement)
-        return list(cursor.all())
-
-    steps = [
-        TestConnectionStep(
-            function=partial(
-                custom_executor,
-                statement=VERTICA_LIST_DATABASES,
-                engine=engine,
-            ),
-            name="Get Databases",
-        ),
-        TestConnectionStep(
-            function=inspector.get_schema_names,
-            name="Get Schemas",
-        ),
-        TestConnectionStep(
-            function=inspector.get_table_names,
-            name="Get Tables",
-        ),
-        TestConnectionStep(
-            function=inspector.get_view_names,
-            name="Get Views",
-            mandatory=False,
-        ),
-    ]
-    return test_connection_db_common(engine, steps)
+    test_connection_db_common(engine)

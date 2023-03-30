@@ -19,9 +19,7 @@ import { usePermissionProvider } from 'components/PermissionProvider/PermissionP
 import { ResourceEntity } from 'components/PermissionProvider/PermissionProvider.interface';
 import { isEmpty, isUndefined, uniqueId } from 'lodash';
 import React, { FC, useMemo, useState } from 'react';
-import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
-import { getEntityName } from 'utils/EntityUtils';
 import {
   NO_PERMISSION_FOR_ACTION,
   NO_PERMISSION_TO_VIEW,
@@ -29,6 +27,7 @@ import {
 import { EntityType } from '../../../enums/entity.enum';
 import { Operation, Policy } from '../../../generated/entity/policies/policy';
 import { Paging } from '../../../generated/type/paging';
+import { getEntityName } from '../../../utils/CommonUtils';
 import {
   checkPermission,
   LIST_CAP,
@@ -46,7 +45,6 @@ interface PolicyListProps {
 }
 
 const PoliciesList: FC<PolicyListProps> = ({ policies, fetchPolicies }) => {
-  const { t } = useTranslation();
   const [selectedPolicy, setSelectedPolicy] = useState<Policy>();
 
   const { permissions } = usePermissionProvider();
@@ -68,7 +66,7 @@ const PoliciesList: FC<PolicyListProps> = ({ policies, fetchPolicies }) => {
   const columns: ColumnsType<Policy> = useMemo(() => {
     return [
       {
-        title: t('label.name'),
+        title: 'Name',
         dataIndex: 'name',
         width: '200px',
         key: 'name',
@@ -82,7 +80,7 @@ const PoliciesList: FC<PolicyListProps> = ({ policies, fetchPolicies }) => {
         ),
       },
       {
-        title: t('label.description'),
+        title: 'Description',
         dataIndex: 'description',
         key: 'description',
         render: (_, record) => (
@@ -90,7 +88,7 @@ const PoliciesList: FC<PolicyListProps> = ({ policies, fetchPolicies }) => {
         ),
       },
       {
-        title: t('label.role-plural'),
+        title: 'Roles',
         dataIndex: 'roles',
         width: '250px',
         key: 'roles',
@@ -151,7 +149,7 @@ const PoliciesList: FC<PolicyListProps> = ({ policies, fetchPolicies }) => {
         },
       },
       {
-        title: t('label.action-plural'),
+        title: 'Actions',
         dataIndex: 'actions',
         width: '80px',
         key: 'actions',
@@ -160,9 +158,7 @@ const PoliciesList: FC<PolicyListProps> = ({ policies, fetchPolicies }) => {
             <Tooltip
               placement="left"
               title={
-                deletePolicyPermission
-                  ? t('label.delete')
-                  : NO_PERMISSION_FOR_ACTION
+                deletePolicyPermission ? 'Delete' : NO_PERMISSION_FOR_ACTION
               }>
               <Button
                 data-testid={`delete-action-${getEntityName(record)}`}
@@ -194,9 +190,9 @@ const PoliciesList: FC<PolicyListProps> = ({ policies, fetchPolicies }) => {
         <DeleteWidgetModal
           afterDeleteAction={fetchPolicies}
           allowSoftDelete={false}
-          deleteMessage={t('message.are-you-sure-delete-entity', {
-            entity: getEntityName(selectedPolicy),
-          })}
+          deleteMessage={`Are you sure you want to delete ${getEntityName(
+            selectedPolicy
+          )}`}
           entityId={selectedPolicy.id}
           entityName={getEntityName(selectedPolicy)}
           entityType={EntityType.POLICY}

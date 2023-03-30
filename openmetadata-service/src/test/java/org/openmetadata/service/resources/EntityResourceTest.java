@@ -27,7 +27,6 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.openmetadata.common.utils.CommonUtil.listOrEmpty;
-import static org.openmetadata.csv.EntityCsvTest.assertSummary;
 import static org.openmetadata.schema.type.MetadataOperation.EDIT_ALL;
 import static org.openmetadata.schema.type.MetadataOperation.EDIT_TESTS;
 import static org.openmetadata.schema.type.MetadataOperation.VIEW_ALL;
@@ -90,8 +89,6 @@ import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.core.Response.Status;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.text.RandomStringGenerator;
-import org.apache.commons.text.RandomStringGenerator.Builder;
 import org.apache.http.client.HttpResponseException;
 import org.awaitility.Awaitility;
 import org.junit.jupiter.api.AfterAll;
@@ -99,11 +96,7 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInfo;
 import org.junit.jupiter.api.TestInstance;
-import org.junit.jupiter.api.parallel.Execution;
-import org.junit.jupiter.api.parallel.ExecutionMode;
 import org.openmetadata.common.utils.CommonUtil;
-import org.openmetadata.csv.CsvUtilTest;
-import org.openmetadata.csv.EntityCsvTest;
 import org.openmetadata.schema.CreateEntity;
 import org.openmetadata.schema.EntityInterface;
 import org.openmetadata.schema.api.data.RestoreEntity;
@@ -122,9 +115,6 @@ import org.openmetadata.schema.entity.data.GlossaryTerm;
 import org.openmetadata.schema.entity.data.Table;
 import org.openmetadata.schema.entity.policies.Policy;
 import org.openmetadata.schema.entity.policies.accessControl.Rule;
-import org.openmetadata.schema.entity.services.connections.TestConnectionResult;
-import org.openmetadata.schema.entity.services.connections.TestConnectionResultStatus;
-import org.openmetadata.schema.entity.services.connections.TestConnectionStepResult;
 import org.openmetadata.schema.entity.teams.Role;
 import org.openmetadata.schema.entity.teams.Team;
 import org.openmetadata.schema.entity.teams.User;
@@ -142,30 +132,24 @@ import org.openmetadata.schema.type.FieldChange;
 import org.openmetadata.schema.type.Include;
 import org.openmetadata.schema.type.MetadataOperation;
 import org.openmetadata.schema.type.TagLabel;
-import org.openmetadata.schema.type.csv.CsvDocumentation;
-import org.openmetadata.schema.type.csv.CsvHeader;
-import org.openmetadata.schema.type.csv.CsvImportResult;
 import org.openmetadata.service.Entity;
 import org.openmetadata.service.OpenMetadataApplicationTest;
 import org.openmetadata.service.exception.CatalogExceptionMessage;
-import org.openmetadata.service.resources.bots.BotResourceTest;
 import org.openmetadata.service.resources.databases.TableResourceTest;
 import org.openmetadata.service.resources.dqtests.TestCaseResourceTest;
 import org.openmetadata.service.resources.dqtests.TestDefinitionResourceTest;
 import org.openmetadata.service.resources.dqtests.TestSuiteResourceTest;
-import org.openmetadata.service.resources.events.EventResource.EventList;
-import org.openmetadata.service.resources.events.EventSubscriptionResourceTest;
+import org.openmetadata.service.resources.events.AlertResourceTest;
+import org.openmetadata.service.resources.events.EventResource.ChangeEventList;
 import org.openmetadata.service.resources.glossary.GlossaryResourceTest;
 import org.openmetadata.service.resources.kpi.KpiResourceTest;
 import org.openmetadata.service.resources.metadata.TypeResourceTest;
 import org.openmetadata.service.resources.policies.PolicyResourceTest;
-import org.openmetadata.service.resources.query.QueryResourceTest;
 import org.openmetadata.service.resources.services.DashboardServiceResourceTest;
 import org.openmetadata.service.resources.services.DatabaseServiceResourceTest;
 import org.openmetadata.service.resources.services.MessagingServiceResourceTest;
 import org.openmetadata.service.resources.services.MetadataServiceResourceTest;
 import org.openmetadata.service.resources.services.MlModelServiceResourceTest;
-import org.openmetadata.service.resources.services.ObjectStoreServiceResourceTest;
 import org.openmetadata.service.resources.services.PipelineServiceResourceTest;
 import org.openmetadata.service.resources.services.StorageServiceResourceTest;
 import org.openmetadata.service.resources.tags.TagResourceTest;
@@ -197,21 +181,14 @@ public abstract class EntityResourceTest<T extends EntityInterface, K extends Cr
   protected boolean supportsSoftDelete;
   protected boolean supportsFieldsQueryParam = true;
   protected boolean supportsEmptyDescription = true;
-
-  // Special characters supported in the entity name
-  protected String supportedNameCharacters = "_'-.&" + RANDOM_STRING_GENERATOR.generate(1);
-
+  protected String supportedNameCharacters = "_'-.&"; // Special characters supported in the entity name
   protected final boolean supportsCustomExtension;
 
   public static final String DATA_STEWARD_ROLE_NAME = "DataSteward";
   public static final String DATA_CONSUMER_ROLE_NAME = "DataConsumer";
 
   public static final String ENTITY_LINK_MATCH_ERROR =
-      "[entityLink must match \"^(?U)<#E::\\w+::[\\w'\\- .&/:+\"\\\\()$#]+>$\"]";
-
-  // Random unicode string generator to test entity name accepts all the unicode characters
-  protected static final RandomStringGenerator RANDOM_STRING_GENERATOR =
-      new Builder().filteredBy(Character::isLetterOrDigit).build();
+      "[entityLink must match \"^<#E::\\w+::[\\w'\\- .&/:+\"\\\\()$#]+>$\"]";
 
   // Users
   public static User USER1;
@@ -254,15 +231,13 @@ public abstract class EntityResourceTest<T extends EntityInterface, K extends Cr
 
   public static EntityReference MLFLOW_REFERENCE;
 
-  public static EntityReference S3_OBJECT_STORE_SERVICE_REFERENCE;
-
   public static EntityReference AWS_STORAGE_SERVICE_REFERENCE;
   public static EntityReference GCP_STORAGE_SERVICE_REFERENCE;
 
   public static EntityReference AMUNDSEN_SERVICE_REFERENCE;
   public static EntityReference ATLAS_SERVICE_REFERENCE;
 
-  public static Classification USER_CLASSIFICATION;
+  public static Classification USER_TAG_CATEGORY;
   public static Tag ADDRESS_TAG;
   public static TagLabel USER_ADDRESS_TAG_LABEL;
   public static TagLabel PERSONAL_DATA_TAG_LABEL;
@@ -271,20 +246,27 @@ public abstract class EntityResourceTest<T extends EntityInterface, K extends Cr
   public static TagLabel TIER2_TAG_LABEL;
 
   public static Glossary GLOSSARY1;
+  public static EntityReference GLOSSARY1_REF;
   public static Glossary GLOSSARY2;
+  public static EntityReference GLOSSARY2_REF;
 
   public static GlossaryTerm GLOSSARY1_TERM1;
+  public static EntityReference GLOSSARY1_TERM1_REF;
   public static TagLabel GLOSSARY1_TERM1_LABEL;
 
   public static GlossaryTerm GLOSSARY2_TERM1;
+  public static EntityReference GLOSSARY2_TERM1_REF;
   public static TagLabel GLOSSARY2_TERM1_LABEL;
 
   public static EntityReference METABASE_REFERENCE;
   public static EntityReference LOOKER_REFERENCE;
-  public static List<String> CHART_REFERENCES;
+  public static List<EntityReference> CHART_REFERENCES;
 
   public static Database DATABASE;
+  public static EntityReference DATABASE_REFERENCE;
+
   public static DatabaseSchema DATABASE_SCHEMA;
+  public static EntityReference DATABASE_SCHEMA_REFERENCE;
 
   public static Table TEST_TABLE1;
   public static Table TEST_TABLE2;
@@ -300,20 +282,9 @@ public abstract class EntityResourceTest<T extends EntityInterface, K extends Cr
   public static KpiTarget KPI_TARGET;
 
   public static final String C1 = "c'_+# 1";
-  public static final String C2 = "c2()$";
+  public static final String C2 = "c2";
   public static final String C3 = "\"c.3\"";
   public static List<Column> COLUMNS;
-
-  public static final TestConnectionResult TEST_CONNECTION_RESULT =
-      new TestConnectionResult()
-          .withStatus(TestConnectionResultStatus.SUCCESSFUL)
-          .withSteps(
-              List.of(
-                  new TestConnectionStepResult()
-                      .withMandatory(true)
-                      .withName("myStep")
-                      .withMessage("All good")
-                      .withPassed(true)));
 
   public static Type INT_TYPE;
   public static Type STRING_TYPE;
@@ -370,7 +341,6 @@ public abstract class EntityResourceTest<T extends EntityInterface, K extends Cr
     new StorageServiceResourceTest().setupStorageServices();
     new DashboardServiceResourceTest().setupDashboardServices(test);
     new MlModelServiceResourceTest().setupMlModelServices(test);
-    new ObjectStoreServiceResourceTest().setupObjectStoreService(test);
     new MetadataServiceResourceTest().setupMetadataServices();
     new TableResourceTest().setupDatabaseSchemas(test);
     new TestSuiteResourceTest().setupTestSuites(test);
@@ -378,13 +348,11 @@ public abstract class EntityResourceTest<T extends EntityInterface, K extends Cr
     new TestCaseResourceTest().setupTestCase(test);
     new TypeResourceTest().setupTypes();
     new KpiResourceTest().setupKpi();
-    new BotResourceTest().setupBots();
-    new QueryResourceTest().setupQuery(test);
 
     runWebhookTests = new Random().nextBoolean();
     if (runWebhookTests) {
       webhookCallbackResource.clearEvents();
-      EventSubscriptionResourceTest alertResourceTest = new EventSubscriptionResourceTest();
+      AlertResourceTest alertResourceTest = new AlertResourceTest();
       alertResourceTest.startWebhookSubscription(true);
       alertResourceTest.startWebhookEntitySubscriptions(entityType);
     }
@@ -393,7 +361,7 @@ public abstract class EntityResourceTest<T extends EntityInterface, K extends Cr
   @AfterAll
   public void afterAllTests() throws Exception {
     if (runWebhookTests) {
-      EventSubscriptionResourceTest alertResourceTest = new EventSubscriptionResourceTest();
+      AlertResourceTest alertResourceTest = new AlertResourceTest();
       alertResourceTest.validateWebhookEvents();
       alertResourceTest.validateWebhookEntityEvents(entityType);
     }
@@ -508,7 +476,6 @@ public abstract class EntityResourceTest<T extends EntityInterface, K extends Cr
   // Common entity tests for GET operations
   ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
   @Test
-  @Execution(ExecutionMode.CONCURRENT)
   void get_entityWithDifferentFieldsQueryParam(TestInfo test) throws HttpResponseException {
     if (!supportsFieldsQueryParam) {
       return;
@@ -546,7 +513,6 @@ public abstract class EntityResourceTest<T extends EntityInterface, K extends Cr
   }
 
   @Test
-  @Execution(ExecutionMode.CONCURRENT)
   void get_entityListWithPagination_200(TestInfo test) throws IOException {
     // Create a number of entities between 5 and 20 inclusive
     Random rand = new Random();
@@ -564,12 +530,12 @@ public abstract class EntityResourceTest<T extends EntityInterface, K extends Cr
 
     // Test listing entities that include deleted, non-deleted, and all the entities
     Random random = new Random();
-    for (Include include : List.of(Include.NON_DELETED, Include.ALL, Include.DELETED)) {
-      if (!supportsSoftDelete && include.equals(Include.DELETED)) {
+    for (String include : List.of("non-deleted", "all", "deleted")) {
+      if (!supportsSoftDelete && include.equals("deleted")) {
         continue;
       }
       Map<String, String> queryParams = new HashMap<>();
-      queryParams.put("include", include.value());
+      queryParams.put("include", include);
 
       // List all entities and use it for checking pagination
       ResultList<T> allEntities = listEntities(queryParams, 1000000, null, null, ADMIN_AUTH_HEADERS);
@@ -607,8 +573,7 @@ public abstract class EntityResourceTest<T extends EntityInterface, K extends Cr
           pageCount++;
         } while (after != null);
 
-        boolean includeAllOrDeleted = Include.ALL.equals(include) || Include.DELETED.equals(include);
-        if (includeAllOrDeleted) {
+        if ("all".equals(include) || "deleted".equals(include)) {
           assertTrue(!supportsSoftDelete || foundDeleted);
         } else { // non-delete
           assertFalse(foundDeleted);
@@ -629,7 +594,7 @@ public abstract class EntityResourceTest<T extends EntityInterface, K extends Cr
           indexInAllTables -= forwardPage.getData().size();
         } while (before != null);
 
-        if (includeAllOrDeleted) {
+        if ("all".equals(include) || "deleted".equals(include)) {
           assertTrue(!supportsSoftDelete || foundDeleted);
         } else { // non-delete
           assertFalse(foundDeleted);
@@ -637,7 +602,7 @@ public abstract class EntityResourceTest<T extends EntityInterface, K extends Cr
       }
 
       // before running "deleted" delete all created entries otherwise the test doesn't work with just one element.
-      if (Include.ALL.equals(include)) {
+      if ("all".equals(include)) {
         for (T toBeDeleted : allEntities.getData()) {
           if (createdUUIDs.contains(toBeDeleted.getId()) && Boolean.FALSE.equals(toBeDeleted.getDeleted())) {
             deleteAndCheckEntity(toBeDeleted, ADMIN_AUTH_HEADERS);
@@ -654,7 +619,7 @@ public abstract class EntityResourceTest<T extends EntityInterface, K extends Cr
     if (container != null) {
       // List both deleted and non deleted entities
       Map<String, String> queryParams = new HashMap<>();
-      queryParams.put("include", Include.ALL.value());
+      queryParams.put("include", "all");
       ResultList<T> listBeforeDeletion = listEntities(queryParams, 1000, null, null, ADMIN_AUTH_HEADERS);
 
       // Delete non-empty container entity and ensure deletion is not allowed
@@ -694,7 +659,6 @@ public abstract class EntityResourceTest<T extends EntityInterface, K extends Cr
   }
 
   @Test
-  @Execution(ExecutionMode.CONCURRENT)
   void get_entityListWithInvalidLimit_4xx() {
     // Limit must be >= 1 and <= 1000,000
     assertResponse(
@@ -714,7 +678,6 @@ public abstract class EntityResourceTest<T extends EntityInterface, K extends Cr
   }
 
   @Test
-  @Execution(ExecutionMode.CONCURRENT)
   void get_entityListWithInvalidPaginationCursors_4xx() {
     // Passing both before and after cursors is invalid
     assertResponse(
@@ -724,7 +687,6 @@ public abstract class EntityResourceTest<T extends EntityInterface, K extends Cr
   }
 
   @Test
-  @Execution(ExecutionMode.CONCURRENT)
   void get_entityWithDifferentFields_200_OK(TestInfo test) throws IOException {
     K create = createRequest(getEntityName(test), "description", "displayName", USER1_REF);
 
@@ -783,7 +745,6 @@ public abstract class EntityResourceTest<T extends EntityInterface, K extends Cr
   }
 
   @Test
-  @Execution(ExecutionMode.CONCURRENT)
   void get_entityIncludeDeleted_200(TestInfo test) throws IOException {
     if (!supportsSoftDelete) {
       return;
@@ -799,8 +760,8 @@ public abstract class EntityResourceTest<T extends EntityInterface, K extends Cr
 
     // Ensure entity is returned in GET with include param set to deleted || all
     Map<String, String> queryParams = new HashMap<>();
-    for (Include include : List.of(Include.DELETED, Include.ALL)) {
-      queryParams.put("include", include.value());
+    for (String include : List.of("deleted", "all")) {
+      queryParams.put("include", include);
       T entityAfterDeletion = getEntity(entity.getId(), queryParams, allFields, ADMIN_AUTH_HEADERS);
       validateDeletedEntity(create, entityBeforeDeletion, entityAfterDeletion, ADMIN_AUTH_HEADERS);
       entityAfterDeletion = getEntityByName(entity.getFullyQualifiedName(), queryParams, allFields, ADMIN_AUTH_HEADERS);
@@ -812,7 +773,6 @@ public abstract class EntityResourceTest<T extends EntityInterface, K extends Cr
   // Common entity tests for POST operations
   ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
   @Test
-  @Execution(ExecutionMode.CONCURRENT)
   protected void post_entityCreateWithInvalidName_400() {
     // Create an entity with mandatory name field null
     final K request = createRequest(null, "description", "displayName", null);
@@ -827,14 +787,9 @@ public abstract class EntityResourceTest<T extends EntityInterface, K extends Cr
     final K request2 = createRequest(LONG_ENTITY_NAME, "description", "displayName", null);
     assertResponse(
         () -> createEntity(request2, ADMIN_AUTH_HEADERS), BAD_REQUEST, TestUtils.getEntityNameLengthError(entityClass));
-
-    // Any entity name that has EntityLink separator must fail
-    final K request3 = createRequest("invalid::Name", "description", "displayName", null);
-    assertResponseContains(() -> createEntity(request3, ADMIN_AUTH_HEADERS), BAD_REQUEST, "name must match");
   }
 
   @Test
-  @Execution(ExecutionMode.CONCURRENT)
   void post_entityWithMissingDescription_400(TestInfo test) {
     // Post entity that does not accept empty description and expect failure
     if (supportsEmptyDescription) {
@@ -846,7 +801,6 @@ public abstract class EntityResourceTest<T extends EntityInterface, K extends Cr
   }
 
   @Test
-  @Execution(ExecutionMode.CONCURRENT)
   void post_entityWithInvalidOwnerType_4xx(TestInfo test) throws HttpResponseException {
     if (!supportsOwner) {
       return;
@@ -869,7 +823,6 @@ public abstract class EntityResourceTest<T extends EntityInterface, K extends Cr
   }
 
   @Test
-  @Execution(ExecutionMode.CONCURRENT)
   void post_entityWithNonExistentOwner_4xx(TestInfo test) {
     if (!supportsOwner) {
       return;
@@ -881,7 +834,6 @@ public abstract class EntityResourceTest<T extends EntityInterface, K extends Cr
   }
 
   @Test
-  @Execution(ExecutionMode.CONCURRENT)
   void post_delete_entity_as_admin_200(TestInfo test) throws IOException {
     K request = createRequest(getEntityName(test), "", "", null);
     T entity = createEntity(request, ADMIN_AUTH_HEADERS);
@@ -889,7 +841,6 @@ public abstract class EntityResourceTest<T extends EntityInterface, K extends Cr
   }
 
   @Test
-  @Execution(ExecutionMode.CONCURRENT)
   void post_delete_as_name_entity_as_admin_200(TestInfo test) throws IOException {
     K request = createRequest(getEntityName(test), "", "", null);
     T entity = createEntity(request, ADMIN_AUTH_HEADERS);
@@ -897,7 +848,6 @@ public abstract class EntityResourceTest<T extends EntityInterface, K extends Cr
   }
 
   @Test
-  @Execution(ExecutionMode.CONCURRENT)
   protected void post_delete_entityWithOwner_200(TestInfo test) throws IOException {
     if (!supportsOwner) {
       return;
@@ -924,10 +874,9 @@ public abstract class EntityResourceTest<T extends EntityInterface, K extends Cr
   }
 
   @Test
-  @Execution(ExecutionMode.CONCURRENT)
   protected void post_delete_entity_as_bot(TestInfo test) throws IOException {
     // Ingestion bot can create and delete all the entities except websocket and bot
-    if (List.of(Entity.EVENT_SUBSCRIPTION, Entity.BOT).contains(entityType)) {
+    if (List.of(Entity.ALERT, Entity.ALERT_ACTION, Entity.BOT).contains(entityType)) {
       return;
     }
     // Delete by ID
@@ -940,7 +889,6 @@ public abstract class EntityResourceTest<T extends EntityInterface, K extends Cr
   }
 
   @Test
-  @Execution(ExecutionMode.CONCURRENT)
   protected void post_entity_as_non_admin_401(TestInfo test) {
     assertResponse(
         () -> createEntity(createRequest(test), TEST_AUTH_HEADERS),
@@ -949,7 +897,6 @@ public abstract class EntityResourceTest<T extends EntityInterface, K extends Cr
   }
 
   @Test
-  @Execution(ExecutionMode.CONCURRENT)
   protected void post_entityAlreadyExists_409_conflict(TestInfo test) throws HttpResponseException {
     K create = createRequest(getEntityName(test), "", "", null);
     // Create first time using POST
@@ -959,9 +906,8 @@ public abstract class EntityResourceTest<T extends EntityInterface, K extends Cr
   }
 
   @Test
-  @Execution(ExecutionMode.CONCURRENT)
-  protected void post_entityWithDots_200() throws HttpResponseException {
-    if (!supportedNameCharacters.contains(".")) { // Name does not support dot
+  void post_entityWithDots_200() throws HttpResponseException {
+    if (!supportedNameCharacters.contains(" ")) { // Name does not support space
       return;
     }
 
@@ -983,7 +929,6 @@ public abstract class EntityResourceTest<T extends EntityInterface, K extends Cr
   // Common entity tests for PUT operations
   ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
   @Test
-  @Execution(ExecutionMode.CONCURRENT)
   void put_entityCreate_200(TestInfo test) throws IOException {
     // Create a new entity with PUT
     K request = createRequest(getEntityName(test), "description", "displayName", null);
@@ -991,7 +936,6 @@ public abstract class EntityResourceTest<T extends EntityInterface, K extends Cr
   }
 
   @Test
-  @Execution(ExecutionMode.CONCURRENT)
   void put_entityUpdateWithNoChange_200(TestInfo test) throws IOException {
     // Create a chart with POST
     K request = createRequest(getEntityName(test), "description", "display", USER1_REF);
@@ -1004,7 +948,6 @@ public abstract class EntityResourceTest<T extends EntityInterface, K extends Cr
   }
 
   @Test
-  @Execution(ExecutionMode.CONCURRENT)
   void put_entityCreate_as_owner_200(TestInfo test) throws IOException {
     if (!supportsOwner) {
       return; // Entity doesn't support ownership
@@ -1021,7 +964,6 @@ public abstract class EntityResourceTest<T extends EntityInterface, K extends Cr
   }
 
   @Test
-  @Execution(ExecutionMode.CONCURRENT)
   void put_entityUpdateOwner_200(TestInfo test) throws IOException {
     if (!supportsOwner) {
       return; // Entity doesn't support ownership
@@ -1053,13 +995,12 @@ public abstract class EntityResourceTest<T extends EntityInterface, K extends Cr
 
     // Remove ownership (from USER_OWNER1) using PUT request. Owner is expected to remain the same
     // and not removed.
-    request = createPutRequest(entity.getName(), "description", "displayName", null);
+    request = createPutRequest(getEntityName(test), "description", "displayName", null);
     updateEntity(request, OK, ADMIN_AUTH_HEADERS);
     checkOwnerOwns(USER1_REF, entity.getId(), true);
   }
 
   @Test
-  @Execution(ExecutionMode.CONCURRENT)
   void patch_validEntityOwner_200(TestInfo test) throws IOException {
     if (!supportsOwner || !supportsPatch) {
       return; // Entity doesn't support ownership
@@ -1084,7 +1025,6 @@ public abstract class EntityResourceTest<T extends EntityInterface, K extends Cr
   }
 
   @Test
-  @Execution(ExecutionMode.CONCURRENT)
   void patch_entityUpdateOwner_200(TestInfo test) throws IOException {
     if (!supportsOwner || !supportsPatch) {
       return; // Entity doesn't support ownership
@@ -1126,7 +1066,6 @@ public abstract class EntityResourceTest<T extends EntityInterface, K extends Cr
   }
 
   @Test
-  @Execution(ExecutionMode.CONCURRENT)
   void put_entityUpdate_as_non_owner_4xx(TestInfo test) throws IOException {
     if (!supportsOwner) {
       return; // Entity doesn't support ownership
@@ -1134,11 +1073,11 @@ public abstract class EntityResourceTest<T extends EntityInterface, K extends Cr
 
     // Create an entity with owner
     K request = createRequest(getEntityName(test), "description", "displayName", USER1_REF);
-    T entity = createEntity(request, ADMIN_AUTH_HEADERS);
+    createEntity(request, ADMIN_AUTH_HEADERS);
 
     // Update description and remove owner as non-owner
     // Expect to throw an exception since only owner or admin can update resource
-    K updateRequest = createRequest(entity.getName(), "newDescription", "displayName", null);
+    K updateRequest = createRequest(getEntityName(test), "newDescription", "displayName", null);
     MetadataOperation operation = entityType.equals(Entity.TEST_CASE) ? EDIT_TESTS : EDIT_ALL;
 
     assertResponse(
@@ -1148,7 +1087,6 @@ public abstract class EntityResourceTest<T extends EntityInterface, K extends Cr
   }
 
   @Test
-  @Execution(ExecutionMode.CONCURRENT)
   void put_entityNullDescriptionUpdate_200(TestInfo test) throws IOException {
     if (!supportsEmptyDescription) {
       return;
@@ -1158,14 +1096,13 @@ public abstract class EntityResourceTest<T extends EntityInterface, K extends Cr
     T entity = createEntity(request, ADMIN_AUTH_HEADERS);
 
     // Update null description with a new description
-    request = createPutRequest(entity.getName(), "updatedDescription", "displayName", null);
+    request = createPutRequest(getEntityName(test), "updatedDescription", "displayName", null);
     ChangeDescription change = getChangeDescription(entity.getVersion());
     fieldAdded(change, "description", "updatedDescription");
     updateAndCheckEntity(request, OK, ADMIN_AUTH_HEADERS, MINOR_UPDATE, change);
   }
 
   @Test
-  @Execution(ExecutionMode.CONCURRENT)
   protected void put_entityEmptyDescriptionUpdate_200(TestInfo test) throws IOException {
     // Create entity with empty description
     K request = createRequest(getEntityName(test), "", "displayName", null);
@@ -1179,7 +1116,6 @@ public abstract class EntityResourceTest<T extends EntityInterface, K extends Cr
   }
 
   @Test
-  @Execution(ExecutionMode.CONCURRENT)
   protected void put_entityNonEmptyDescriptionUpdate_200(TestInfo test) throws IOException {
     // Create entity with non-empty description
     K request = createRequest(getEntityName(test), supportsEmptyDescription ? null : "description", null, null);
@@ -1206,7 +1142,6 @@ public abstract class EntityResourceTest<T extends EntityInterface, K extends Cr
   }
 
   @Test
-  @Execution(ExecutionMode.CONCURRENT)
   void put_addDeleteFollower_200(TestInfo test) throws IOException {
     if (!supportsFollowers) {
       return; // Entity does not support following
@@ -1234,7 +1169,6 @@ public abstract class EntityResourceTest<T extends EntityInterface, K extends Cr
   }
 
   @Test
-  @Execution(ExecutionMode.CONCURRENT)
   void put_addFollowerDeleteEntity_200(TestInfo test) throws IOException {
     if (!supportsFollowers) {
       return; // Entity does not support following
@@ -1250,17 +1184,13 @@ public abstract class EntityResourceTest<T extends EntityInterface, K extends Cr
 
     deleteEntity(entityId, ADMIN_AUTH_HEADERS);
 
-    // in case of only soft delete
-    if (supportsSoftDelete) {
-      Map<String, String> queryParams = new HashMap<>();
-      queryParams.put("include", "deleted");
-      entity = getEntity(entityId, queryParams, FIELD_FOLLOWERS, ADMIN_AUTH_HEADERS);
-      TestUtils.existsInEntityReferenceList(entity.getFollowers(), user1.getId(), true);
-    }
+    Map<String, String> queryParams = new HashMap<>();
+    queryParams.put("include", "deleted");
+    entity = getEntity(entityId, queryParams, FIELD_FOLLOWERS, ADMIN_AUTH_HEADERS);
+    TestUtils.existsInEntityReferenceList(entity.getFollowers(), user1.getId(), true);
   }
 
   @Test
-  @Execution(ExecutionMode.CONCURRENT)
   void put_addDeleteInvalidFollower_200(TestInfo test) throws IOException {
     if (!supportsFollowers) {
       return; // Entity does not support following
@@ -1286,7 +1216,6 @@ public abstract class EntityResourceTest<T extends EntityInterface, K extends Cr
   // Common entity tests for PATCH operations
   ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
   @Test
-  @Execution(ExecutionMode.CONCURRENT)
   protected void patch_entityDescriptionAndTestAuthorizer(TestInfo test) throws IOException {
     if (!supportsPatch) {
       return;
@@ -1320,7 +1249,6 @@ public abstract class EntityResourceTest<T extends EntityInterface, K extends Cr
   }
 
   @Test
-  @Execution(ExecutionMode.CONCURRENT)
   void patch_entityAttributes_200_ok(TestInfo test) throws IOException {
     if (!supportsPatch) {
       return;
@@ -1411,7 +1339,6 @@ public abstract class EntityResourceTest<T extends EntityInterface, K extends Cr
   }
 
   @Test
-  @Execution(ExecutionMode.CONCURRENT)
   void patch_deleted_attribute_disallowed_400(TestInfo test) throws HttpResponseException, JsonProcessingException {
     if (!supportsPatch || !supportsSoftDelete) {
       return;
@@ -1427,7 +1354,6 @@ public abstract class EntityResourceTest<T extends EntityInterface, K extends Cr
   }
 
   @Test
-  @Execution(ExecutionMode.CONCURRENT)
   void put_addEntityCustomAttributes(TestInfo test) throws IOException {
     if (!supportsCustomExtension) {
       return;
@@ -1486,7 +1412,7 @@ public abstract class EntityResourceTest<T extends EntityInterface, K extends Cr
     // PUT and update the entity with extension field intA to a new value
     JsonNode intAValue = mapper.convertValue(2, JsonNode.class);
     jsonNode.set("intA", intAValue);
-    create = createRequest(test).withExtension(jsonNode).withName(entity.getName());
+    create = createRequest(test).withExtension(jsonNode);
     change = getChangeDescription(entity.getVersion());
     fieldUpdated(change, EntityUtil.getExtensionField("intA"), mapper.convertValue(1, JsonNode.class), intAValue);
     entity = updateAndCheckEntity(create, Status.OK, ADMIN_AUTH_HEADERS, MINOR_UPDATE, change);
@@ -1504,7 +1430,7 @@ public abstract class EntityResourceTest<T extends EntityInterface, K extends Cr
     // PUT and remove field intA from the entity extension - *** for BOT this should be ignored ***
     JsonNode oldNode = JsonUtils.valueToTree(entity.getExtension());
     jsonNode.remove("intA");
-    create = createRequest(test).withExtension(jsonNode).withName(entity.getName());
+    create = createRequest(test).withExtension(jsonNode);
     entity = updateEntity(create, Status.OK, INGESTION_BOT_AUTH_HEADERS);
     assertNotEquals(JsonUtils.valueToTree(create.getExtension()), JsonUtils.valueToTree(entity.getExtension()));
     assertEquals(oldNode, JsonUtils.valueToTree(entity.getExtension())); // Extension remains as is
@@ -1544,7 +1470,6 @@ public abstract class EntityResourceTest<T extends EntityInterface, K extends Cr
   // Common entity tests for DELETE operations
   ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
   @Test
-  @Execution(ExecutionMode.CONCURRENT)
   void delete_nonExistentEntity_404() {
     assertResponse(
         () -> deleteEntity(NON_EXISTENT_ENTITY, ADMIN_AUTH_HEADERS),
@@ -1553,7 +1478,6 @@ public abstract class EntityResourceTest<T extends EntityInterface, K extends Cr
   }
 
   @Test
-  @Execution(ExecutionMode.CONCURRENT)
   protected void delete_entity_as_non_admin_401(TestInfo test) throws HttpResponseException {
     // Deleting as non-owner and non-admin should fail
     K request = createRequest(getEntityName(test), "", "", null);
@@ -1571,7 +1495,6 @@ public abstract class EntityResourceTest<T extends EntityInterface, K extends Cr
 
   /** Soft delete an entity and then use restore request to restore it back */
   @Test
-  @Execution(ExecutionMode.CONCURRENT)
   void delete_restore_entity_200(TestInfo test) throws IOException {
     K request = createRequest(getEntityName(test), "", "", null);
     T entity = createEntity(request, ADMIN_AUTH_HEADERS);
@@ -1595,7 +1518,6 @@ public abstract class EntityResourceTest<T extends EntityInterface, K extends Cr
   // Other tests
   ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
   @Test
-  @Execution(ExecutionMode.CONCURRENT)
   void testInvalidEntityList() {
     // Invalid entityCreated list
     assertResponse(
@@ -1617,7 +1539,6 @@ public abstract class EntityResourceTest<T extends EntityInterface, K extends Cr
   }
 
   @Test
-  @Execution(ExecutionMode.CONCURRENT)
   protected void testTeamOnlyPolicy(TestInfo test) throws HttpResponseException {
     testTeamOnlyPolicy(test, VIEW_ALL);
   }
@@ -1672,7 +1593,6 @@ public abstract class EntityResourceTest<T extends EntityInterface, K extends Cr
   }
 
   @Test
-  @Execution(ExecutionMode.CONCURRENT)
   void delete_systemEntity() throws IOException {
     if (systemEntityName == null) {
       return;
@@ -2101,7 +2021,7 @@ public abstract class EntityResourceTest<T extends EntityInterface, K extends Cr
 
     Awaitility.await("Wait for expected change event at timestamp " + timestamp)
         .pollInterval(Duration.ofMillis(100L))
-        .atMost(Duration.ofMillis(100 * 100L)) // 100 iterations
+        .atMost(Duration.ofMillis(10 * 100L)) // 10 iterations
         .until(
             () ->
                 eventHolder.hasExpectedEvent(
@@ -2146,7 +2066,7 @@ public abstract class EntityResourceTest<T extends EntityInterface, K extends Cr
 
     Awaitility.await("Wait for expected deleted event at timestamp " + timestamp)
         .pollInterval(Duration.ofMillis(100L))
-        .atMost(Duration.ofMillis(100 * 100L)) // 100 iterations
+        .atMost(Duration.ofMillis(10 * 100L)) // 10 iterations
         .until(() -> eventHolder.hasDeletedEvent(getChangeEvents(null, null, entityType, timestamp, authHeaders), id));
     ChangeEvent changeEvent = eventHolder.getExpectedEvent();
 
@@ -2171,7 +2091,7 @@ public abstract class EntityResourceTest<T extends EntityInterface, K extends Cr
     target = entityUpdated == null ? target : target.queryParam("entityUpdated", entityUpdated);
     target = entityDeleted == null ? target : target.queryParam("entityDeleted", entityDeleted);
     target = target.queryParam("timestamp", timestamp);
-    return TestUtils.get(target, EventList.class, authHeaders);
+    return TestUtils.get(target, ChangeEventList.class, authHeaders);
   }
 
   protected T getVersion(UUID id, Double version, Map<String, String> authHeaders) throws HttpResponseException {
@@ -2224,18 +2144,6 @@ public abstract class EntityResourceTest<T extends EntityInterface, K extends Cr
         .withFieldsDeleted(new ArrayList<>());
   }
 
-  /** Compare fullyQualifiedName in the entityReference */
-  protected static void assertReference(String expected, EntityReference actual) {
-    if (expected != null) {
-      assertNotNull(actual);
-      TestUtils.validateEntityReference(actual);
-      assertEquals(expected, actual.getFullyQualifiedName());
-    } else {
-      assertNull(actual);
-    }
-  }
-
-  /** Compare entity Id and types in the entityReference */
   protected static void assertReference(EntityReference expected, EntityReference actual) {
     if (expected != null) {
       assertNotNull(actual);
@@ -2344,7 +2252,7 @@ public abstract class EntityResourceTest<T extends EntityInterface, K extends Cr
 
   public void assertEntityDeleted(T entity, boolean hardDelete) {
     Map<String, String> queryParams = new HashMap<>();
-    queryParams.put("include", hardDelete ? Include.ALL.value() : Include.NON_DELETED.value());
+    queryParams.put("include", hardDelete ? "all" : "non-deleted");
 
     // Make sure getting entity by ID get 404 not found response
     assertEntityDeleted(entity.getId(), hardDelete);
@@ -2358,7 +2266,7 @@ public abstract class EntityResourceTest<T extends EntityInterface, K extends Cr
 
   public void assertEntityDeleted(UUID id, boolean hardDelete) {
     Map<String, String> queryParams = new HashMap<>();
-    queryParams.put("include", hardDelete ? Include.ALL.value() : Include.NON_DELETED.value());
+    queryParams.put("include", hardDelete ? "all" : "non-deleted");
     assertResponse(() -> getEntity(id, queryParams, "", ADMIN_AUTH_HEADERS), NOT_FOUND, entityNotFound(entityType, id));
   }
 
@@ -2463,63 +2371,5 @@ public abstract class EntityResourceTest<T extends EntityInterface, K extends Cr
 
   public String getAllowedFields() {
     return String.join(",", Entity.getAllowedFields(entityClass));
-  }
-
-  public CsvImportResult importCsv(String entityName, String csv, boolean dryRun) throws HttpResponseException {
-    WebTarget target = getResourceByName(entityName + "/import");
-    target = !dryRun ? target.queryParam("dryRun", false) : target;
-    return TestUtils.putCsv(target, csv, CsvImportResult.class, Status.OK, ADMIN_AUTH_HEADERS);
-  }
-
-  protected String exportCsv(String entityName) throws HttpResponseException {
-    WebTarget target = getResourceByName(entityName + "/export");
-    return TestUtils.get(target, String.class, ADMIN_AUTH_HEADERS);
-  }
-
-  protected void importCsvAndValidate(
-      String entityName, List<CsvHeader> csvHeaders, List<String> createRecords, List<String> updateRecords)
-      throws HttpResponseException {
-    createRecords = listOrEmpty(createRecords);
-    updateRecords = listOrEmpty(updateRecords);
-
-    // Import CSV to create new records and update existing records with dryRun=true first
-    String csv = EntityCsvTest.createCsv(csvHeaders, createRecords, updateRecords);
-    CsvImportResult dryRunResult = importCsv(entityName, csv, true);
-
-    // Validate the imported result summary - it should include both created and updated records
-    int totalRows = 1 + createRecords.size() + updateRecords.size();
-    assertSummary(dryRunResult, CsvImportResult.Status.SUCCESS, totalRows, totalRows, 0);
-    String expectedResultsCsv = EntityCsvTest.createCsvResult(csvHeaders, createRecords, updateRecords);
-    assertEquals(expectedResultsCsv, dryRunResult.getImportResultsCsv());
-
-    // Import CSV to create new records and update existing records with dryRun=false to really import the data
-    CsvImportResult result = importCsv(entityName, csv, false);
-    assertEquals(dryRunResult.withDryRun(false), result);
-
-    // Finally, export CSV and ensure the exported CSV is same as imported CSV
-    String exportedCsv = exportCsv(entityName);
-    CsvUtilTest.assertCsv(csv, exportedCsv);
-  }
-
-  protected void testImportExport(
-      String entityName,
-      List<CsvHeader> csvHeaders,
-      List<String> createRecords,
-      List<String> updateRecords,
-      List<String> newRecords)
-      throws IOException {
-    // Create new records
-    importCsvAndValidate(entityName, csvHeaders, createRecords, null); // Dry run
-
-    // Update created records with changes
-    importCsvAndValidate(entityName, csvHeaders, null, updateRecords);
-
-    // Add additional new records to the existing ones
-    importCsvAndValidate(entityName, csvHeaders, newRecords, updateRecords);
-  }
-
-  protected CsvDocumentation getCsvDocumentation() throws HttpResponseException {
-    WebTarget target = getCollection().path("/documentation/csv");
-    return TestUtils.get(target, CsvDocumentation.class, ADMIN_AUTH_HEADERS);
   }
 }

@@ -17,10 +17,8 @@ import Searchbar from 'components/common/searchbar/Searchbar';
 import { isUndefined } from 'lodash';
 import VirtualList from 'rc-virtual-list';
 import React, { useEffect, useState } from 'react';
-import { useTranslation } from 'react-i18next';
 import { searchData } from 'rest/miscAPI';
 import { getUsers } from 'rest/userAPI';
-import { getEntityName } from 'utils/EntityUtils';
 import {
   ADD_USER_CONTAINER_HEIGHT,
   PAGE_SIZE_MEDIUM,
@@ -34,7 +32,9 @@ import {
 } from '../../generated/entity/teams/user';
 import { Paging } from '../../generated/type/paging';
 import { SearchResponse } from '../../interface/search.interface';
+import jsonData from '../../jsons/en';
 import { formatUsersResponse } from '../../utils/APIUtils';
+import { getEntityName } from '../../utils/CommonUtils';
 import { showErrorToast } from '../../utils/ToastUtils';
 import './AddUsersModal.less';
 import UserCard from './UserCard';
@@ -63,7 +63,6 @@ const AddUsersModalV1 = ({
   onSave,
   searchPlaceHolder,
 }: Props) => {
-  const { t } = useTranslation();
   const [uniqueUser, setUniqueUser] = useState<UserData[]>([]);
   const [selectedUsers, setSelectedUsers] = useState<Array<string>>([]);
   const [searchText, setSearchText] = useState('');
@@ -116,7 +115,7 @@ const AddUsersModalV1 = ({
       setUniqueUser([]);
       showErrorToast(
         error as AxiosError,
-        t('Server.entity-fetch-error', { entity: t('label.user') })
+        jsonData['api-error-messages']['fetch-users-error']
       );
     }
   };
@@ -190,9 +189,7 @@ const AddUsersModalV1 = ({
       onOk={handleSave}>
       <Searchbar
         placeholder={
-          searchPlaceHolder
-            ? searchPlaceHolder
-            : t('label.search-for-type', { type: t('label.user') })
+          searchPlaceHolder ? searchPlaceHolder : 'Search for a user...'
         }
         searchValue={searchText}
         typingInterval={500}

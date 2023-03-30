@@ -27,6 +27,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.http.client.HttpResponseException;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInfo;
+import org.junit.jupiter.api.TestInstance;
 import org.openmetadata.schema.api.data.CreateDatabaseSchema;
 import org.openmetadata.schema.api.data.CreateTable;
 import org.openmetadata.schema.entity.data.DatabaseSchema;
@@ -38,6 +39,7 @@ import org.openmetadata.service.util.FullyQualifiedName;
 import org.openmetadata.service.util.TestUtils;
 
 @Slf4j
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class DatabaseSchemaResourceTest extends EntityResourceTest<DatabaseSchema, CreateDatabaseSchema> {
   public DatabaseSchemaResourceTest() {
     super(
@@ -46,7 +48,6 @@ class DatabaseSchemaResourceTest extends EntityResourceTest<DatabaseSchema, Crea
         DatabaseSchemaList.class,
         "databaseSchemas",
         DatabaseSchemaResource.FIELDS);
-    supportedNameCharacters = "_'+#- .()$" + EntityResourceTest.RANDOM_STRING_GENERATOR.generate(1);
   }
 
   @Test
@@ -62,7 +63,7 @@ class DatabaseSchemaResourceTest extends EntityResourceTest<DatabaseSchema, Crea
     if (schema.getTables() == null) {
       TableResourceTest tableResourceTest = new TableResourceTest();
       CreateTable create =
-          tableResourceTest.createRequest("t1", "", "", null).withDatabaseSchema(schema.getFullyQualifiedName());
+          tableResourceTest.createRequest("t1", "", "", null).withDatabaseSchema(schema.getEntityReference());
       tableResourceTest.createEntity(create, ADMIN_AUTH_HEADERS);
 
       create.withName("t2");
@@ -78,7 +79,7 @@ class DatabaseSchemaResourceTest extends EntityResourceTest<DatabaseSchema, Crea
     assertListNotNull(schema.getService(), schema.getServiceType(), schema.getDatabase());
     assertListNull(schema.getOwner(), schema.getTables());
 
-    fields = "owner,tags,tables";
+    fields = "owner,tables";
     schema =
         byName
             ? getEntityByName(schema.getFullyQualifiedName(), fields, ADMIN_AUTH_HEADERS)
@@ -93,12 +94,12 @@ class DatabaseSchemaResourceTest extends EntityResourceTest<DatabaseSchema, Crea
 
   @Override
   public CreateDatabaseSchema createRequest(String name) {
-    return new CreateDatabaseSchema().withName(name).withDatabase(getContainer().getFullyQualifiedName());
+    return new CreateDatabaseSchema().withName(name).withDatabase(getContainer());
   }
 
   @Override
   public EntityReference getContainer() {
-    return DATABASE.getEntityReference();
+    return DATABASE_REFERENCE;
   }
 
   @Override

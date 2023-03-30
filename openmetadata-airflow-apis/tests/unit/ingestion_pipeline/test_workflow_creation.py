@@ -67,11 +67,10 @@ from metadata.generated.schema.security.client.openMetadataJWTClientConfig impor
 )
 from metadata.generated.schema.tests.testSuite import TestSuite
 from metadata.generated.schema.type.entityReference import EntityReference
-from metadata.ingestion.api.parser import parse_workflow_config_gracefully
 from metadata.ingestion.api.workflow import Workflow
 from metadata.ingestion.models.encoders import show_secrets_encoder
 from metadata.ingestion.ometa.ometa_api import OpenMetadata
-from metadata.profiler.api.workflow import ProfilerWorkflow
+from metadata.orm_profiler.api.workflow import ProfilerWorkflow
 from metadata.test_suite.api.workflow import TestSuiteWorkflow
 
 
@@ -216,7 +215,7 @@ class OMetaServiceTest(TestCase):
         workflow_config = build_metadata_workflow_config(ingestion_pipeline)
         config = json.loads(workflow_config.json(encoder=show_secrets_encoder))
 
-        parse_workflow_config_gracefully(config)
+        Workflow.create(config)
 
     @patch.object(
         Workflow, "set_ingestion_pipeline_status", mock_set_ingestion_pipeline_status
@@ -249,7 +248,7 @@ class OMetaServiceTest(TestCase):
 
         config = json.loads(workflow_config.json(encoder=show_secrets_encoder))
 
-        parse_workflow_config_gracefully(config)
+        Workflow.create(config)
 
     @patch.object(
         Workflow, "set_ingestion_pipeline_status", mock_set_ingestion_pipeline_status
@@ -282,7 +281,7 @@ class OMetaServiceTest(TestCase):
 
         config = json.loads(workflow_config.json(encoder=show_secrets_encoder))
 
-        parse_workflow_config_gracefully(config)
+        Workflow.create(config)
 
     @patch.object(
         ProfilerWorkflow,
@@ -315,7 +314,7 @@ class OMetaServiceTest(TestCase):
         workflow_config = build_profiler_workflow_config(ingestion_pipeline)
         config = json.loads(workflow_config.json(encoder=show_secrets_encoder))
 
-        parse_workflow_config_gracefully(config)
+        ProfilerWorkflow.create(config)
 
     @patch.object(
         TestSuiteWorkflow,
@@ -348,4 +347,4 @@ class OMetaServiceTest(TestCase):
         workflow_config = build_test_suite_workflow_config(ingestion_pipeline)
         config = json.loads(workflow_config.json(encoder=show_secrets_encoder))
 
-        parse_workflow_config_gracefully(config)
+        TestSuiteWorkflow.create(config)

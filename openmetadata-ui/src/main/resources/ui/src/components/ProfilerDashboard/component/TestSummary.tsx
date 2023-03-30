@@ -13,7 +13,6 @@
 
 import { Col, Row, Select, Space, Typography } from 'antd';
 import { AxiosError } from 'axios';
-import { t } from 'i18next';
 import { isEmpty } from 'lodash';
 import React, { ReactElement, useEffect, useMemo, useState } from 'react';
 import {
@@ -66,7 +65,6 @@ const TestSummary: React.FC<TestSummaryProps> = ({ data }) => {
   const [selectedTimeRange, setSelectedTimeRange] =
     useState<keyof typeof PROFILER_FILTER_RANGE>('last3days');
   const [isLoading, setIsLoading] = useState(true);
-  const [isGraphLoading, setIsGraphLoading] = useState(true);
 
   const timeRangeOption = useMemo(() => {
     return Object.entries(PROFILER_FILTER_RANGE).map(([key, value]) => ({
@@ -136,7 +134,7 @@ const TestSummary: React.FC<TestSummaryProps> = ({ data }) => {
     if (isEmpty(data)) {
       return;
     }
-    setIsGraphLoading(true);
+
     try {
       const startTs = getPastDatesTimeStampFromCurrentDate(
         PROFILER_FILTER_RANGE[selectedTimeRange].days
@@ -157,7 +155,6 @@ const TestSummary: React.FC<TestSummaryProps> = ({ data }) => {
       showErrorToast(error as AxiosError);
     } finally {
       setIsLoading(false);
-      setIsGraphLoading(false);
     }
   };
 
@@ -171,7 +168,7 @@ const TestSummary: React.FC<TestSummaryProps> = ({ data }) => {
     if (isSqlQuery) {
       return (
         <div key={param.name}>
-          <Typography.Text>{`${param.name}:`} </Typography.Text>
+          <Typography.Text>{param.name}: </Typography.Text>
           <SchemaEditor
             className="tw-w-11/12 tw-mt-1"
             editorClass="table-query-editor"
@@ -187,7 +184,7 @@ const TestSummary: React.FC<TestSummaryProps> = ({ data }) => {
 
     return (
       <div key={param.name}>
-        <Typography.Text>{`${param.name}:`} </Typography.Text>
+        <Typography.Text>{param.name}: </Typography.Text>
         <Typography.Text>{param.value}</Typography.Text>
       </div>
     );
@@ -225,9 +222,7 @@ const TestSummary: React.FC<TestSummaryProps> = ({ data }) => {
               />
             </Space>
 
-            {isGraphLoading ? (
-              <Loader />
-            ) : results.length ? (
+            {results.length ? (
               <ResponsiveContainer
                 className="tw-bg-white"
                 id={`${data.name}_graph`}
@@ -262,7 +257,8 @@ const TestSummary: React.FC<TestSummaryProps> = ({ data }) => {
             ) : (
               <ErrorPlaceHolder classes="tw-mt-0" size={SIZE.MEDIUM}>
                 <Typography.Paragraph className="m-b-md">
-                  {t('message.try-different-time-period-filtering')}
+                  No Results Available. Try filtering by a different time
+                  period.
                 </Typography.Paragraph>
               </ErrorPlaceHolder>
             )}
@@ -272,30 +268,24 @@ const TestSummary: React.FC<TestSummaryProps> = ({ data }) => {
       <Col span={8}>
         <Row gutter={[8, 8]}>
           <Col span={24}>
-            <Typography.Text type="secondary">
-              {`${t('label.name')}:`}
-            </Typography.Text>
+            <Typography.Text type="secondary">Name: </Typography.Text>
             <Typography.Text>{data.displayName || data.name}</Typography.Text>
           </Col>
           <Col span={24}>
-            <Typography.Text type="secondary">
-              {`${t('label.parameter')}:`}
-            </Typography.Text>
+            <Typography.Text type="secondary">Parameter: </Typography.Text>
           </Col>
           <Col offset={1} span={24}>
             {data.parameterValues && data.parameterValues.length > 0 ? (
               data.parameterValues.map(showParamsData)
             ) : (
               <Typography.Text type="secondary">
-                {t('label.no-parameter-available')}
+                No Parameter Available
               </Typography.Text>
             )}
           </Col>
 
           <Col className="tw-flex tw-gap-2" span={24}>
-            <Typography.Text type="secondary">
-              {`${t('label.description')}:`}{' '}
-            </Typography.Text>
+            <Typography.Text type="secondary">Description: </Typography.Text>
             <RichTextEditorPreviewer markdown={data.description || ''} />
           </Col>
         </Row>

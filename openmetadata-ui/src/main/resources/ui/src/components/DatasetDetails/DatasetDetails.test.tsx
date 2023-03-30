@@ -26,7 +26,7 @@ import {
   Table,
   TableJoins,
   TableType,
-  UsageDetails,
+  TypeUsedToReturnUsageDetailsOfAnEntity,
 } from '../../generated/entity/data/table';
 import { EntityLineage } from '../../generated/type/entityLineage';
 import { EntityReference } from '../../generated/type/entityReference';
@@ -37,6 +37,15 @@ import {
   LoadingNodeState,
 } from '../EntityLineage/EntityLineage.interface';
 import DatasetDetails from './DatasetDetails.component';
+
+jest.mock('antd', () => ({
+  Empty: jest.fn().mockImplementation(({ children }) => <div>{children}</div>),
+  Row: jest.fn().mockImplementation(({ children }) => <div>{children}</div>),
+  Col: jest.fn().mockImplementation(({ children }) => <div>{children}</div>),
+  Typography: jest
+    .fn()
+    .mockImplementation(({ children }) => <div>{children}</div>),
+}));
 
 jest.mock('../common/rich-text-editor/RichTextEditorPreviewer', () => {
   return jest.fn().mockReturnValue(<p>RichTextEditorPreviewer</p>);
@@ -124,7 +133,7 @@ const DatasetDetailsProps = {
   tableType: TableType.Regular,
   tier: {} as TagLabel,
   unfollowTableHandler: jest.fn(),
-  usageSummary: {} as UsageDetails,
+  usageSummary: {} as TypeUsedToReturnUsageDetailsOfAnEntity,
   users: [],
   versionHandler: jest.fn(),
   loadNodeHandler: jest.fn(),

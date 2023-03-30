@@ -11,7 +11,7 @@
  *  limitations under the License.
  */
 
-import { CheckOutlined, CloseOutlined } from '@ant-design/icons';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
   Button as AntDButton,
   Card,
@@ -37,7 +37,6 @@ import { useHistory, useLocation } from 'react-router-dom';
 import { changePassword } from 'rest/auth-API';
 import { getRoles } from 'rest/rolesAPIV1';
 import { getTeams } from 'rest/teamsAPI';
-import { getEntityName } from 'utils/EntityUtils';
 import {
   getUserPath,
   PAGE_SIZE,
@@ -64,6 +63,7 @@ import { Paging } from '../../generated/type/paging';
 import { useInfiniteScroll } from '../../hooks/useInfiniteScroll';
 import jsonData from '../../jsons/en';
 import {
+  getEntityName,
   getNonDeletedTeams,
   getTierFromEntityInfo,
 } from '../../utils/CommonUtils';
@@ -87,6 +87,7 @@ import NextPrevious from '../common/next-previous/NextPrevious';
 import ProfilePicture from '../common/ProfilePicture/ProfilePicture';
 import TableDataCard from '../common/table-data-card/TableDataCard';
 import TabsPane from '../common/TabsPane/TabsPane';
+import { leftPanelAntCardStyle } from '../containers/PageLayout';
 import PageLayoutV1 from '../containers/PageLayoutV1';
 import DropDownList from '../dropdown/DropDownList';
 import Loader from '../Loader/Loader';
@@ -170,12 +171,12 @@ const Users = ({
       if (response.data) {
         setTeams(response.data);
       } else {
-        throw t('server.unexpected-response');
+        throw jsonData['api-error-messages']['unexpected-server-response'];
       }
     } catch (error) {
       showErrorToast(
         error as AxiosError,
-        t('server.entity-fetch-error', { entity: t('label.team') })
+        jsonData['api-error-messages']['fetch-teams-error']
       );
     } finally {
       setIsTeamsLoading(false);
@@ -267,7 +268,7 @@ const Users = ({
       await changePassword(sendData);
       setIsChangePassword(false);
       showSuccessToast(
-        t('server.update-entity-success', { entity: t('label.password') })
+        jsonData['api-success-messages']['update-password-success']
       );
     } catch (err) {
       showErrorToast(err as AxiosError);
@@ -291,7 +292,7 @@ const Users = ({
                 data-testid="displayName"
                 id="displayName"
                 name="displayName"
-                placeholder={t('label.display-name')}
+                placeholder="displayName"
                 type="text"
                 value={displayName}
                 onChange={onDisplayNameChange}
@@ -304,7 +305,7 @@ const Users = ({
                   theme="primary"
                   variant="contained"
                   onMouseDown={() => setIsDisplayNameEdit(false)}>
-                  <CloseOutlined />
+                  <FontAwesomeIcon className="tw-w-3.5 tw-h-3.5" icon="times" />
                 </Button>
                 <Button
                   className="tw-px-1 tw-py-1 tw-rounded tw-text-sm"
@@ -313,15 +314,14 @@ const Users = ({
                   theme="primary"
                   variant="contained"
                   onClick={handleDisplayNameChange}>
-                  <CheckOutlined />
+                  <FontAwesomeIcon className="tw-w-3.5 tw-h-3.5" icon="check" />
                 </Button>
               </div>
             </Space>
           ) : (
             <Fragment>
               <span className="tw-text-base tw-font-medium tw-mr-2 tw-overflow-auto">
-                {userData.displayName ||
-                  t('label.add-entity', { entity: t('label.display-name') })}
+                {userData.displayName || 'Add display name'}
               </span>
               <button
                 className="tw-ml-2 focus:tw-outline-none"
@@ -386,7 +386,7 @@ const Users = ({
         <Typography.Text
           className="text-primary text-xs cursor-pointer"
           onClick={() => setIsChangePassword(true)}>
-          {t('label.change-entity', { entity: t('label.password-lowercase') })}
+          Change Password
         </Typography.Text>
 
         <ChangePasswordForm
@@ -417,9 +417,7 @@ const Users = ({
           </div>
         ))}
         {isEmpty(userData.teams) && (
-          <span className="tw-no-description ">
-            {t('message.no-team-found')}
-          </span>
+          <span className="tw-no-description ">No teams found</span>
         )}
       </Fragment>
     );
@@ -427,14 +425,15 @@ const Users = ({
     if (!isAdminUser && !isAuthDisabled) {
       return (
         <Card
-          className="ant-card-feed tw-relative panel-shadow-color"
+          className="ant-card-feed tw-relative"
           key="teams-card"
           style={{
+            ...leftPanelAntCardStyle,
             marginTop: '20px',
           }}
           title={
             <div className="tw-flex tw-items-center tw-justify-between">
-              <h6 className="tw-heading tw-mb-0">{t('label.team-plural')}</h6>
+              <h6 className="tw-heading tw-mb-0">Teams</h6>
             </div>
           }>
           <div className="tw-mb-4">{teamsElement}</div>
@@ -443,14 +442,15 @@ const Users = ({
     } else {
       return (
         <Card
-          className="ant-card-feed tw-relative panel-shadow-color"
+          className="ant-card-feed tw-relative"
           key="teams-card"
           style={{
+            ...leftPanelAntCardStyle,
             marginTop: '20px',
           }}
           title={
             <div className="tw-flex tw-items-center tw-justify-between">
-              <h6 className="tw-heading tw-mb-0">{t('label.team-plural')}</h6>
+              <h6 className="tw-heading tw-mb-0">Teams</h6>
               {!isTeamsEdit && (
                 <button
                   className="tw-ml-2 focus:tw-outline-none tw-self-baseline"
@@ -473,9 +473,7 @@ const Users = ({
                 <Select
                   allowClear
                   showSearch
-                  aria-label={t('label.select-field', {
-                    field: t('label.team-plural-lowercase'),
-                  })}
+                  aria-label={t('label.select-team-plural')}
                   className="w-full"
                   loading={isTeamsLoading}
                   mode="multiple"
@@ -483,8 +481,8 @@ const Users = ({
                     label: getEntityName(team as unknown as EntityReference),
                     value: team.id,
                   }))}
-                  placeholder={t('label.team-plural')}
-                  value={!isTeamsLoading ? selectedTeams : []}
+                  placeholder={`${t('label.team-plural')}...`}
+                  value={selectedTeams}
                   onChange={handleOnTeamsChange}
                 />
                 <div className="tw-flex tw-justify-end" data-testid="buttons">
@@ -495,7 +493,10 @@ const Users = ({
                     theme="primary"
                     variant="contained"
                     onMouseDown={() => setIsTeamsEdit(false)}>
-                    <CloseOutlined />
+                    <FontAwesomeIcon
+                      className="tw-w-3.5 tw-h-3.5"
+                      icon="times"
+                    />
                   </Button>
                   <Button
                     className="tw-px-1 tw-py-1 tw-rounded tw-text-sm"
@@ -504,7 +505,10 @@ const Users = ({
                     theme="primary"
                     variant="contained"
                     onClick={handleTeamsChange}>
-                    <CheckOutlined />
+                    <FontAwesomeIcon
+                      className="tw-w-3.5 tw-h-3.5"
+                      icon="check"
+                    />
                   </Button>
                 </div>
               </Space>
@@ -559,8 +563,9 @@ const Users = ({
       return (
         <Card
           className="ant-card-feed tw-relative"
-          key="roles-card panel-shadow-color"
+          key="roles-card"
           style={{
+            ...leftPanelAntCardStyle,
             marginTop: '20px',
           }}
           title={
@@ -574,9 +579,10 @@ const Users = ({
     } else {
       return (
         <Card
-          className="ant-card-feed tw-relative panel-shadow-color"
+          className="ant-card-feed tw-relative"
           key="roles-card"
           style={{
+            ...leftPanelAntCardStyle,
             marginTop: '20px',
           }}
           title={
@@ -610,8 +616,8 @@ const Users = ({
                   loading={isRolesLoading}
                   mode="multiple"
                   options={userRolesOption}
-                  placeholder={t('label.role-plural')}
-                  value={!isRolesLoading ? selectedRoles : []}
+                  placeholder={`${t('label.team-plural')}...`}
+                  value={selectedRoles}
                   onChange={handleOnRolesChange}
                 />
 
@@ -623,7 +629,10 @@ const Users = ({
                     theme="primary"
                     variant="contained"
                     onMouseDown={() => setIsRolesEdit(false)}>
-                    <CloseOutlined />
+                    <FontAwesomeIcon
+                      className="tw-w-3.5 tw-h-3.5"
+                      icon="times"
+                    />
                   </Button>
                   <Button
                     className="tw-px-1 tw-py-1 tw-rounded tw-text-sm"
@@ -632,7 +641,10 @@ const Users = ({
                     theme="primary"
                     variant="contained"
                     onClick={handleRolesChange}>
-                    <CheckOutlined />
+                    <FontAwesomeIcon
+                      className="tw-w-3.5 tw-h-3.5"
+                      icon="check"
+                    />
                   </Button>
                 </div>
               </Space>
@@ -648,9 +660,10 @@ const Users = ({
   const getInheritedRolesComponent = () => {
     return (
       <Card
-        className="ant-card-feed tw-relative panel-shadow-color"
+        className="ant-card-feed tw-relative"
         key="inherited-roles-card-component"
         style={{
+          ...leftPanelAntCardStyle,
           marginTop: '20px',
         }}
         title={
@@ -702,8 +715,11 @@ const Users = ({
     return (
       <div className="user-profile-antd-card" data-testid="left-panel">
         <Card
-          className="ant-card-feed tw-relative panel-shadow-color"
-          key="left-panel-card">
+          className="ant-card-feed tw-relative"
+          key="left-panel-card"
+          style={{
+            ...leftPanelAntCardStyle,
+          }}>
           {isImgUrlValid ? (
             <Image
               alt="profile"
@@ -944,10 +960,7 @@ const Users = ({
   );
 
   return (
-    <PageLayoutV1
-      className="tw-h-full"
-      leftPanel={fetchLeftPanel()}
-      pageTitle={t('label.user')}>
+    <PageLayoutV1 className="tw-h-full" leftPanel={fetchLeftPanel()}>
       <div className="m-b-md">
         <TabsPane
           activeTab={activeTab}

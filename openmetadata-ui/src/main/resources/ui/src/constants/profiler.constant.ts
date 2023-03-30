@@ -13,7 +13,6 @@
 
 import { t } from 'i18next';
 import { StepperStepType } from 'Models';
-import i18n from 'utils/i18next/LocalUtil';
 import { CSMode } from '../enums/codemirror.enum';
 import { DMLOperationType } from '../generated/api/data/createTableProfile';
 import {
@@ -67,74 +66,41 @@ export const PROFILER_METRIC = [
 ];
 
 export const PROFILER_FILTER_RANGE = {
-  last3days: {
-    days: 3,
-    title: t('label.last-number-of-days', {
-      numberOfDays: 3,
-    }),
-  },
-  last7days: {
-    days: 7,
-    title: t('label.last-number-of-days', {
-      numberOfDays: 7,
-    }),
-  },
-  last14days: {
-    days: 14,
-    title: t('label.last-number-of-days', {
-      numberOfDays: 14,
-    }),
-  },
-  last30days: {
-    days: 30,
-    title: t('label.last-number-of-days', {
-      numberOfDays: 30,
-    }),
-  },
-  last60days: {
-    days: 60,
-    title: t('label.last-number-of-days', {
-      numberOfDays: 60,
-    }),
-  },
+  last3days: { days: 3, title: 'Last 3 days' },
+  last7days: { days: 7, title: 'Last 7 days' },
+  last14days: { days: 14, title: 'Last 14 days' },
+  last30days: { days: 30, title: 'Last 30 days' },
+  last60days: { days: 60, title: 'Last 60 days' },
 };
 
-export const COLORS = ['#004AB3FF', '#B02AAC', '#B02AAC', '#1890FF', '#008376'];
+export const COLORS = ['#004AB3', '#B02AAC', '#B02AAC', '#1890FF', '#008376'];
 
 export const DEFAULT_CHART_COLLECTION_VALUE = {
   distinctCount: { data: [], color: '#1890FF' },
   uniqueCount: { data: [], color: '#008376' },
-  nullCount: { data: [], color: '#004AB3FF' },
+  nullCount: { data: [], color: '#004AB3' },
   nullProportion: { data: [], color: '#B02AAC' },
 };
 
 export const INITIAL_COUNT_METRIC_VALUE = {
   information: [
     {
-      title: t('label.entity-count', {
-        entity: t('label.distinct'),
-      }),
+      title: 'Distinct Count',
       dataKey: 'distinctCount',
       color: '#1890FF',
     },
     {
-      title: t('label.entity-count', {
-        entity: t('label.null'),
-      }),
+      title: 'Null Count',
       dataKey: 'nullCount',
-      color: '#004AB3FF',
+      color: '#004AB3',
     },
     {
-      title: t('label.entity-count', {
-        entity: t('label.unique'),
-      }),
+      title: 'Unique Count',
       dataKey: 'uniqueCount',
       color: '#008376',
     },
     {
-      title: t('label.entity-count', {
-        entity: t('label.value-plural'),
-      }),
+      title: 'Values Count',
       dataKey: 'valuesCount',
       color: '#B02AAC',
     },
@@ -145,23 +111,17 @@ export const INITIAL_COUNT_METRIC_VALUE = {
 export const INITIAL_PROPORTION_METRIC_VALUE = {
   information: [
     {
-      title: t('label.entity-proportion', {
-        entity: t('label.distinct'),
-      }),
+      title: 'Distinct Proportion',
       dataKey: 'distinctProportion',
       color: '#1890FF',
     },
     {
-      title: t('label.entity-proportion', {
-        entity: t('label.null'),
-      }),
+      title: 'Null Proportion',
       dataKey: 'nullProportion',
-      color: '#004AB3FF',
+      color: '#004AB3',
     },
     {
-      title: t('label.entity-proportion', {
-        entity: t('label.unique'),
-      }),
+      title: 'Unique Proportion',
       dataKey: 'uniqueProportion',
       color: '#008376',
     },
@@ -172,19 +132,24 @@ export const INITIAL_PROPORTION_METRIC_VALUE = {
 export const INITIAL_MATH_METRIC_VALUE = {
   information: [
     {
-      title: t('label.max'),
-      dataKey: 'max',
+      title: 'Median',
+      dataKey: 'median',
       color: '#1890FF',
     },
     {
-      title: t('label.mean'),
-      dataKey: 'mean',
-      color: '#004AB3FF',
+      title: 'Max',
+      dataKey: 'max',
+      color: '#004AB3',
     },
     {
-      title: t('label.min'),
-      dataKey: 'min',
+      title: 'Mean',
+      dataKey: 'mean',
       color: '#008376',
+    },
+    {
+      title: 'Min',
+      dataKey: 'min',
+      color: '#B02AAC',
     },
   ],
   data: [],
@@ -193,34 +158,9 @@ export const INITIAL_MATH_METRIC_VALUE = {
 export const INITIAL_SUM_METRIC_VALUE = {
   information: [
     {
-      title: t('label.sum'),
+      title: 'Sum',
       dataKey: 'sum',
       color: '#1890FF',
-    },
-  ],
-  data: [],
-};
-export const INITIAL_QUARTILE_METRIC_VALUE = {
-  information: [
-    {
-      title: i18n.t('label.first-quartile'),
-      dataKey: 'firstQuartile',
-      color: '#1890FF',
-    },
-    {
-      title: i18n.t('label.median'),
-      dataKey: 'median',
-      color: '#004AB3FF',
-    },
-    {
-      title: i18n.t('label.inter-quartile-range'),
-      dataKey: 'interQuartileRange',
-      color: '#008376',
-    },
-    {
-      title: i18n.t('label.third-quartile'),
-      dataKey: 'thirdQuartile',
-      color: '#B02AAC',
     },
   ],
   data: [],
@@ -229,9 +169,7 @@ export const INITIAL_QUARTILE_METRIC_VALUE = {
 export const INITIAL_ROW_METRIC_VALUE = {
   information: [
     {
-      title: t('label.entity-count', {
-        entity: t('label.row'),
-      }),
+      title: t('label.row-count'),
       dataKey: 'rowCount',
       color: '#008376',
     },
@@ -254,7 +192,7 @@ export const INITIAL_OPERATION_METRIC_VALUE = {
     {
       title: t('label.delete'),
       dataKey: DMLOperationType.Delete,
-      color: '#004AB3FF',
+      color: '#004AB3',
     },
   ],
   data: [],
@@ -305,13 +243,8 @@ export const codeMirrorOption = {
 };
 
 export const STEPS_FOR_ADD_TEST_CASE: Array<StepperStepType> = [
-  { name: t('label.select-add-test-suite'), step: 1 },
-  {
-    name: t('label.configure-entity', {
-      entity: t('label.test-case-lowercase'),
-    }),
-    step: 2,
-  },
+  { name: 'Select/Add Test Suite', step: 1 },
+  { name: 'Configure Test Case', step: 2 },
 ];
 
 export const SUPPORTED_PARTITION_TYPE = [
@@ -341,15 +274,8 @@ export const PROFILE_SAMPLE_OPTIONS = [
     value: ProfileSampleType.Percentage,
   },
   {
-    label: t('label.entity-count', {
-      entity: t('label.row'),
-    }),
+    label: t('label.row-count'),
     key: ProfileSampleType.Rows,
     value: ProfileSampleType.Rows,
   },
 ];
-
-export const DEFAULT_HISTOGRAM_DATA = {
-  boundaries: [],
-  frequencies: [],
-};

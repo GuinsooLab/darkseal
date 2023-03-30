@@ -33,7 +33,7 @@ def get_connection(connection: QuickSightConnection):
     return client
 
 
-def test_connection(client, _) -> None:
+def test_connection(client) -> None:
     """
     Test connection
     """

@@ -501,7 +501,7 @@
 }
 
 .sidebar-tasks-holder .task-tag.p2 {
-  background: #7558c1;
+  background: #004ab3ff;
 }
 
 .explore-task-link {
@@ -673,15 +673,7 @@
   color: red;
   padding-left: 0.2rem;
 }
-.description-text {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  display: -webkit-box;
-  line-height: 18px;
-  max-height: 54px;
-  -webkit-line-clamp: 3;
-  -webkit-box-orient: vertical;
-}
+
 .asset-card-text {
   overflow: hidden;
   text-overflow: ellipsis;
@@ -722,7 +714,6 @@ body .list-option.rdw-option-active {
   width: fit-content;
 }
 .diff-removed {
-  color: #008376;
   color: grey;
   text-decoration: line-through;
   width: fit-content;
@@ -886,7 +877,7 @@ body .list-option.rdw-option-active {
 }
 
 .nav-apps {
-  background: #072C4F;
+  background: #072c4f;
   width: 60px;
   height: 100vh;
   position: absolute;
@@ -942,4 +933,9 @@ body .list-option.rdw-option-active {
   height: 50px;
   text-align: center;
   line-height: 50px;
+}
+
+.tour-button {
+  padding-top: 8px;
+  padding-bottom: 8px;
 }

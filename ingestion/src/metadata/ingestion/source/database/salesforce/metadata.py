@@ -23,7 +23,6 @@ from metadata.generated.schema.api.lineage.addLineage import AddLineageRequest
 from metadata.generated.schema.entity.data.table import (
     Column,
     Constraint,
-    DataType,
     Table,
     TableType,
 )
@@ -39,13 +38,16 @@ from metadata.generated.schema.metadataIngestion.databaseServiceMetadataPipeline
 from metadata.generated.schema.metadataIngestion.workflow import (
     Source as WorkflowSource,
 )
-from metadata.ingestion.api.source import InvalidSourceException
+from metadata.generated.schema.type.entityReference import EntityReference
+from metadata.ingestion.api.source import InvalidSourceException, SourceStatus
 from metadata.ingestion.models.ometa_classification import OMetaTagAndClassification
 from metadata.ingestion.ometa.ometa_api import OpenMetadata
 from metadata.ingestion.source.connections import get_connection, get_test_connection_fn
-from metadata.ingestion.source.database.database_service import DatabaseServiceSource
+from metadata.ingestion.source.database.database_service import (
+    DatabaseServiceSource,
+    SQLSourceStatus,
+)
 from metadata.utils import fqn
-from metadata.utils.constants import DEFAULT_DATABASE
 from metadata.utils.filters import filter_by_table
 from metadata.utils.logger import ingestion_logger
 
@@ -59,7 +61,6 @@ class SalesforceSource(DatabaseServiceSource):
     """
 
     def __init__(self, config, metadata_config: OpenMetadataConnection):
-        super().__init__()
         self.config = config
         self.source_config: DatabaseServiceMetadataPipeline = (
             self.config.sourceConfig.config
@@ -67,11 +68,13 @@ class SalesforceSource(DatabaseServiceSource):
         self.metadata_config = metadata_config
         self.metadata = OpenMetadata(metadata_config)
         self.service_connection = self.config.serviceConnection.__root__.config
+        self.status = SQLSourceStatus()
         self.client = get_connection(self.service_connection)
         self.table_constraints = None
         self.data_models = {}
         self.dbt_tests = {}
         self.database_source_state = set()
+        super().__init__()
 
     @classmethod
     def create(cls, config_dict, metadata_config: OpenMetadataConnection):
@@ -92,7 +95,7 @@ class SalesforceSource(DatabaseServiceSource):
         Sources with multiple databases should overwrite this and
         apply the necessary filters.
         """
-        database_name = self.service_connection.databaseName or DEFAULT_DATABASE
+        database_name = "default"
         yield database_name
 
     def yield_database(self, database_name: str) -> Iterable[CreateDatabaseRequest]:
@@ -102,7 +105,10 @@ class SalesforceSource(DatabaseServiceSource):
         """
         yield CreateDatabaseRequest(
             name=database_name,
-            service=self.context.database_service.fullyQualifiedName,
+            service=EntityReference(
+                id=self.context.database_service.id,
+                type="databaseService",
+            ),
         )
 
     def get_database_schema_names(self) -> Iterable[str]:
@@ -121,7 +127,7 @@ class SalesforceSource(DatabaseServiceSource):
         """
         yield CreateDatabaseSchemaRequest(
             name=schema_name,
-            database=self.context.database.fullyQualifiedName,
+            database=EntityReference(id=self.context.database.id, type="database"),
         )
 
     def get_tables_name_and_type(self) -> Optional[Iterable[Tuple[str, str]]]:
@@ -195,7 +201,10 @@ class SalesforceSource(DatabaseServiceSource):
                 description="",
                 columns=columns,
                 tableConstraints=table_constraints,
-                databaseSchema=self.context.database_schema.fullyQualifiedName,
+                databaseSchema=EntityReference(
+                    id=self.context.database_schema.id,
+                    type="databaseSchema",
+                ),
             )
             yield table_request
             self.register_record(table_request=table_request)
@@ -225,7 +234,6 @@ class SalesforceSource(DatabaseServiceSource):
                     name=column["name"],
                     description=column["label"],
                     dataType=self.column_type(column["type"].upper()),
-                    dataTypeDisplay=column["type"],
                     constraint=col_constraint,
                     ordinalPosition=row_order,
                     dataLength=column["length"],
@@ -235,19 +243,9 @@ class SalesforceSource(DatabaseServiceSource):
         return columns
 
     def column_type(self, column_type: str):
-        if column_type in {
-            "ID",
-            "PHONE",
-            "EMAIL",
-            "ENCRYPTEDSTRING",
-            "COMBOBOX",
-            "URL",
-            "TEXTAREA",
-            "ADDRESS",
-            "REFERENCE",
-        }:
-            return DataType.VARCHAR.value
-        return DataType.UNKNOWN.value
+        if column_type in {"ID", "PHONE", "CURRENCY"}:
+            return "INT"
+        return "VARCHAR"
 
     def yield_view_lineage(self) -> Optional[Iterable[AddLineageRequest]]:
         yield from []
@@ -263,9 +261,12 @@ class SalesforceSource(DatabaseServiceSource):
     def prepare(self):
         pass
 
+    def get_status(self) -> SourceStatus:
+        return self.status
+
     def close(self):
         pass
 
     def test_connection(self) -> None:
         test_connection_fn = get_test_connection_fn(self.service_connection)
-        test_connection_fn(self.client, self.service_connection)
+        test_connection_fn(self.client)

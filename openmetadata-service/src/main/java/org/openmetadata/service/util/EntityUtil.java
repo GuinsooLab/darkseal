@@ -93,7 +93,7 @@ public final class EntityUtil {
       (ref1, ref2) -> ref1.getId().equals(ref2.getId()) && ref1.getType().equals(ref2.getType());
 
   public static final BiPredicate<TagLabel, TagLabel> tagLabelMatch =
-      (tag1, tag2) -> tag1.getTagFQN().equals(tag2.getTagFQN()) && tag1.getSource().equals(tag2.getSource());
+      (tag1, tag2) -> tag1.getTagFQN().equals(tag2.getTagFQN());
 
   public static final BiPredicate<Task, Task> taskMatch = (task1, task2) -> task1.getName().equals(task2.getName());
 
@@ -151,7 +151,7 @@ public final class EntityUtil {
   public static List<EntityReference> populateEntityReferences(List<EntityReference> list) throws IOException {
     if (list != null) {
       for (EntityReference ref : list) {
-        EntityReference ref2 = Entity.getEntityReference(ref, ALL);
+        EntityReference ref2 = Entity.getEntityReferenceById(ref.getType(), ref.getId(), ALL);
         EntityUtil.copy(ref2, ref);
       }
       list.sort(compareEntityReference);
@@ -213,15 +213,15 @@ public final class EntityUtil {
     return details;
   }
 
-  /** Merge two sets of tags */
-  public static void mergeTags(List<TagLabel> mergeTo, List<TagLabel> mergeFrom) {
-    if (nullOrEmpty(mergeFrom)) {
+  /** Merge derivedTags into tags, if it already does not exist in tags */
+  public static void mergeTags(List<TagLabel> tags, List<TagLabel> derivedTags) {
+    if (nullOrEmpty(derivedTags)) {
       return;
     }
-    for (TagLabel fromTag : mergeFrom) {
-      TagLabel tag = mergeTo.stream().filter(t -> tagLabelMatch.test(t, fromTag)).findAny().orElse(null);
-      if (tag == null) { // The tag does not exist in the mergeTo list. Add it.
-        mergeTo.add(fromTag);
+    for (TagLabel derivedTag : derivedTags) {
+      TagLabel tag = tags.stream().filter(t -> tagLabelMatch.test(t, derivedTag)).findAny().orElse(null);
+      if (tag == null) { // Derived tag does not exist in the list. Add it.
+        tags.add(derivedTag);
       }
     }
   }
@@ -230,13 +230,13 @@ public final class EntityUtil {
     return CommonUtil.getResources(Pattern.compile(path));
   }
 
-  public static <T extends EntityInterface> List<String> toFQNs(List<T> entities) {
+  public static <T extends EntityInterface> List<EntityReference> toEntityReferences(List<T> entities) {
     if (entities == null) {
       return Collections.emptyList();
     }
-    List<String> entityReferences = new ArrayList<>();
+    List<EntityReference> entityReferences = new ArrayList<>();
     for (T entity : entities) {
-      entityReferences.add(entity.getFullyQualifiedName());
+      entityReferences.add(entity.getEntityReference());
     }
     return entityReferences;
   }
@@ -328,11 +328,10 @@ public final class EntityUtil {
   }
 
   /** Return column field name of format "columns".columnName.columnFieldName */
-  public static <T extends EntityInterface> String getColumnField(
-      T entityWithColumns, Column column, String columnField) {
+  public static String getColumnField(Table table, Column column, String columnField) {
     // Remove table FQN from column FQN to get the local name
     String localColumnName =
-        EntityUtil.getLocalColumnName(entityWithColumns.getFullyQualifiedName(), column.getFullyQualifiedName());
+        EntityUtil.getLocalColumnName(table.getFullyQualifiedName(), column.getFullyQualifiedName());
     return columnField == null
         ? FullyQualifiedName.build("columns", localColumnName)
         : FullyQualifiedName.build("columns", localColumnName, columnField);
@@ -410,7 +409,7 @@ public final class EntityUtil {
     return new TagLabel()
         .withTagFQN(tag.getFullyQualifiedName())
         .withDescription(tag.getDescription())
-        .withSource(TagSource.CLASSIFICATION);
+        .withSource(TagSource.TAG);
   }
 
   public static String addField(String fields, String newField) {
@@ -447,34 +446,8 @@ public final class EntityUtil {
     return entity == null ? null : entity.getFullyQualifiedName();
   }
 
-  public static List<String> getFqns(List<EntityReference> refs) {
-    if (nullOrEmpty(refs)) {
-      return null;
-    }
-    List<String> fqns = new ArrayList<>();
-    for (EntityReference ref : refs) {
-      fqns.add(getFqn(ref));
-    }
-    return fqns;
-  }
-
   public static EntityReference getEntityReference(EntityInterface entity) {
     return entity == null ? null : entity.getEntityReference();
-  }
-
-  public static EntityReference getEntityReference(String entityType, String fqn) {
-    return fqn == null ? null : new EntityReference().withType(entityType).withFullyQualifiedName(fqn);
-  }
-
-  public static List<EntityReference> getEntityReferences(String entityType, List<String> fqns) {
-    if (nullOrEmpty(fqns)) {
-      return null;
-    }
-    List<EntityReference> references = new ArrayList<>();
-    for (String fqn : fqns) {
-      references.add(getEntityReference(entityType, fqn));
-    }
-    return references;
   }
 
   public static Column getColumn(Table table, String columnName) {

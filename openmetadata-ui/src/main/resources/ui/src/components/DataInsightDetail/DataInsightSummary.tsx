@@ -18,7 +18,6 @@ import { useTranslation } from 'react-i18next';
 import { Link, useParams } from 'react-router-dom';
 import { getAggregateChartData } from 'rest/DataInsightAPI';
 import { getTeamByName } from 'rest/teamsAPI';
-import { getEntityName } from 'utils/EntityUtils';
 import { getUserPath } from '../../constants/constants';
 import {
   ENTITIES_CHARTS,
@@ -35,6 +34,7 @@ import {
   ChartFilter,
   DataInsightTabs,
 } from '../../interface/data-insight.interface';
+import { getEntityName } from '../../utils/CommonUtils';
 import {
   getEntitiesChartSummary,
   getWebChartSummary,

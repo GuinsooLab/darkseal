@@ -105,15 +105,11 @@ export const deleteService = (
 
 export const TestConnection = (
   data: ConfigData,
-  serviceType: string,
-  connectionType?: string,
-  serviceName?: string
+  type: string
 ): Promise<AxiosResponse> => {
   const payload = {
     connection: { config: data },
-    serviceType: serviceType,
-    connectionType: connectionType,
-    serviceName: serviceName,
+    connectionType: type,
   };
 
   return APIClient.post(`/services/ingestionPipelines/testConnection`, payload);

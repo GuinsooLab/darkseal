@@ -11,10 +11,9 @@
  *  limitations under the License.
  */
 
-import { PlusOutlined } from '@ant-design/icons';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { ArrayFieldTemplateProps } from '@rjsf/core';
 import classNames from 'classnames';
-import { t } from 'i18next';
 import React, { Fragment, FunctionComponent } from 'react';
 import SVGIcons, { Icons } from '../../utils/SvgUtils';
 import { Button } from '../buttons/Button/Button';
@@ -37,7 +36,7 @@ export const ArrayFieldTemplate: FunctionComponent<ArrayFieldTemplateProps> = (
             theme="primary"
             variant="contained"
             onClick={props.onAddClick}>
-            <PlusOutlined />
+            <FontAwesomeIcon icon="plus" />
           </Button>
         )}
       </div>
@@ -58,7 +57,7 @@ export const ArrayFieldTemplate: FunctionComponent<ArrayFieldTemplateProps> = (
               <SVGIcons
                 alt="delete"
                 icon={Icons.DELETE}
-                title={t('label.delete')}
+                title="Delete"
                 width="16px"
               />
             </button>

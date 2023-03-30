@@ -22,13 +22,11 @@ import org.openmetadata.annotations.utils.AnnotationChecker;
 import org.openmetadata.schema.ServiceConnectionEntityInterface;
 import org.openmetadata.schema.ServiceEntityInterface;
 import org.openmetadata.schema.entity.services.ServiceType;
-import org.openmetadata.schema.type.Include;
 import org.openmetadata.service.exception.UnhandledServerException;
 import org.openmetadata.service.jdbi3.ServiceEntityRepository;
 import org.openmetadata.service.resources.EntityResource;
 import org.openmetadata.service.secrets.SecretsManager;
 import org.openmetadata.service.secrets.SecretsManagerFactory;
-import org.openmetadata.service.secrets.masker.EntityMaskerFactory;
 import org.openmetadata.service.security.Authorizer;
 import org.openmetadata.service.util.JsonUtils;
 import org.openmetadata.service.util.ResultList;
@@ -54,23 +52,14 @@ public abstract class ServiceEntityResource<
     if (!authorizer.decryptSecret(securityContext)) {
       return nullifyRequiredConnectionParameters(service);
     }
-    service
-        .getConnection()
-        .setConfig(retrieveServiceConnectionConfig(service, authorizer.shouldMaskPasswords(securityContext)));
+    service.getConnection().setConfig(retrieveServiceConnectionConfig(service));
     return service;
   }
 
-  private Object retrieveServiceConnectionConfig(T service, boolean maskPassword) {
+  private Object retrieveServiceConnectionConfig(T service) {
     SecretsManager secretsManager = SecretsManagerFactory.getSecretsManager();
-    Object config =
-        secretsManager.encryptOrDecryptServiceConnectionConfig(
-            service.getConnection().getConfig(), extractServiceType(service), service.getName(), serviceType, false);
-    if (maskPassword) {
-      config =
-          EntityMaskerFactory.getEntityMasker()
-              .maskServiceConnectionConfig(config, extractServiceType(service), serviceType);
-    }
-    return config;
+    return secretsManager.encryptOrDecryptServiceConnectionConfig(
+        service.getConnection().getConfig(), extractServiceType(service), service.getName(), serviceType, false);
   }
 
   protected ResultList<T> decryptOrNullify(SecurityContext securityContext, ResultList<T> services) {
@@ -79,7 +68,7 @@ public abstract class ServiceEntityResource<
   }
 
   protected T nullifyRequiredConnectionParameters(T service) {
-    Object connectionConfig = retrieveServiceConnectionConfig(service, true);
+    Object connectionConfig = retrieveServiceConnectionConfig(service);
     if (AnnotationChecker.isExposedFieldPresent(connectionConfig.getClass())) {
       try {
         service.getConnection().setConfig(JsonUtils.toExposedEntity(connectionConfig, connectionConfig.getClass()));
@@ -89,23 +78,6 @@ public abstract class ServiceEntityResource<
       }
     }
     return nullifyConnection(service);
-  }
-
-  protected T unmask(T service) {
-    serviceEntityRepository.setFullyQualifiedName(service);
-    T originalService =
-        serviceEntityRepository.findByNameOrNull(service.getFullyQualifiedName(), null, Include.NON_DELETED);
-    if (originalService != null && originalService.getConnection() != null) {
-      Object serviceConnectionConfig =
-          EntityMaskerFactory.getEntityMasker()
-              .unmaskServiceConnectionConfig(
-                  service.getConnection().getConfig(),
-                  originalService.getConnection().getConfig(),
-                  extractServiceType(service),
-                  serviceType);
-      service.getConnection().setConfig(serviceConnectionConfig);
-    }
-    return service;
   }
 
   protected abstract T nullifyConnection(T service);

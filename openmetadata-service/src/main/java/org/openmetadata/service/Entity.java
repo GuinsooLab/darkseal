@@ -30,14 +30,13 @@ import javax.ws.rs.core.UriInfo;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import org.openmetadata.schema.EntityInterface;
-import org.openmetadata.schema.entity.services.ServiceType;
 import org.openmetadata.schema.type.EntityReference;
 import org.openmetadata.schema.type.Include;
-import org.openmetadata.schema.type.TagLabel;
 import org.openmetadata.service.exception.CatalogExceptionMessage;
 import org.openmetadata.service.exception.EntityNotFoundException;
 import org.openmetadata.service.jdbi3.EntityDAO;
 import org.openmetadata.service.jdbi3.EntityRepository;
+import org.openmetadata.service.util.EntityUtil;
 import org.openmetadata.service.util.EntityUtil.Fields;
 
 @Slf4j
@@ -49,7 +48,7 @@ public final class Entity {
   private static final Map<String, EntityDAO<?>> DAO_MAP = new HashMap<>();
 
   // Canonical entity name to corresponding EntityRepository map
-  private static final Map<String, EntityRepository<? extends EntityInterface>> ENTITY_REPOSITORY_MAP = new HashMap<>();
+  private static final Map<String, EntityRepository<?>> ENTITY_REPOSITORY_MAP = new HashMap<>();
 
   // List of all the entities
   private static final List<String> ENTITY_LIST = new ArrayList<>();
@@ -59,7 +58,6 @@ public final class Entity {
   public static final String FIELD_NAME = "name";
   public static final String FIELD_DESCRIPTION = "description";
   public static final String FIELD_FOLLOWERS = "followers";
-  public static final String FIELD_VOTES = "votes";
   public static final String FIELD_TAGS = "tags";
   public static final String FIELD_DELETED = "deleted";
   public static final String FIELD_PIPELINE_STATUS = "pipelineStatus";
@@ -77,7 +75,6 @@ public final class Entity {
   public static final String STORAGE_SERVICE = "storageService";
   public static final String MLMODEL_SERVICE = "mlmodelService";
   public static final String METADATA_SERVICE = "metadataService";
-  public static final String OBJECT_STORE_SERVICE = "objectStoreService";
 
   //
   // Data asset entities
@@ -92,22 +89,17 @@ public final class Entity {
   public static final String REPORT = "report";
   public static final String TOPIC = "topic";
   public static final String MLMODEL = "mlmodel";
-  public static final String CONTAINER = "container";
   public static final String BOT = "bot";
-  public static final String EVENT_SUBSCRIPTION = "eventsubscription";
+  public static final String ALERT = "alert";
   public static final String THREAD = "THREAD";
   public static final String LOCATION = "location";
-
-  public static final String QUERY = "query";
-
   public static final String GLOSSARY = "glossary";
   public static final String GLOSSARY_TERM = "glossaryTerm";
   public static final String TAG = "tag";
   public static final String CLASSIFICATION = "classification";
   public static final String TYPE = "type";
   public static final String TEST_DEFINITION = "testDefinition";
-  public static final String TEST_CONNECTION_DEFINITION = "testConnectionDefinition";
-  public static final String WORKFLOW = "workflow";
+
   public static final String ALERT_ACTION = "alertAction";
   public static final String TEST_SUITE = "testSuite";
   public static final String KPI = "kpi";
@@ -132,6 +124,7 @@ public final class Entity {
   // Operation related entities
   //
   public static final String INGESTION_PIPELINE = "ingestionPipeline";
+  public static final String WEBHOOK = "webhook";
 
   //
   // Reserved names in OpenMetadata
@@ -145,21 +138,6 @@ public final class Entity {
   public static final String PROFILER_BOT_ROLE = "ProfilerBotRole";
   public static final String QUALITY_BOT_NAME = "quality-bot";
   public static final String QUALITY_BOT_ROLE = "QualityBotRole";
-  public static final String ALL_RESOURCES = "All";
-
-  // ServiceType - Service Entity name map
-  public static final Map<ServiceType, String> SERVICE_TYPE_ENTITY_MAP =
-      new HashMap<>() {
-        {
-          put(ServiceType.DATABASE, DATABASE_SERVICE);
-          put(ServiceType.MESSAGING, MESSAGING_SERVICE);
-          put(ServiceType.DASHBOARD, DASHBOARD_SERVICE);
-          put(ServiceType.PIPELINE, PIPELINE_SERVICE);
-          put(ServiceType.ML_MODEL, MLMODEL_SERVICE);
-          put(ServiceType.METADATA, METADATA_SERVICE);
-          put(ServiceType.OBJECT_STORE, OBJECT_STORE_SERVICE);
-        }
-      };
 
   //
   // List of entities whose changes should not be published to the Activity Feed
@@ -196,13 +174,14 @@ public final class Entity {
     return Collections.unmodifiableList(ENTITY_LIST);
   }
 
-  public static EntityReference getEntityReference(EntityReference ref, Include include) throws IOException {
-    if (ref == null) {
-      return null;
-    }
-    return ref.getId() != null
-        ? getEntityReferenceById(ref.getType(), ref.getId(), include)
-        : getEntityReferenceByName(ref.getType(), ref.getFullyQualifiedName(), include);
+  public static EntityReference getEntityReference(EntityReference ref) throws IOException {
+    return ref == null ? null : getEntityReferenceById(ref.getType(), ref.getId(), Include.NON_DELETED);
+  }
+
+  public static EntityReference getEntityReferenceByName(EntityReference ref) {
+    return ref == null
+        ? null
+        : getEntityReferenceByName(ref.getType(), ref.getFullyQualifiedName(), Include.NON_DELETED);
   }
 
   public static EntityReference getEntityReferenceById(@NonNull String entityType, @NonNull UUID id, Include include)
@@ -256,61 +235,37 @@ public final class Entity {
   }
 
   public static <T> T getEntity(EntityReference ref, String fields, Include include) throws IOException {
-    return ref.getId() != null
-        ? getEntity(ref.getType(), ref.getId(), fields, include)
-        : getEntityByName(ref.getType(), ref.getFullyQualifiedName(), fields, include);
+    return getEntity(ref.getType(), ref.getId(), fields, include);
+  }
+
+  public static <T> T getEntity(EntityReference ref, EntityUtil.Fields fields, Include include) throws IOException {
+    return getEntity(ref.getType(), ref.getId(), fields, include);
+  }
+
+  public static <T> T getEntity(String entityType, UUID id, String fields, Include include) throws IOException {
+    return getEntity(entityType, id, getFields(entityType, fields), include);
   }
 
   /** Retrieve the entity using id from given entity reference and fields */
-  public static <T> T getEntity(String entityType, UUID id, String fields, Include include) throws IOException {
+  public static <T> T getEntity(String entityType, UUID id, EntityUtil.Fields fields, Include include)
+      throws IOException {
     EntityRepository<?> entityRepository = Entity.getEntityRepository(entityType);
-    Fields fieldList = entityRepository.getFields(fields);
     @SuppressWarnings("unchecked")
-    T entity = (T) entityRepository.get(null, id, fieldList, include);
+    T entity = (T) entityRepository.get(null, id, fields, include);
     if (entity == null) {
       throw EntityNotFoundException.byMessage(CatalogExceptionMessage.entityNotFound(entityType, id));
     }
     return entity;
   }
 
-  /** Retrieve the entity using id from given entity reference and fields */
-  public static <T> T getEntityByName(String entityType, String fqn, String fields, Include include)
-      throws IOException {
-    EntityRepository<?> entityRepository = Entity.getEntityRepository(entityType);
-    Fields fieldList = entityRepository.getFields(fields);
-    @SuppressWarnings("unchecked")
-    T entity = (T) entityRepository.getByName(null, fqn, fieldList, include);
-    if (entity == null) {
-      throw EntityNotFoundException.byMessage(CatalogExceptionMessage.entityNotFound(entityType, fqn));
-    }
-    return entity;
-  }
-
   /** Retrieve the corresponding entity repository for a given entity name. */
-  public static EntityRepository<? extends EntityInterface> getEntityRepository(@NonNull String entityType) {
+  public static <T extends EntityInterface> EntityRepository<T> getEntityRepository(@NonNull String entityType) {
     @SuppressWarnings("unchecked")
-    EntityRepository<? extends EntityInterface> entityRepository = ENTITY_REPOSITORY_MAP.get(entityType);
+    EntityRepository<T> entityRepository = (EntityRepository<T>) ENTITY_REPOSITORY_MAP.get(entityType);
     if (entityRepository == null) {
       throw EntityNotFoundException.byMessage(CatalogExceptionMessage.entityTypeNotFound(entityType));
     }
     return entityRepository;
-  }
-
-  /** Retrieve the corresponding entity repository for a given entity name. */
-  public static EntityRepository<? extends EntityInterface> getServiceEntityRepository(
-      @NonNull ServiceType serviceType) {
-    @SuppressWarnings("unchecked")
-    EntityRepository<? extends EntityInterface> entityRepository =
-        ENTITY_REPOSITORY_MAP.get(SERVICE_TYPE_ENTITY_MAP.get(serviceType));
-    if (entityRepository == null) {
-      throw EntityNotFoundException.byMessage(CatalogExceptionMessage.entityTypeNotFound(serviceType.value()));
-    }
-    return entityRepository;
-  }
-
-  public static <T extends EntityInterface> List<TagLabel> getEntityTags(String entityType, EntityInterface entity) {
-    EntityRepository<T> entityRepository = (EntityRepository<T>) getEntityRepository(entityType);
-    return listOrEmpty(entityRepository.getAllTags(entity));
   }
 
   public static void deleteEntity(

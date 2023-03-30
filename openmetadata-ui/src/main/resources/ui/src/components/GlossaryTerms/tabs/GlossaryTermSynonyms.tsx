@@ -12,7 +12,6 @@
  */
 
 import { Select, Typography } from 'antd';
-import { t } from 'i18next';
 import { cloneDeep, isEmpty, isEqual } from 'lodash';
 import React, { useEffect, useState } from 'react';
 import { GlossaryTerm } from '../../../generated/entity/data/glossaryTerm';
@@ -41,9 +40,7 @@ const GlossaryTermSynonyms = ({
         </span>
       ))
     ) : (
-      <Typography.Text type="secondary">
-        {t('message.no-synonyms-available')}
-      </Typography.Text>
+      <Typography.Text type="secondary">No synonyms available.</Typography.Text>
     );
   };
 
@@ -73,7 +70,7 @@ const GlossaryTermSynonyms = ({
       key="synonyms"
       setShow={() => setIsViewMode(false)}
       showIcon={isViewMode}
-      title={t('label.synonym-plural')}
+      title="Synonyms"
       onSave={handleSynonymsSave}>
       <div className="flex" data-testid="synonyms-container">
         {isViewMode ? (
@@ -83,9 +80,7 @@ const GlossaryTermSynonyms = ({
             allowClear
             id="synonyms-select"
             mode="tags"
-            placeholder={t('label.add-entity', {
-              entity: t('label.synonym-plural'),
-            })}
+            placeholder="Add Synonyms"
             style={{ width: '100%' }}
             value={synonyms}
             onChange={(value) => setSynonyms(value)}

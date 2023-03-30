@@ -17,10 +17,10 @@ import { t } from 'i18next';
 import { isEmpty, isUndefined, uniqueId } from 'lodash';
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { getEntityName } from 'utils/EntityUtils';
 import { getUserPath } from '../../constants/constants';
 import { User } from '../../generated/entity/teams/user';
 import { EntityReference } from '../../generated/type/entityReference';
+import { getEntityName } from '../../utils/CommonUtils';
 import { LIST_CAP } from '../../utils/PermissionsUtils';
 import {
   getRoleWithFqnPath,
@@ -30,7 +30,7 @@ import SVGIcons, { Icons } from '../../utils/SvgUtils';
 
 export const userPageFilterList = [
   {
-    name: t('label.my-data'),
+    name: 'My Data',
     value: 'OWNER',
     icon: (
       <SVGIcons
@@ -42,7 +42,7 @@ export const userPageFilterList = [
     ),
   },
   {
-    name: t('label.mention-plural'),
+    name: 'Mentions',
     value: 'MENTIONS',
     icon: (
       <SVGIcons
@@ -54,7 +54,7 @@ export const userPageFilterList = [
     ),
   },
   {
-    name: t('label.following'),
+    name: 'Following',
     value: 'FOLLOWS',
     icon: (
       <SVGIcons
@@ -116,7 +116,7 @@ export const commonUserDetailColumns = (): ColumnsType<User> => [
       const hasMore = listLength > LIST_CAP;
 
       if (isUndefined(record.teams) || isEmpty(record.teams)) {
-        return <>{t('label.no-entity', { entity: t('label.team') })}</>;
+        return <>No Team</>;
       } else {
         return (
           <Space wrap data-testid="policy-link" size={4}>
@@ -164,7 +164,7 @@ export const commonUserDetailColumns = (): ColumnsType<User> => [
       const hasMore = listLength > LIST_CAP;
 
       if (isUndefined(record.roles) || isEmpty(record.roles)) {
-        return <>{t('label.no-entity', { entity: t('label.role') })}</>;
+        return <>No Role</>;
       } else {
         return (
           <Space wrap data-testid="policy-link" size={4}>

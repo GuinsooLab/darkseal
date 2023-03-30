@@ -87,7 +87,7 @@ describe('Test Roles Details Page', () => {
 
     const policiesTab = await screen.findByText('label.policy-plural');
     const teamsTab = await screen.findByText('label.team-plural');
-    const usersTab = await screen.findByText('label.user-plural');
+    const usersTab = await screen.findByText('label.users');
 
     expect(container).toBeInTheDocument();
 

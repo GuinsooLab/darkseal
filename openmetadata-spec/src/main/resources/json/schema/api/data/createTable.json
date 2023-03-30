@@ -50,8 +50,9 @@
       "default": null
     },
     "databaseSchema": {
-      "description": "FullyQualified name of the Schema corresponding to this table",
-      "$ref": "../../type/basic.json#/definitions/fullyQualifiedEntityName"
+      "description": "Schema corresponding to this table",
+      "$ref": "../../type/entityReference.json",
+      "default": null
     },
     "tags": {
       "description": "Tags for this table",

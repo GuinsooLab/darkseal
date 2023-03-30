@@ -16,12 +16,10 @@ package org.openmetadata.service.resources.policies;
 import static javax.ws.rs.core.Response.Status.BAD_REQUEST;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.openmetadata.common.utils.CommonUtil.listOf;
 import static org.openmetadata.schema.entity.policies.accessControl.Rule.Effect.ALLOW;
 import static org.openmetadata.schema.entity.policies.accessControl.Rule.Effect.DENY;
 import static org.openmetadata.schema.type.MetadataOperation.EDIT_ALL;
 import static org.openmetadata.schema.type.MetadataOperation.VIEW_ALL;
-import static org.openmetadata.service.Entity.ALL_RESOURCES;
 import static org.openmetadata.service.Entity.FIELD_DESCRIPTION;
 import static org.openmetadata.service.util.EntityUtil.fieldAdded;
 import static org.openmetadata.service.util.EntityUtil.fieldDeleted;
@@ -36,6 +34,7 @@ import static org.openmetadata.service.util.TestUtils.assertResponseContains;
 
 import java.io.IOException;
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
@@ -45,6 +44,7 @@ import javax.ws.rs.client.WebTarget;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.http.client.HttpResponseException;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInfo;
 import org.openmetadata.schema.api.data.CreateLocation;
@@ -79,6 +79,8 @@ import org.openmetadata.service.util.TestUtils;
 
 @Slf4j
 public class PolicyResourceTest extends EntityResourceTest<Policy, CreatePolicy> {
+  private static final String LOCATION_NAME = "aws-s3";
+  private static Location location;
 
   public PolicyResourceTest() {
     super(
@@ -88,6 +90,12 @@ public class PolicyResourceTest extends EntityResourceTest<Policy, CreatePolicy>
         "policies",
         PolicyResource.FIELDS,
         Entity.ORGANIZATION_POLICY_NAME);
+  }
+
+  @BeforeAll
+  public void setup(TestInfo test) throws IOException, URISyntaxException {
+    super.setup(test);
+    location = createLocation();
   }
 
   public void setupPolicies() throws IOException {
@@ -100,7 +108,7 @@ public class PolicyResourceTest extends EntityResourceTest<Policy, CreatePolicy>
   @Override
   public CreatePolicy createRequest(String name) {
     List<Rule> rules = new ArrayList<>();
-    rules.add(accessControlRule("rule1", List.of(ALL_RESOURCES), List.of(MetadataOperation.EDIT_DESCRIPTION), ALLOW));
+    rules.add(accessControlRule("rule1", List.of("all"), List.of(MetadataOperation.EDIT_DESCRIPTION), ALLOW));
     return createAccessControlPolicyWithRules(name, rules);
   }
 
@@ -161,8 +169,8 @@ public class PolicyResourceTest extends EntityResourceTest<Policy, CreatePolicy>
   @Test
   void post_AccessControlPolicyWithValidRules_200_ok(TestInfo test) throws IOException {
     List<Rule> rules = new ArrayList<>();
-    rules.add(accessControlRule(List.of(ALL_RESOURCES), List.of(MetadataOperation.EDIT_DESCRIPTION), ALLOW));
-    rules.add(accessControlRule(List.of(ALL_RESOURCES), List.of(MetadataOperation.EDIT_TAGS), DENY));
+    rules.add(accessControlRule(List.of("all"), List.of(MetadataOperation.EDIT_DESCRIPTION), ALLOW));
+    rules.add(accessControlRule(List.of("all"), List.of(MetadataOperation.EDIT_TAGS), DENY));
     CreatePolicy create = createAccessControlPolicyWithRules(getEntityName(test), rules);
     createAndCheckEntity(create, ADMIN_AUTH_HEADERS);
   }
@@ -172,7 +180,7 @@ public class PolicyResourceTest extends EntityResourceTest<Policy, CreatePolicy>
     // Adding a rule without operation should be disallowed
     String policyName = getEntityName(test);
     List<Rule> rules = new ArrayList<>();
-    rules.add(accessControlRule(List.of(ALL_RESOURCES), null, ALLOW));
+    rules.add(accessControlRule(List.of("all"), null, ALLOW));
     CreatePolicy create1 = createAccessControlPolicyWithRules(policyName, rules);
     assertResponse(() -> createEntity(create1, ADMIN_AUTH_HEADERS), BAD_REQUEST, "[operations must not be null]");
 
@@ -182,32 +190,6 @@ public class PolicyResourceTest extends EntityResourceTest<Policy, CreatePolicy>
     rules.add(accessControlRule(null, List.of(MetadataOperation.DELETE), ALLOW));
     CreatePolicy create2 = createAccessControlPolicyWithRules(policyName, rules);
     assertResponse(() -> createEntity(create2, ADMIN_AUTH_HEADERS), BAD_REQUEST, "[resources must not be null]");
-  }
-
-  @Test
-  void post_testResourceAndOperationsFiltering(TestInfo test) throws HttpResponseException {
-    String policyName = getEntityName(test);
-    List<Rule> rules = new ArrayList<>();
-
-    // Resources TABLE and TAG are redundant with ALL_RESOURCES
-    List<String> resources = listOf(ALL_RESOURCES, Entity.TABLE, Entity.TAG);
-
-    // Operations VIEW_BASIC, VIEW_QUERIES is redundant with VIEW_ALL
-    // Operations EDIT_TESTS, EDIT_TAGS is redundant with EDIT_ALL
-    List<MetadataOperation> operations =
-        listOf(
-            VIEW_ALL,
-            MetadataOperation.VIEW_BASIC,
-            MetadataOperation.VIEW_QUERIES,
-            EDIT_ALL,
-            MetadataOperation.EDIT_TESTS,
-            MetadataOperation.EDIT_TAGS);
-    rules.add(accessControlRule(resources, operations, ALLOW));
-    CreatePolicy create = createAccessControlPolicyWithRules(policyName, rules);
-    Policy policy = createEntity(create, ADMIN_AUTH_HEADERS);
-
-    assertEquals(listOf(ALL_RESOURCES), policy.getRules().get(0).getResources());
-    assertEquals(listOf(EDIT_ALL, VIEW_ALL), policy.getRules().get(0).getOperations());
   }
 
   @Test
@@ -274,8 +256,7 @@ public class PolicyResourceTest extends EntityResourceTest<Policy, CreatePolicy>
   }
 
   private void validateCondition(String policyName, String condition, String expectedReason) {
-    Rule rule =
-        accessControlRule(List.of(ALL_RESOURCES), List.of(MetadataOperation.ALL), ALLOW).withCondition(condition);
+    Rule rule = accessControlRule(List.of("all"), List.of(MetadataOperation.ALL), ALLOW).withCondition(condition);
     CreatePolicy create = createAccessControlPolicyWithRules(policyName, List.of(rule));
     assertResponseContains(() -> createEntity(create, ADMIN_AUTH_HEADERS), BAD_REQUEST, expectedReason);
     assertResponseContains(() -> validateCondition(condition), BAD_REQUEST, expectedReason);
@@ -291,7 +272,7 @@ public class PolicyResourceTest extends EntityResourceTest<Policy, CreatePolicy>
     ChangeDescription change = getChangeDescription(policy.getVersion());
     fieldUpdated(change, "enabled", true, false);
     policy = patchEntityAndCheck(policy, origJson, ADMIN_AUTH_HEADERS, MINOR_UPDATE, change);
-    Location location = createLocation();
+
     EntityReference locationReference = location.getEntityReference();
 
     // Add new field location
@@ -304,7 +285,7 @@ public class PolicyResourceTest extends EntityResourceTest<Policy, CreatePolicy>
 
   @Test
   void patch_PolicyRules(TestInfo test) throws IOException {
-    Rule rule1 = accessControlRule("rule1", List.of(ALL_RESOURCES), List.of(VIEW_ALL), ALLOW);
+    Rule rule1 = accessControlRule("rule1", List.of("all"), List.of(VIEW_ALL), ALLOW);
     Policy policy = createAndCheckEntity(createRequest(test).withRules(List.of(rule1)), ADMIN_AUTH_HEADERS);
 
     // Change existing rule1 fields
@@ -318,7 +299,7 @@ public class PolicyResourceTest extends EntityResourceTest<Policy, CreatePolicy>
         .withCondition("isOwner()");
     fieldAdded(change, getRuleField(rule1, FIELD_DESCRIPTION), "description");
     fieldUpdated(change, getRuleField(rule1, "effect"), ALLOW, DENY);
-    fieldUpdated(change, getRuleField(rule1, "resources"), List.of(ALL_RESOURCES), List.of("table"));
+    fieldUpdated(change, getRuleField(rule1, "resources"), List.of("all"), List.of("table"));
     fieldUpdated(change, getRuleField(rule1, "operations"), List.of(VIEW_ALL), List.of(EDIT_ALL));
     fieldAdded(change, getRuleField(rule1, "condition"), "isOwner()");
 
@@ -337,8 +318,7 @@ public class PolicyResourceTest extends EntityResourceTest<Policy, CreatePolicy>
 
     // Add a new rule
     origJson = JsonUtils.pojoToJson(policy);
-    Rule newRule =
-        accessControlRule("newRule", List.of(ALL_RESOURCES), List.of(MetadataOperation.EDIT_DESCRIPTION), ALLOW);
+    Rule newRule = accessControlRule("newRule", List.of("all"), List.of(MetadataOperation.EDIT_DESCRIPTION), ALLOW);
     policy.getRules().add(newRule);
     change = getChangeDescription(policy.getVersion());
     fieldAdded(change, "rules", List.of(newRule));
@@ -391,7 +371,7 @@ public class PolicyResourceTest extends EntityResourceTest<Policy, CreatePolicy>
 
     // Create a role with all the policies
     RoleResourceTest roleResourceTest = new RoleResourceTest();
-    CreateRole createRole = roleResourceTest.createRequest(test).withPolicies(EntityUtil.toFQNs(policies));
+    CreateRole createRole = roleResourceTest.createRequest(test).withPolicies(EntityUtil.toEntityReferences(policies));
     Role role = roleResourceTest.createEntity(createRole, ADMIN_AUTH_HEADERS);
 
     // Get each policy and ensure the teams and roles are listed correctly
@@ -440,9 +420,9 @@ public class PolicyResourceTest extends EntityResourceTest<Policy, CreatePolicy>
     TestUtils.get(target, ADMIN_AUTH_HEADERS);
   }
 
-  private Location createLocation() throws HttpResponseException {
+  private static Location createLocation() throws HttpResponseException {
     LocationResourceTest locationResourceTest = new LocationResourceTest();
-    CreateLocation createLocation = locationResourceTest.createRequest("aws-s3", "", "", null);
+    CreateLocation createLocation = locationResourceTest.createRequest(LOCATION_NAME, "", "", null);
     return TestUtils.post(getResource("locations"), createLocation, Location.class, ADMIN_AUTH_HEADERS);
   }
 

@@ -12,7 +12,6 @@
  */
 
 import { Button, Col, Form, Input, Row, Typography } from 'antd';
-import { t } from 'i18next';
 import { cloneDeep, isEqual } from 'lodash';
 import React, { Fragment, useEffect, useState } from 'react';
 import {
@@ -74,7 +73,7 @@ const GlossaryTermReferences = ({
           key="references"
           setShow={() => setIsViewMode(false)}
           showIcon={isViewMode}
-          title={t('label.reference-plural')}>
+          title="References">
           <div className="flex">
             {references.length > 0 ? (
               references.map((ref, i) => (
@@ -97,7 +96,7 @@ const GlossaryTermReferences = ({
               ))
             ) : (
               <Typography.Text type="secondary">
-                {t('message.no-reference-available')}
+                No references available.
               </Typography.Text>
             )}
           </div>
@@ -126,7 +125,7 @@ const GlossaryTermReferences = ({
                 key="references"
                 setShow={() => setIsViewMode(false)}
                 showIcon={isViewMode}
-                title={t('label.reference-plural')}
+                title="References"
                 onAddClick={() => add()}
                 onSave={handleReferencesSave}>
                 <>
@@ -137,7 +136,7 @@ const GlossaryTermReferences = ({
                           className="w-full"
                           {...restField}
                           name={[name, 'name']}>
-                          <Input placeholder={t('label.name')} />
+                          <Input placeholder="Name" />
                         </Form.Item>
                       </Col>
                       <Col span={11}>
@@ -148,10 +147,10 @@ const GlossaryTermReferences = ({
                           rules={[
                             {
                               type: 'url',
-                              message: t('message.endpoint-should-be-valid'),
+                              message: 'Endpoint should be valid URL.',
                             },
                           ]}>
-                          <Input placeholder={t('label.endpoint')} />
+                          <Input placeholder="End point" />
                         </Form.Item>
                       </Col>
                       <Col span={1}>

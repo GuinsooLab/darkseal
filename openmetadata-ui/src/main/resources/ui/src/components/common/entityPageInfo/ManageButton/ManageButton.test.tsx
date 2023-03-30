@@ -129,15 +129,6 @@ describe('Test manage button component', () => {
 
       fireEvent.click(restoreOption);
 
-      const modalBody = await screen.findByTestId('restore-modal-body');
-
-      expect(modalBody).toBeInTheDocument();
-
-      const modalRestoreButton = await screen.findAllByText('label.restore');
-      screen.debug(modalRestoreButton);
-
-      fireEvent.click(modalRestoreButton[1]);
-
       expect(mockOnRestoreEntity).toHaveBeenCalled();
     });
   });

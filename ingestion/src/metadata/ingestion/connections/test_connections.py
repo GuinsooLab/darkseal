@@ -12,18 +12,14 @@
 Classes and methods to handle connection testing when
 creating a service
 """
-import traceback
 from typing import Callable, List
 
 from pydantic import BaseModel
 from sqlalchemy.engine import Engine
 from sqlalchemy.exc import OperationalError
 
-from metadata.profiler.orm.functions.conn_test import ConnTestFn
-from metadata.utils.logger import cli_logger
+from metadata.orm_profiler.orm.functions.conn_test import ConnTestFn
 from metadata.utils.timeout import timeout
-
-logger = cli_logger()
 
 
 class SourceConnectionException(Exception):
@@ -56,63 +52,22 @@ class TestConnectionStep(BaseModel):
 
     function: Callable
     name: str
-    mandatory: bool = True
 
 
-class TestConnectionResult(BaseModel):
-    failed: List[str] = []
-    success: List[str] = []
-    warning: List[str] = []
-
-
-def test_connection_steps(steps: List[TestConnectionStep]) -> TestConnectionResult:
+def test_connection_steps(steps: List[TestConnectionStep]) -> None:
     """
     Run all the function steps and raise any errors
     """
-
-    test_connection_result = TestConnectionResult()
     for step in steps:
         try:
             step.function()
-            test_connection_result.success.append(f"'{step.name}': Pass")
-
         except Exception as exc:
-            logger.debug(traceback.format_exc())
-            logger.warning(f"{step.name}-{exc}")
-            if step.mandatory:
-                test_connection_result.failed.append(
-                    f"'{step.name}': This is a mandatory step and we won't be able to extract necessary metadata"
-                )
-
-            else:
-                test_connection_result.warning.append(
-                    f"'{step.name}': This is a optional and the ingestion will continue to work as expected"
-                )
-
-    return test_connection_result
+            msg = f"Error validating step [{step.name}] due to: {exc}."
+            raise SourceConnectionException(msg) from exc
 
 
-def test_connection_engine(connection: Engine, steps=None) -> TestConnectionResult:
-    try:
-        with connection.connect() as conn:
-            conn.execute(ConnTestFn())
-            if steps:
-                return test_connection_steps(steps)
-    except SourceConnectionException as exc:
-        raise exc
-    except OperationalError as err:
-        msg = f"Connection error for {connection}: {err}. Check the connection details."
-        raise SourceConnectionException(msg) from err
-    except Exception as exc:
-        msg = f"Unknown error connecting with {connection}: {exc}."
-        raise SourceConnectionException(msg) from exc
-
-    return None
-
-
-def test_connection_db_common(
-    connection: Engine, steps=None, timeout_seconds: int = 120
-) -> TestConnectionResult:
+@timeout(seconds=120)
+def test_connection_db_common(connection: Engine) -> None:
     """
     Default implementation is the engine to test.
 
@@ -120,4 +75,12 @@ def test_connection_db_common(
     :param connection: Engine to test
     :return: None or raise an exception if we cannot connect
     """
-    return timeout(timeout_seconds)(test_connection_engine)(connection, steps)
+    try:
+        with connection.connect() as conn:
+            conn.execute(ConnTestFn())
+    except OperationalError as err:
+        msg = f"Connection error for {connection}: {err}. Check the connection details."
+        raise SourceConnectionException(msg) from err
+    except Exception as exc:
+        msg = f"Unknown error connecting with {connection}: {exc}."
+        raise SourceConnectionException(msg) from exc

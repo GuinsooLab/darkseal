@@ -16,9 +16,10 @@ Validate workflow e2e
 import os
 import unittest
 from datetime import datetime, timedelta
+from unittest.mock import patch
 
 import sqlalchemy as sqa
-from sqlalchemy.orm import Session, declarative_base
+from sqlalchemy.orm import declarative_base
 
 from metadata.generated.schema.api.data.createDatabase import CreateDatabaseRequest
 from metadata.generated.schema.api.data.createDatabaseSchema import (
@@ -45,6 +46,8 @@ from metadata.generated.schema.entity.services.databaseService import (
 )
 from metadata.generated.schema.tests.testCase import TestCase
 from metadata.ingestion.ometa.ometa_api import OpenMetadata
+from metadata.interfaces.profiler_protocol import ProfilerInterfaceArgs
+from metadata.interfaces.sqalchemy.sqa_profiler_interface import SQAProfilerInterface
 from metadata.test_suite.api.workflow import TestSuiteWorkflow
 
 test_suite_config = {
@@ -137,14 +140,18 @@ class TestE2EWorkflow(unittest.TestCase):
         database: Database = cls.metadata.create_or_update(
             CreateDatabaseRequest(
                 name="test_suite_database",
-                service=service.fullyQualifiedName,
+                service=cls.metadata.get_entity_reference(
+                    entity=DatabaseService, fqn=service.fullyQualifiedName
+                ),
             )
         )
 
         database_schema: DatabaseSchema = cls.metadata.create_or_update(
             CreateDatabaseSchemaRequest(
                 name="test_suite_database_schema",
-                database=database.fullyQualifiedName,
+                database=cls.metadata.get_entity_reference(
+                    entity=Database, fqn=database.fullyQualifiedName
+                ),
             )
         )
 
@@ -158,12 +165,23 @@ class TestE2EWorkflow(unittest.TestCase):
                     Column(name="nickname", dataType=DataType.STRING),
                     Column(name="age", dataType=DataType.INT),
                 ],
-                databaseSchema=database_schema.fullyQualifiedName,
+                databaseSchema=cls.metadata.get_entity_reference(
+                    entity=DatabaseSchema, fqn=database_schema.fullyQualifiedName
+                ),
             )
         )
-
-        engine = sqa.create_engine(f"sqlite:///{cls.sqlite_conn.config.databaseMode}")
-        session = Session(bind=engine)
+        with patch.object(
+            SQAProfilerInterface, "_convert_table_to_orm_object", return_value=User
+        ):
+            sqa_profiler_interface = SQAProfilerInterface(
+                profiler_interface_args=ProfilerInterfaceArgs(
+                    service_connection_config=cls.sqlite_conn.config,
+                    table_entity=table,
+                    ometa_client=None,
+                )
+            )
+        engine = sqa_profiler_interface.session.get_bind()
+        session = sqa_profiler_interface.session
 
         User.__table__.create(bind=engine)
 
@@ -190,6 +208,8 @@ class TestE2EWorkflow(unittest.TestCase):
             ]
             session.add_all(data)
             session.commit()
+
+        del sqa_profiler_interface
 
     @classmethod
     def tearDownClass(cls) -> None:

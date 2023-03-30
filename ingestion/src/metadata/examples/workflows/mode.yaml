@@ -9,7 +9,6 @@ source:
       type: Mode
   sourceConfig:
     config:
-      type: DashboardMetadata
       chartFilterPattern:
         includes:
           - Gross Margin %

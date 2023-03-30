@@ -33,6 +33,7 @@ from metadata.generated.schema.entity.services.connections.pipeline.gluePipeline
 from metadata.generated.schema.metadataIngestion.workflow import (
     Source as WorkflowSource,
 )
+from metadata.generated.schema.type.entityReference import EntityReference
 from metadata.ingestion.api.source import InvalidSourceException
 from metadata.ingestion.models.pipeline_status import OMetaPipelineStatus
 from metadata.ingestion.source.pipeline.pipeline_service import PipelineServiceSource
@@ -100,7 +101,9 @@ class GluepipelineSource(PipelineServiceSource):
             displayName=pipeline_details[NAME],
             description="",
             tasks=self.get_tasks(pipeline_details),
-            service=self.context.pipeline_service.fullyQualifiedName.__root__,
+            service=EntityReference(
+                id=self.context.pipeline_service.id.__root__, type="pipelineService"
+            ),
         )
         yield pipeline_ev
 

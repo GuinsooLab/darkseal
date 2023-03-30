@@ -15,16 +15,12 @@ import { Modal, Radio, RadioChangeEvent } from 'antd';
 import { AxiosError } from 'axios';
 import { startCase } from 'lodash';
 import React, { ChangeEvent, useCallback, useEffect, useState } from 'react';
-import { useTranslation } from 'react-i18next';
 import { useHistory } from 'react-router-dom';
 import { deleteEntity } from 'rest/miscAPI';
 import { ENTITY_DELETE_STATE } from '../../../constants/entity.constants';
 import { EntityType } from '../../../enums/entity.enum';
 import jsonData from '../../../jsons/en';
-import {
-  getEntityDeleteMessage,
-  Transi18next,
-} from '../../../utils/CommonUtils';
+import { getEntityDeleteMessage } from '../../../utils/CommonUtils';
 import { getTitleCase } from '../../../utils/EntityUtils';
 import { showErrorToast, showSuccessToast } from '../../../utils/ToastUtils';
 import { Button } from '../../buttons/Button/Button';
@@ -45,7 +41,6 @@ const DeleteWidgetModal = ({
   isRecursiveDelete,
   afterDeleteAction,
 }: DeleteWidgetModalProps) => {
-  const { t } = useTranslation();
   const history = useHistory();
   const [entityDeleteState, setEntityDeleteState] =
     useState<typeof ENTITY_DELETE_STATE>(ENTITY_DELETE_STATE);
@@ -56,9 +51,7 @@ const DeleteWidgetModal = ({
   const [isLoading, setIsLoading] = useState(false);
 
   const prepareDeleteMessage = (softDelete = false) => {
-    const softDeleteText = t('message.soft-delete-message-for-entity', {
-      entity: entityName,
-    });
+    const softDeleteText = `Soft deleting will deactivate the ${entityName}. This will disable any discovery, read or write operations on ${entityName}.`;
     const hardDeleteText = getEntityDeleteMessage(getTitleCase(entityType), '');
 
     return softDelete ? softDeleteText : hardDeleteText;
@@ -66,13 +59,13 @@ const DeleteWidgetModal = ({
 
   const DELETE_OPTION = [
     {
-      title: `${t('label.delete')} ${entityType} “${entityName}”`,
+      title: `Delete ${entityType} “${entityName}”`,
       description: `${prepareDeleteMessage(true)} ${softDeleteMessagePostFix}`,
       type: DeleteType.SOFT_DELETE,
       isAllowd: allowSoftDelete,
     },
     {
-      title: `${t('label.permanently-delete')} ${entityType} “${entityName}”`,
+      title: `Permanently Delete ${entityType} “${entityName}”`,
       description: `${
         deleteMessage || prepareDeleteMessage()
       } ${hardDeleteMessagePostFix}`,
@@ -103,7 +96,6 @@ const DeleteWidgetModal = ({
       EntityType.MESSAGING_SERVICE,
       EntityType.PIPELINE_SERVICE,
       EntityType.METADATA_SERVICE,
-      EntityType.OBJECT_STORE_SERVICE,
     ];
 
     if (services.includes((entityType || '') as EntityType)) {
@@ -203,7 +195,7 @@ const DeleteWidgetModal = ({
           theme="primary"
           variant="text"
           onClick={handleOnEntityDeleteCancel}>
-          {t('label.cancel')}
+          Cancel
         </Button>
         {entityDeleteState.loading === 'waiting' ? (
           <Button
@@ -224,7 +216,7 @@ const DeleteWidgetModal = ({
             theme="primary"
             variant="contained"
             onClick={handleOnEntityDeleteConfirm}>
-            {t('label.confirm')}
+            Confirm
           </Button>
         )}
       </div>
@@ -237,9 +229,9 @@ const DeleteWidgetModal = ({
       confirmLoading={isLoading}
       data-testid="delete-modal"
       footer={Footer()}
-      okText={t('label.delete')}
+      okText="Delete"
       open={visible}
-      title={`${t('label.delete')} ${entityName}`}
+      title={`Delete ${entityName}`}
       onCancel={handleOnEntityDeleteCancel}>
       <Radio.Group value={value} onChange={onChange}>
         {DELETE_OPTION.map(
@@ -262,20 +254,16 @@ const DeleteWidgetModal = ({
         )}
       </Radio.Group>
       <div>
-        <div className="m-b-xss">
-          <Transi18next
-            i18nKey="message.type-delete-to-confirm"
-            renderElement={<strong />}
-          />
-        </div>
-
+        <p className="tw-mb-2">
+          Type <strong>DELETE</strong> to confirm
+        </p>
         <input
           autoComplete="off"
           className="tw-form-inputs tw-form-inputs-padding"
           data-testid="confirmation-text-input"
           disabled={entityDeleteState.loading === 'waiting'}
           name="entityName"
-          placeholder={t('label.delete-uppercase')}
+          placeholder="DELETE"
           type="text"
           value={name}
           onChange={handleOnChange}

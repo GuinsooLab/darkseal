@@ -23,17 +23,15 @@ import ServiceConfig from 'components/ServiceConfig/ServiceConfig';
 import { startCase } from 'lodash';
 import { ServicesData, ServicesUpdateRequest, ServiceTypes } from 'Models';
 import React, { useEffect, useState } from 'react';
-import { useTranslation } from 'react-i18next';
 import { useParams } from 'react-router-dom';
 import { getServiceByFQN, updateService } from 'rest/serviceAPI';
-import { getEntityName } from 'utils/EntityUtils';
 import { GlobalSettingsMenuCategory } from '../../constants/GlobalSettings.constants';
 import { addServiceGuide } from '../../constants/service-guide.constant';
 import { OPENMETADATA } from '../../constants/Services.constant';
 import { ServiceCategory } from '../../enums/service.enum';
 import { ConfigData, ServicesType } from '../../interface/service.interface';
 import jsonData from '../../jsons/en';
-import { getEntityMissingError } from '../../utils/CommonUtils';
+import { getEntityMissingError, getEntityName } from '../../utils/CommonUtils';
 import { getPathByServiceFQN, getSettingPath } from '../../utils/RouterUtils';
 import {
   getServiceRouteFromServiceType,
@@ -42,7 +40,6 @@ import {
 import { showErrorToast } from '../../utils/ToastUtils';
 
 function EditConnectionFormPage() {
-  const { t } = useTranslation();
   const { serviceFQN, serviceCategory } = useParams() as Record<string, string>;
   const [isLoading, setIsloading] = useState(true);
   const [isError, setIsError] = useState(false);
@@ -121,7 +118,7 @@ function EditConnectionFormPage() {
               url: getPathByServiceFQN(serviceCategory, serviceFQN),
             },
             {
-              name: t('label.edit-entity', { entity: t('label.connection') }),
+              name: 'Edit Connection',
               url: '',
               activeTitle: true,
             },
@@ -151,16 +148,12 @@ function EditConnectionFormPage() {
         {getEntityMissingError(serviceCategory, serviceFQN)}
       </ErrorPlaceHolder>
     ) : (
-      <PageLayoutV1
-        center
-        pageTitle={t('label.edit-entity', { entity: t('label.connection') })}>
+      <PageLayoutV1 center>
         <Space direction="vertical" size="middle">
           <TitleBreadcrumb titleLinks={slashedBreadcrumb} />
           <div className="form-container">
             <Typography.Title level={5}>
-              {t('message.edit-service-entity-connection', {
-                entity: serviceFQN,
-              })}
+              {`Edit ${serviceFQN} Service Connection`}
             </Typography.Title>
             <ServiceConfig
               data={serviceDetails as ServicesData}

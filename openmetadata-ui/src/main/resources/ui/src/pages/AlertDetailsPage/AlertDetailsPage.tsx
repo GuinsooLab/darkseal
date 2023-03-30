@@ -14,21 +14,19 @@
 import { Card } from 'antd';
 import { AlertDetailsComponent } from 'components/Alerts/AlertsDetails/AlertDetails.component';
 import DeleteWidgetModal from 'components/common/DeleteWidget/DeleteWidgetModal';
-import {
-  EventFilterRule,
-  EventSubscription,
-} from 'generated/events/eventSubscription';
 import { trim } from 'lodash';
 import React, { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useParams } from 'react-router-dom';
-import { getAlertsFromId } from 'rest/alertsAPI';
-import { getEntityName } from 'utils/EntityUtils';
+import { getAlertActionForAlerts, getAlertsFromId } from 'rest/alertsAPI';
 import {
   GlobalSettingOptions,
   GlobalSettingsMenuCategory,
 } from '../../constants/GlobalSettings.constants';
 import { EntityType } from '../../enums/entity.enum';
+import { AlertAction } from '../../generated/alerts/alertAction';
+import { AlertFilterRule, Alerts } from '../../generated/alerts/alerts';
+import { getEntityName } from '../../utils/CommonUtils';
 import { getSettingPath } from '../../utils/RouterUtils';
 import { showErrorToast } from '../../utils/ToastUtils';
 
@@ -37,17 +35,19 @@ const AlertDetailsPage = () => {
 
   const { fqn: id } = useParams<{ fqn: string }>();
   const [loadingCount, setLoadingCount] = useState(0);
-  const [alerts, setAlerts] = useState<EventSubscription>();
+  const [alerts, setAlerts] = useState<Alerts>();
+  const [alertActions, setAlertActions] = useState<AlertAction[]>([]);
   const [showDeleteModel, setShowDeleteModel] = useState(false);
 
   const fetchAlert = async () => {
     try {
       setLoadingCount((count) => count + 1);
 
-      const response: EventSubscription = await getAlertsFromId(id);
+      const response: Alerts = await getAlertsFromId(id);
+      const alertActions = await getAlertActionForAlerts(response.id);
 
       const requestFilteringRules =
-        response.filteringRules.rules?.map((curr) => {
+        response.filteringRules?.map((curr) => {
           const [fullyQualifiedName, filterRule] =
             curr.condition?.split('(') ?? [];
 
@@ -59,16 +59,11 @@ const AlertDetailsPage = () => {
               .replace(new RegExp(`\\)`), '')
               .split(',')
               .map(trim),
-          } as unknown as EventFilterRule;
+          } as unknown as AlertFilterRule;
         }) ?? [];
 
-      setAlerts({
-        ...response,
-        filteringRules: {
-          ...response.filteringRules,
-          rules: requestFilteringRules,
-        },
-      });
+      setAlerts({ ...response, filteringRules: requestFilteringRules });
+      setAlertActions(alertActions);
     } catch {
       showErrorToast(
         t('server.entity-fetch-error', { entity: t('label.alert') }),
@@ -107,6 +102,7 @@ const AlertDetailsPage = () => {
       {loadingCount > 0 && <Card loading={loadingCount > 0} />}
       {alerts && (
         <AlertDetailsComponent
+          alertActions={alertActions}
           alerts={alerts}
           breadcrumb={breadcrumb}
           onDelete={() => setShowDeleteModel(true)}

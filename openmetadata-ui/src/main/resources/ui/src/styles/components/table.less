@@ -21,6 +21,8 @@
   }
   .ant-table-bordered {
     table {
+      border: 1px solid #dde3ea;
+
       tbody {
         tr {
           td {
@@ -50,23 +52,8 @@
         }
       }
     }
-    .ant-table-container {
-      border: 1px solid @border-color;
-      border-radius: 4px;
-      overflow: hidden;
-
-      .ant-table-content > table {
-        border-top: none;
-        tbody > tr {
-          td {
-            border-right: none;
-          }
-
-          &:last-child td {
-            border-bottom: none;
-          }
-        }
-      }
+    .ant-table-container > .ant-table-content > table > tbody > tr > td {
+      border-right: none;
     }
   }
 }
@@ -85,18 +72,4 @@
 
 .ant-table.ant-table-small .ant-table-tbody > tr > td:first-child {
   padding-left: 16px;
-}
-
-.vertical-top-align-td {
-  .ant-table-cell {
-    vertical-align: top;
-  }
-}
-
-.drop-over-background {
-  .drop-over-upward {
-    td {
-      background: @active-color;
-    }
-  }
 }

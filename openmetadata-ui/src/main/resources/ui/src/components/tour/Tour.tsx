@@ -35,7 +35,7 @@ const Tour = ({ steps }: { steps: TourSteps[] }) => {
           disableKeyboardNavigation
           showCloseButton
           showNumber
-          accentColor="#004AB3FF"
+          accentColor="#004AB3"
           inViewThreshold={200}
           lastStepNextButton={
             <button

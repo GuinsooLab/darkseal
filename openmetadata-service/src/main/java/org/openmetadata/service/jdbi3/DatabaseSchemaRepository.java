@@ -32,7 +32,7 @@ import org.openmetadata.service.util.EntityUtil.Fields;
 import org.openmetadata.service.util.FullyQualifiedName;
 
 public class DatabaseSchemaRepository extends EntityRepository<DatabaseSchema> {
-  private static final String DATABASE_SCHEMA_UPDATE_FIELDS = "owner,tags";
+  private static final String DATABASE_SCHEMA_UPDATE_FIELDS = "owner";
   private static final String DATABASE_SCHEMA_PATCH_FIELDS = DATABASE_SCHEMA_UPDATE_FIELDS;
 
   public DatabaseSchemaRepository(CollectionDAO dao) {
@@ -59,13 +59,16 @@ public class DatabaseSchemaRepository extends EntityRepository<DatabaseSchema> {
 
   @Override
   public void storeEntity(DatabaseSchema schema, boolean update) throws IOException {
-    // Relationships and fields such as service are derived and not stored as part of json
+    // Relationships and fields such as href are derived and not stored as part of json
+    EntityReference owner = schema.getOwner();
     EntityReference service = schema.getService();
-    schema.withService(null);
+
+    // Don't store owner, database, href and tags as JSON. Build it on the fly based on relationships
+    schema.withOwner(null).withService(null).withHref(null);
 
     store(schema, update);
     // Restore the relationships
-    schema.withService(service);
+    schema.withOwner(owner).withService(service);
   }
 
   @Override
@@ -74,8 +77,6 @@ public class DatabaseSchemaRepository extends EntityRepository<DatabaseSchema> {
     addRelationship(
         database.getId(), schema.getId(), database.getType(), Entity.DATABASE_SCHEMA, Relationship.CONTAINS);
     storeOwner(schema, schema.getOwner());
-    // Add tag to databaseSchema relationship
-    applyTags(schema);
   }
 
   private List<EntityReference> getTables(DatabaseSchema schema) throws IOException {
@@ -97,7 +98,7 @@ public class DatabaseSchemaRepository extends EntityRepository<DatabaseSchema> {
 
   private void setDefaultFields(DatabaseSchema schema) throws IOException {
     EntityReference databaseRef = getContainer(schema.getId());
-    Database database = Entity.getEntity(databaseRef, "", Include.ALL);
+    Database database = Entity.getEntity(databaseRef, Fields.EMPTY_FIELDS, Include.ALL);
     schema.withDatabase(databaseRef).withService(database.getService());
   }
 

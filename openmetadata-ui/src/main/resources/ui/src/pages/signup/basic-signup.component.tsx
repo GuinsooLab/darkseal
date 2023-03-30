@@ -16,7 +16,6 @@ import { useAuthContext } from 'components/authentication/auth-provider/AuthProv
 import { useBasicAuth } from 'components/authentication/auth-provider/basic-auth.provider';
 import { isEmpty } from 'lodash';
 import React, { useMemo } from 'react';
-import { useTranslation } from 'react-i18next';
 import { useHistory } from 'react-router-dom';
 import loginBG from '../../assets/img/login-bg.png';
 import { ROUTES } from '../../constants/constants';
@@ -36,7 +35,6 @@ interface SignUpFormData {
 }
 
 const BasicSignUp = () => {
-  const { t } = useTranslation();
   const { authConfig } = useAuthContext();
   const { handleRegister } = useBasicAuth();
   const history = useHistory();
@@ -67,17 +65,11 @@ const BasicSignUp = () => {
   const handleLogin = () => history.push(ROUTES.SIGNIN);
 
   const validationMessages = {
-    required: t('message.field-text-is-required', {
-      fieldText: '${label}',
-    }),
+    required: '${label} is required',
     types: {
-      email: t('message.entity-is-not-valid', {
-        entity: '${label}',
-      }),
+      email: '${label} is not valid',
     },
-    whitespace: t('message.entity-not-contain-whitespace', {
-      entity: '${label}',
-    }),
+    whitespace: '${label} should not contain white space',
   };
 
   return (
@@ -85,9 +77,10 @@ const BasicSignUp = () => {
       <div className="d-flex bg-body-main flex-grow" data-testid="signin-page">
         <div className="w-5/12">
           <div className="mt-4 text-center flex-center flex-col">
-            <SVGIcons alt="Darkseal Logo" icon={Icons.LOGO} width="60" />
-            <Typography.Text className="mt-8 w-80 text-base font-medium text-grey-muted">
-              {t('message.om-description')}
+            <SVGIcons alt="Logo" icon={Icons.LOGO} width="40" />
+            <Typography.Text className="mt-8 w-80 text-xl font-medium text-grey-muted">
+              Centralized Metadata Store, Discover, Collaborate and get your
+              Data Right
             </Typography.Text>
 
             {isAuthProviderBasic ? (
@@ -103,41 +96,25 @@ const BasicSignUp = () => {
                         validateMessages={validationMessages}
                         onFinish={handleSubmit}>
                         <Form.Item
-                          label={t('label.entity-name', {
-                            entity: t('label.first'),
-                          })}
+                          label="First Name"
                           name="firstName"
                           rules={[{ whitespace: true, required: true }]}>
-                          <Input
-                            placeholder={t('label.enter-entity-name', {
-                              entity: t('label.first-lowercase'),
-                            })}
-                          />
+                          <Input placeholder="Enter first name" />
                         </Form.Item>
                         <Form.Item
-                          label={t('label.entity-name', {
-                            entity: t('label.last'),
-                          })}
+                          label="Last Name"
                           name="lastName"
                           rules={[{ whitespace: true, required: true }]}>
-                          <Input
-                            placeholder={t('label.enter-entity', {
-                              entity: t('label.last-name-lowercase'),
-                            })}
-                          />
+                          <Input placeholder="Enter last name" />
                         </Form.Item>
                         <Form.Item
-                          label={t('label.email')}
+                          label="Email"
                           name="email"
                           rules={[{ type: 'email', required: true }]}>
-                          <Input
-                            placeholder={t('label.enter-entity', {
-                              entity: t('label.email-lowercase'),
-                            })}
-                          />
+                          <Input placeholder="Enter email" />
                         </Form.Item>
                         <Form.Item
-                          label={t('label.password')}
+                          label="Password"
                           name="password"
                           rules={[
                             {
@@ -148,28 +125,22 @@ const BasicSignUp = () => {
                               message: passwordErrorMessage,
                             },
                           ]}>
-                          <Input.Password
-                            placeholder={t('label.enter-entity', {
-                              entity: t('label.password-lowercase'),
-                            })}
-                          />
+                          <Input.Password placeholder="Enter password" />
                         </Form.Item>
                         <Form.Item
-                          label={t('label.password-type', {
-                            type: t('label.confirm'),
-                          })}
+                          label="Confirm Password"
                           name="confirmPassword"
                           rules={[
                             {
                               validator: (_, value) => {
                                 if (isEmpty(password)) {
                                   return Promise.reject(
-                                    t('label.please-password-type-first')
+                                    'Please type password first'
                                   );
                                 }
                                 if (value !== password) {
                                   return Promise.reject(
-                                    t('label.password-not-match')
+                                    "Password doesn't match"
                                   );
                                 }
 
@@ -177,36 +148,30 @@ const BasicSignUp = () => {
                               },
                             },
                           ]}>
-                          <Input.Password
-                            placeholder={t('label.confirm-password')}
-                          />
+                          <Input.Password placeholder="Confirm your password" />
                         </Form.Item>
 
                         <Button
                           className="w-full"
                           htmlType="submit"
                           type="primary">
-                          {t('label.create-entity', {
-                            entity: t('label.account'),
-                          })}
+                          Create Account
                         </Button>
 
                         <Divider className="w-min-0  mt-8 mb-12 justify-center">
-                          <Typography.Text type="secondary">
-                            {t('label.or-lowercase')}
-                          </Typography.Text>
+                          <Typography.Text type="secondary">or</Typography.Text>
                         </Divider>
 
                         <div className="mt-4 d-flex flex-center">
                           <Typography.Text className="mr-4">
-                            {t('message.already-a-user')}
+                            Already a user?
                           </Typography.Text>
                           <Button
                             ghost
                             data-testid="login"
                             type="link"
                             onClick={handleLogin}>
-                            {t('label.login')}
+                            Login
                           </Button>
                         </div>
                       </Form>

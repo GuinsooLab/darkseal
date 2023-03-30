@@ -35,7 +35,7 @@ class OMetaUserMixin:
     client: REST
 
     email_search = (
-        "/search/query?q=email.keyword:{email}&from={from_}&size={size}&index="
+        "/search/query?q=email:{email}&from={from_}&size={size}&index="
         + ES_INDEX_MAP[User.__name__]
     )
 
@@ -44,8 +44,7 @@ class OMetaUserMixin:
         self,
         email: Optional[str],
         from_count: int = 0,
-        size: int = 1,
-        fields: Optional[list] = None,
+        size: int = 10,
     ) -> Optional[User]:
         """
         GET user entity by name
@@ -63,7 +62,7 @@ class OMetaUserMixin:
 
             try:
                 entity_list = self._search_es_entity(
-                    entity_type=User, query_string=query_string, fields=fields
+                    entity_type=User, query_string=query_string
                 )
                 for user in entity_list or []:
                     return user

@@ -208,6 +208,7 @@
     "name",
     "pipelineType",
     "sourceConfig",
+    "openMetadataServerConnection",
     "airflowConfig"
   ],
   "additionalProperties": false

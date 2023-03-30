@@ -1,4 +1,4 @@
-#  Copyright 2021 Collate
+#  Copyright 2021 Collate pylint: disable=too-many-lines
 #  Licensed under the Apache License, Version 2.0 (the "License");
 #  you may not use this file except in compliance with the License.
 #  You may obtain a copy of the License at
@@ -21,7 +21,6 @@ from typing import Any, Dict, Iterable, List, Union
 from pydantic import ValidationError
 
 from metadata.generated.schema.api.data.createChart import CreateChartRequest
-from metadata.generated.schema.api.data.createContainer import CreateContainerRequest
 from metadata.generated.schema.api.data.createDashboard import CreateDashboardRequest
 from metadata.generated.schema.api.data.createDatabase import CreateDatabaseRequest
 from metadata.generated.schema.api.data.createDatabaseSchema import (
@@ -44,7 +43,6 @@ from metadata.generated.schema.api.teams.createTeam import CreateTeamRequest
 from metadata.generated.schema.api.teams.createUser import CreateUserRequest
 from metadata.generated.schema.api.tests.createTestCase import CreateTestCaseRequest
 from metadata.generated.schema.api.tests.createTestSuite import CreateTestSuiteRequest
-from metadata.generated.schema.entity.data.container import Container
 from metadata.generated.schema.entity.data.dashboard import Dashboard
 from metadata.generated.schema.entity.data.database import Database
 from metadata.generated.schema.entity.data.databaseSchema import DatabaseSchema
@@ -73,9 +71,6 @@ from metadata.generated.schema.entity.services.dashboardService import Dashboard
 from metadata.generated.schema.entity.services.databaseService import DatabaseService
 from metadata.generated.schema.entity.services.messagingService import MessagingService
 from metadata.generated.schema.entity.services.mlmodelService import MlModelService
-from metadata.generated.schema.entity.services.objectstoreService import (
-    ObjectStoreService,
-)
 from metadata.generated.schema.entity.services.pipelineService import PipelineService
 from metadata.generated.schema.entity.services.storageService import StorageService
 from metadata.generated.schema.entity.teams.team import Team
@@ -85,12 +80,13 @@ from metadata.generated.schema.metadataIngestion.workflow import (
 )
 from metadata.generated.schema.tests.basic import TestCaseResult, TestResultValue
 from metadata.generated.schema.tests.testCase import TestCase, TestCaseParameterValue
+from metadata.generated.schema.tests.testDefinition import TestDefinition
 from metadata.generated.schema.tests.testSuite import TestSuite
 from metadata.generated.schema.type.entityLineage import EntitiesEdge, LineageDetails
 from metadata.generated.schema.type.entityReference import EntityReference
 from metadata.generated.schema.type.schema import Topic
 from metadata.ingestion.api.common import Entity
-from metadata.ingestion.api.source import InvalidSourceException, Source
+from metadata.ingestion.api.source import InvalidSourceException, Source, SourceStatus
 from metadata.ingestion.models.pipeline_status import OMetaPipelineStatus
 from metadata.ingestion.models.profile_data import OMetaTableProfileSampleData
 from metadata.ingestion.models.tests_data import (
@@ -99,6 +95,7 @@ from metadata.ingestion.models.tests_data import (
     OMetaTestSuiteSample,
 )
 from metadata.ingestion.models.user import OMetaUserProfile
+from metadata.ingestion.ometa.client_utils import get_chart_entities_from_id
 from metadata.ingestion.ometa.ometa_api import OpenMetadata
 from metadata.ingestion.source.database.database_service import TableLocationLink
 from metadata.parsers.schema_parsers import (
@@ -170,17 +167,33 @@ def get_table_key(row: Dict[str, Any]) -> Union[TableKey, None]:
     return TableKey(schema=row["schema"], table_name=row["table_name"])
 
 
+class SampleDataSourceStatus(SourceStatus):
+    success: List[str] = []
+    failures: List[str] = []
+    warnings: List[str] = []
+
+    def scanned(  # pylint: disable=arguments-differ
+        self, entity_type: str, entity_name: str
+    ) -> None:
+        self.success.append(entity_name)
+        logger.info(f"{entity_type} Scanned: {entity_name}")
+
+    def filtered(self, entity_type: str, entity_name: str, err: str) -> None:
+        self.warnings.append(entity_name)
+        logger.warning(f"Dropped {entity_type} {entity_type} due to {err}")
+
+
 class SampleDataSource(
     Source[Entity]
-):  # pylint: disable=too-many-instance-attributes,too-many-public-methods,disable=too-many-lines,
+):  # pylint: disable=too-many-instance-attributes,too-many-public-methods
     """
     Loads JSON data and prepares the required
     python objects to be sent to the Sink.
     """
 
     def __init__(self, config: WorkflowSource, metadata_config: OpenMetadataConnection):
-        # pylint: disable=too-many-statements
         super().__init__()
+        self.status = SampleDataSourceStatus()
         self.config = config
         self.service_connection = config.serviceConnection.__root__.config
         self.metadata_config = metadata_config
@@ -389,20 +402,6 @@ class SampleDataSource(
             entity=MlModelService,
             config=WorkflowSource(**self.model_service_json),
         )
-
-        self.object_service_json = json.load(
-            open(  # pylint: disable=consider-using-with
-                sample_data_folder + "/objectcontainers/service.json",
-                "r",
-                encoding="utf-8",
-            )
-        )
-
-        self.object_store_service = self.metadata.get_service_or_create(
-            entity=ObjectStoreService,
-            config=WorkflowSource(**self.object_service_json),
-        )
-
         self.models = json.load(
             open(  # pylint: disable=consider-using-with
                 sample_data_folder + "/models/models.json",
@@ -410,15 +409,6 @@ class SampleDataSource(
                 encoding="utf-8",
             )
         )
-
-        self.containers = json.load(
-            open(  # pylint: disable=consider-using-with
-                sample_data_folder + "/objectcontainers/containers.json",
-                "r",
-                encoding="utf-8",
-            )
-        )
-
         self.user_entity = {}
         self.table_tests = json.load(
             open(  # pylint: disable=consider-using-with
@@ -483,7 +473,6 @@ class SampleDataSource(
         yield from self.ingest_lineage()
         yield from self.ingest_pipeline_status()
         yield from self.ingest_mlmodels()
-        yield from self.ingest_containers()
         yield from self.ingest_profiles()
         yield from self.ingest_test_suite()
         yield from self.ingest_test_case()
@@ -539,7 +528,9 @@ class SampleDataSource(
         db = CreateDatabaseRequest(
             name=self.database["name"],
             description=self.database["description"],
-            service=self.database_service.fullyQualifiedName,
+            service=EntityReference(
+                id=self.database_service.id.__root__, type="databaseService"
+            ),
         )
 
         yield db
@@ -557,7 +548,7 @@ class SampleDataSource(
         schema = CreateDatabaseSchemaRequest(
             name=self.database_schema["name"],
             description=self.database_schema["description"],
-            database=database_object.fullyQualifiedName,
+            database=EntityReference(id=database_object.id, type="database"),
         )
         yield schema
 
@@ -578,11 +569,14 @@ class SampleDataSource(
                 name=table["name"],
                 description=table["description"],
                 columns=table["columns"],
-                databaseSchema=database_schema_object.fullyQualifiedName,
+                databaseSchema=EntityReference(
+                    id=database_schema_object.id, type="databaseSchema"
+                ),
                 tableConstraints=table.get("tableConstraints"),
                 tableType=table["tableType"],
             )
-            self.status.scanned(f"Table Scanned: {table_request.name.__root__}")
+
+            self.status.scanned("table", table_request.name.__root__)
             yield table_request
 
             location = CreateLocationRequest(
@@ -591,7 +585,7 @@ class SampleDataSource(
                     id=self.glue_storage_service.id, type="storageService"
                 ),
             )
-            self.status.scanned(f"Location Scanned: {location.name}")
+            self.status.scanned("location", location.name)
             yield location
 
             table_fqn = fqn.build(
@@ -621,7 +615,9 @@ class SampleDataSource(
         db = CreateDatabaseRequest(
             name=self.database["name"],
             description=self.database["description"],
-            service=self.database_service.fullyQualifiedName.__root__,
+            service=EntityReference(
+                id=self.database_service.id.__root__, type="databaseService"
+            ),
         )
         yield db
 
@@ -639,7 +635,7 @@ class SampleDataSource(
         schema = CreateDatabaseSchemaRequest(
             name=self.database_schema["name"],
             description=self.database_schema["description"],
-            database=database_object.fullyQualifiedName,
+            database=EntityReference(id=database_object.id, type="database"),
         )
         yield schema
 
@@ -663,13 +659,15 @@ class SampleDataSource(
                 name=table["name"],
                 description=table["description"],
                 columns=table["columns"],
-                databaseSchema=database_schema_object.fullyQualifiedName,
+                databaseSchema=EntityReference(
+                    id=database_schema_object.id, type="databaseSchema"
+                ),
                 tableType=table["tableType"],
                 tableConstraints=table.get("tableConstraints"),
                 tags=table["tags"],
             )
 
-            self.status.scanned(f"Table Scanned: {table_and_db.name}")
+            self.status.scanned("table", table_and_db.name)
             yield table_and_db
 
     def ingest_topics(self) -> Iterable[CreateTopicRequest]:
@@ -688,7 +686,9 @@ class SampleDataSource(
                 replicationFactor=topic["replicationFactor"],
                 maximumMessageSize=topic["maximumMessageSize"],
                 cleanupPolicies=topic["cleanupPolicies"],
-                service=self.kafka_service.fullyQualifiedName,
+                service=EntityReference(
+                    id=self.kafka_service.id, type="messagingService"
+                ),
             )
 
             if "schemaType" in topic:
@@ -706,7 +706,7 @@ class SampleDataSource(
                     schemaFields=schema_fields,
                 )
 
-            self.status.scanned(f"Topic Scanned: {create_topic.name.__root__}")
+            self.status.scanned("topic", create_topic.name.__root__)
             yield create_topic
 
     def ingest_charts(self) -> Iterable[CreateChartRequest]:
@@ -718,9 +718,11 @@ class SampleDataSource(
                     description=chart["description"],
                     chartType=get_standard_chart_type(chart["chartType"]).value,
                     chartUrl=chart["chartUrl"],
-                    service=self.dashboard_service.fullyQualifiedName,
+                    service=EntityReference(
+                        id=self.dashboard_service.id, type="dashboardService"
+                    ),
                 )
-                self.status.scanned(f"Chart Scanned: {chart_ev.name.__root__}")
+                self.status.scanned("chart", chart_ev.name)
                 yield chart_ev
             except ValidationError as err:
                 logger.debug(traceback.format_exc())
@@ -733,10 +735,16 @@ class SampleDataSource(
                 displayName=dashboard["displayName"],
                 description=dashboard["description"],
                 dashboardUrl=dashboard["dashboardUrl"],
-                charts=dashboard["charts"],
-                service=self.dashboard_service.fullyQualifiedName,
+                charts=get_chart_entities_from_id(
+                    dashboard["charts"],
+                    self.metadata,
+                    self.dashboard_service.name.__root__,
+                ),
+                service=EntityReference(
+                    id=self.dashboard_service.id, type="dashboardService"
+                ),
             )
-            self.status.scanned(f"Dashboard Scanned: {dashboard_ev.name.__root__}")
+            self.status.scanned("dashboard", dashboard_ev.name.__root__)
             yield dashboard_ev
 
     def ingest_pipelines(self) -> Iterable[Pipeline]:
@@ -747,7 +755,9 @@ class SampleDataSource(
                 description=pipeline["description"],
                 pipelineUrl=pipeline["pipelineUrl"],
                 tasks=pipeline["tasks"],
-                service=self.pipeline_service.fullyQualifiedName,
+                service=EntityReference(
+                    id=self.pipeline_service.id, type="pipelineService"
+                ),
             )
             yield pipeline_ev
 
@@ -829,12 +839,14 @@ class SampleDataSource(
                         f"Cannot find {mlmodel_fqn} in Sample Dashboards"
                     )
 
+                dashboard_id = str(dashboard.id.__root__)
+
                 model_ev = CreateMlModelRequest(
                     name=model["name"],
                     displayName=model["displayName"],
                     description=model["description"],
                     algorithm=model["algorithm"],
-                    dashboard=dashboard.fullyQualifiedName.__root__,
+                    dashboard=EntityReference(id=dashboard_id, type="dashboard"),
                     mlStore=MlStore(
                         storage=model["mlStore"]["storage"],
                         imageRepository=model["mlStore"]["imageRepository"],
@@ -848,51 +860,15 @@ class SampleDataSource(
                         MlHyperParameter(name=param["name"], value=param["value"])
                         for param in model.get("mlHyperParameters", [])
                     ],
-                    service=self.model_service.fullyQualifiedName,
+                    service=EntityReference(
+                        id=self.model_service.id,
+                        type="mlmodelService",
+                    ),
                 )
                 yield model_ev
             except Exception as exc:
                 logger.debug(traceback.format_exc())
                 logger.warning(f"Error ingesting MlModel [{model}]: {exc}")
-
-    def ingest_containers(self) -> Iterable[CreateContainerRequest]:
-        """
-        Convert sample containers data into a Container Entity
-        to feed the metastore
-        """
-
-        for container in self.containers:
-            try:
-                # Fetch linked dashboard ID from name
-                parent_container_fqn = container.get("parent")
-                parent_container = None
-                if parent_container_fqn:
-                    parent_container = self.metadata.get_by_name(
-                        entity=Container, fqn=parent_container_fqn
-                    )
-                    if not parent_container:
-                        raise InvalidSampleDataException(
-                            f"Cannot find {parent_container_fqn} in Sample Containers"
-                        )
-
-                container_request = CreateContainerRequest(
-                    name=container["name"],
-                    displayName=container["displayName"],
-                    description=container["description"],
-                    parent=EntityReference(id=parent_container.id, type="container")
-                    if parent_container_fqn
-                    else None,
-                    prefix=container["prefix"],
-                    dataModel=container.get("dataModel"),
-                    numberOfObjects=container.get("numberOfObjects"),
-                    size=container.get("size"),
-                    fileFormats=container.get("fileFormats"),
-                    service=self.object_store_service.fullyQualifiedName,
-                )
-                yield container_request
-            except Exception as exc:
-                logger.debug(traceback.format_exc())
-                logger.warning(f"Error ingesting Container [{container}]: {exc}")
 
     def ingest_users(self) -> Iterable[OMetaUserProfile]:
         """
@@ -910,13 +886,13 @@ class SampleDataSource(
                 ]
                 if not self.list_policies:
                     self.list_policies = self.metadata.list_entities(entity=Policy)
-                    role_name = self.list_policies.entities[0].name
+                    role_ref_id = self.list_policies.entities[0].id.__root__
                 roles = (
                     [
                         CreateRoleRequest(
                             name=role,
                             description=f"This is {role} description.",
-                            policies=[role_name],
+                            policies=[EntityReference(id=role_ref_id, type="policies")],
                         )
                         for role in user["roles"]
                     ]
@@ -999,9 +975,18 @@ class SampleDataSource(
                     test_case=CreateTestCaseRequest(
                         name=test_case["name"],
                         description=test_case["description"],
-                        testDefinition=test_case["testDefinitionName"],
+                        testDefinition=EntityReference(
+                            id=self.metadata.get_by_name(
+                                fqn=test_case["testDefinitionName"],
+                                entity=TestDefinition,
+                            ).id.__root__,
+                            type="testDefinition",
+                        ),
                         entityLink=test_case["entityLink"],
-                        testSuite=suite.fullyQualifiedName.__root__,
+                        testSuite=EntityReference(
+                            id=suite.id.__root__,
+                            type="testSuite",
+                        ),
                         parameterValues=[
                             TestCaseParameterValue(**param_values)
                             for param_values in test_case["parameterValues"]
@@ -1036,6 +1021,9 @@ class SampleDataSource(
 
     def close(self):
         pass
+
+    def get_status(self):
+        return self.status
 
     def test_connection(self) -> None:
         pass

@@ -35,7 +35,6 @@ import {
   patchTeamDetail,
 } from 'rest/teamsAPI';
 import { getUsers, updateUserDetail } from 'rest/userAPI';
-import { getEntityName } from 'utils/EntityUtils';
 import AppState from '../../AppState';
 import {
   INITIAL_PAGING_VALUE,
@@ -58,6 +57,7 @@ import {
   formatUsersResponse,
   SearchEntityHits,
 } from '../../utils/APIUtils';
+import { getEntityName } from '../../utils/CommonUtils';
 import { DEFAULT_ENTITY_PERMISSION } from '../../utils/PermissionsUtils';
 import { getSettingPath, getTeamsWithFqnPath } from '../../utils/RouterUtils';
 import { showErrorToast, showSuccessToast } from '../../utils/ToastUtils';
@@ -148,7 +148,7 @@ const TeamsPage = () => {
 
     try {
       const { data } = await getTeams(
-        ['defaultRoles', 'userCount', 'childrenCount', 'owns', 'parents'],
+        ['defaultRoles', 'userCount', 'childrenCount', 'owns'],
         {
           parentTeam: parentTeam ?? 'organization',
           include: 'all',
@@ -271,7 +271,7 @@ const TeamsPage = () => {
       showErrorToast(
         error as AxiosError,
         t('message.entity-creation-error', {
-          entity: t('label.team'),
+          entity: 'Team',
         })
       );
     } finally {
@@ -326,7 +326,7 @@ const TeamsPage = () => {
           showErrorToast(
             error,
             t('server.entity-updating-error', {
-              entity: t('label.team'),
+              entity: 'Team',
             })
           );
           reject();
@@ -407,7 +407,7 @@ const TeamsPage = () => {
           showErrorToast(
             error,
             t('server.entity-updating-error', {
-              entity: t('label.team'),
+              entity: 'Team',
             })
           );
         })
@@ -445,7 +445,7 @@ const TeamsPage = () => {
           showErrorToast(
             error,
             t('server.entity-updating-error', {
-              entity: t('label.team'),
+              entity: 'Team',
             })
           );
         })
@@ -532,7 +532,7 @@ const TeamsPage = () => {
         showErrorToast(
           err,
           t('server.entity-fetch-error', {
-            entity: t('label.team-asset-plural'),
+            entity: 'Team Assets',
           })
         );
       });
@@ -611,9 +611,7 @@ const TeamsPage = () => {
 
       {isAddingUsers && (
         <AddUsersModalV1
-          header={t('message.adding-new-user-to-entity', {
-            entity: getEntityName(selectedTeam),
-          })}
+          header={`Adding new users to ${getEntityName(selectedTeam)}`}
           isVisible={isAddingUsers}
           list={selectedTeam.users || []}
           onCancel={() => setIsAddingUsers(false)}

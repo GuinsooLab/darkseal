@@ -23,13 +23,13 @@ import React from 'react';
 import TagsViewer from './tags-viewer';
 
 const tags = [
-  { tagFQN: `tags.tag 1`, source: 'Classification' },
-  { tagFQN: `tags.tag 2`, source: 'Classification' },
+  { tagFQN: `tags.tag 1`, source: 'Tag' },
+  { tagFQN: `tags.tag 2`, source: 'Tag' },
 ];
 
 const tagsWithTerm = [
-  { tagFQN: `tags.tag 1`, source: 'Classification' },
-  { tagFQN: `tags.tag 2`, source: 'Classification' },
+  { tagFQN: `tags.tag 1`, source: 'Tag' },
+  { tagFQN: `tags.tag 2`, source: 'Tag' },
   { tagFQN: `test.tags.term`, source: 'Glossary' },
 ];
 
@@ -88,7 +88,7 @@ describe('Test TagsViewer Component', () => {
     expect(term).not.toBeInTheDocument();
   });
 
-  it('Should render tags with hash symbol only if tag source is "Classification"', () => {
+  it('Should render tags with hash symbol only if tag source is "Tag"', () => {
     const { container } = render(
       <TagsViewer showStartWith sizeCap={-1} tags={tags} />
     );

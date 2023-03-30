@@ -26,7 +26,6 @@ from metadata.generated.schema.entity.services.pipelineService import (
 from metadata.generated.schema.metadataIngestion.workflow import (
     OpenMetadataWorkflowConfig,
 )
-from metadata.generated.schema.type.basic import FullyQualifiedEntityName
 from metadata.generated.schema.type.entityReference import EntityReference
 from metadata.ingestion.source.pipeline.nifi.metadata import (
     NifiPipelineDetails,
@@ -55,11 +54,9 @@ mock_nifi_config = {
             "config": {
                 "type": "Nifi",
                 "hostPort": "https://localhost:8443",
-                "nifiConfig": {
-                    "username": "username",
-                    "password": "password",
-                    "verifySSL": False,
-                },
+                "username": "username",
+                "password": "password",
+                "verifySSL": False,
             }
         },
         "sourceConfig": {"config": {"type": "PipelineMetadata"}},
@@ -125,13 +122,14 @@ EXPECTED_CREATED_PIPELINES = CreatePipelineRequest(
             downstreamTasks=["d3f023ac-0182-1000-8bbe-e2b00347fff8"],
         ),
     ],
-    service="nifi_source",
+    service=EntityReference(
+        id="85811038-099a-11ed-861d-0242ac120002", type="pipelineService"
+    ),
 )
 
 MOCK_PIPELINE_SERVICE = PipelineService(
     id="85811038-099a-11ed-861d-0242ac120002",
     name="nifi_source",
-    fullyQualifiedName=FullyQualifiedEntityName(__root__="nifi_source"),
     connection=PipelineConnection(),
     serviceType=PipelineServiceType.Nifi,
 )

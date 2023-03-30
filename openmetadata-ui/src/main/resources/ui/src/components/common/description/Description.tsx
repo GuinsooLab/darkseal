@@ -11,23 +11,20 @@
  *  limitations under the License.
  */
 
-import { Button, Popover, Space, Typography } from 'antd';
+import { Popover } from 'antd';
 import { AxiosError } from 'axios';
+import classNames from 'classnames';
 import { t } from 'i18next';
 import { isFunction, isUndefined } from 'lodash';
 import React, { FC, Fragment } from 'react';
 import { useHistory } from 'react-router-dom';
-import { ReactComponent as IconCommentPlus } from '../../../assets/svg/add-chat.svg';
-import { ReactComponent as IconComments } from '../../../assets/svg/comment.svg';
-import { ReactComponent as IconEdit } from '../../../assets/svg/ic-edit.svg';
-import { ReactComponent as IconRequest } from '../../../assets/svg/request-icon.svg';
-import { ReactComponent as IconTaskColor } from '../../../assets/svg/Task-ic.svg';
 import { EntityField } from '../../../constants/Feeds.constants';
 import { EntityType } from '../../../enums/entity.enum';
 import { ThreadType } from '../../../generated/entity/feed/thread';
 import { EntityFieldThreads } from '../../../interface/feed.interface';
 import { isTaskSupported } from '../../../utils/CommonUtils';
 import { getEntityFeedLink } from '../../../utils/EntityUtils';
+import SVGIcons, { Icons } from '../../../utils/SvgUtils';
 import {
   getRequestDescriptionPath,
   getUpdateDescriptionPath,
@@ -92,10 +89,9 @@ const Description: FC<DescriptionProps> = ({
     const hasDescription = Boolean(description.trim());
 
     return TASK_ENTITIES.includes(entityType as EntityType) ? (
-      <Button
-        className="w-7 h-7 p-0 flex-center"
+      <button
+        className="tw-w-7 tw-h-7 tw-flex-none link-text focus:tw-outline-none"
         data-testid="request-entity-description"
-        type="text"
         onClick={
           hasDescription ? handleUpdateDescription : handleRequestDescription
         }>
@@ -103,19 +99,19 @@ const Description: FC<DescriptionProps> = ({
           destroyTooltipOnHide
           content={
             hasDescription
-              ? t('message.request-update-description')
-              : t('message.request-description')
+              ? 'Request update description'
+              : 'Request description'
           }
           overlayClassName="ant-popover-request-description"
           trigger="hover"
           zIndex={9999}>
-          <IconRequest
-            height={16}
-            name={t('message.request-description')}
-            width={16}
+          <SVGIcons
+            alt="request-description"
+            icon={Icons.REQUEST}
+            width="16px"
           />
         </Popover>
-      </Button>
+      </button>
     ) : null;
   };
 
@@ -123,27 +119,26 @@ const Description: FC<DescriptionProps> = ({
     descriptionThread,
   }: {
     descriptionThread?: EntityFieldThreads;
-  }) =>
-    !isUndefined(descriptionThread) ? (
-      <Button
-        className="w-9 h-7 p-0"
+  }) => {
+    return !isUndefined(descriptionThread) ? (
+      <button
+        className="tw-w-7 tw-h-7 tw-flex-none link-text focus:tw-outline-none"
         data-testid="description-thread"
-        type="text"
         onClick={() => onThreadLinkSelect?.(descriptionThread.entityLink)}>
-        <Space align="center" className="h-full" size={2}>
-          <IconComments height={16} name="tasks" width={16} />
-          <Typography.Text data-testid="description-thread-count">
+        <span className="tw-flex">
+          <SVGIcons alt="comments" icon={Icons.COMMENT} width="16px" />{' '}
+          <span className="tw-ml-1" data-testid="description-thread-count">
+            {' '}
             {descriptionThread.count}
-          </Typography.Text>
-        </Space>
-      </Button>
+          </span>
+        </span>
+      </button>
     ) : (
       <Fragment>
         {description?.trim() && onThreadLinkSelect ? (
-          <Button
-            className="w-7 h-7 link-text p-0"
+          <button
+            className="tw-w-7 tw-h-7 tw-flex-none link-text focus:tw-outline-none"
             data-testid="start-description-thread"
-            type="text"
             onClick={() =>
               onThreadLinkSelect?.(
                 getEntityFeedLink(
@@ -153,55 +148,57 @@ const Description: FC<DescriptionProps> = ({
                 )
               )
             }>
-            <IconCommentPlus height={16} name="comments" width={16} />
-          </Button>
+            <SVGIcons alt="comments" icon={Icons.COMMENT_PLUS} width="16px" />
+          </button>
         ) : null}
       </Fragment>
     );
+  };
 
-  const getDescriptionTaskElement = () =>
-    !isUndefined(tasks) ? (
-      <Button
-        className="w-9 h-7 p-0"
+  const getDescriptionTaskElement = () => {
+    return !isUndefined(tasks) ? (
+      <button
+        className="tw-w-7 tw-h-7 tw-mr-2 tw-flex-none link-text focus:tw-outline-none"
         data-testid="description-task"
-        type="text"
         onClick={() => onThreadLinkSelect?.(tasks.entityLink, ThreadType.Task)}>
-        <Space align="center" className="h-full" size={2}>
-          <IconTaskColor height={16} name="tasks" width={16} />
-          <Typography.Text data-testid="description-tasks-count">
+        <span className="tw-flex">
+          <SVGIcons alt="tasks" icon={Icons.TASK_ICON} width="16px" />{' '}
+          <span className="tw-ml-1" data-testid="description-tasks-count">
+            {' '}
             {tasks.count}
-          </Typography.Text>
-        </Space>
-      </Button>
+          </span>
+        </span>
+      </button>
     ) : null;
+  };
 
   const DescriptionActions = () => {
     return !isReadOnly ? (
-      <Space align="end" size={0}>
+      <div className={classNames('tw-w-5 tw-min-w-max tw-flex')}>
         {hasEditAccess && (
-          <Button
-            className="w-7 h-7 p-0 flex-center"
+          <button
+            className="tw-w-7 tw-h-7 tw-flex-none focus:tw-outline-none"
             data-testid="edit-description"
-            type="text"
             onClick={handleUpdate}>
-            <IconEdit height={16} width={16} />
-          </Button>
+            <SVGIcons alt="edit" icon="icon-edit" title="Edit" width="16px" />
+          </button>
         )}
         {isTaskSupported(entityType as EntityType) ? (
           <Fragment>
+            {' '}
             <RequestDescriptionEl />
             {getDescriptionTaskElement()}
           </Fragment>
         ) : null}
 
         <DescriptionThreadEl descriptionThread={thread} />
-      </Space>
+      </div>
     ) : null;
   };
 
   return (
     <div className={`schema-description tw-relative ${className}`}>
-      <Space align="end" className="description-inner-main-container" size={4}>
+      <div className="tw-flex description-inner-main-container tw-items-end">
         <div className="tw-relative">
           <div
             className="description tw-h-full tw-overflow-y-scroll tw-relative "
@@ -232,7 +229,7 @@ const Description: FC<DescriptionProps> = ({
           />
         </div>
         <DescriptionActions />
-      </Space>
+      </div>
     </div>
   );
 };

@@ -28,7 +28,7 @@ def get_connection(connection: GluePipelineConnection):
     return AWSClient(connection.awsConfig).get_glue_client()
 
 
-def test_connection(client, _) -> None:
+def test_connection(client) -> None:
     """
     Test connection
     """

@@ -10,7 +10,6 @@ source:
       type: Redshift
   sourceConfig:
     config:
-      type: DatabaseUsage
       queryLogDuration: '1'
 processor:
   type: query-parser

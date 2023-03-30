@@ -44,6 +44,7 @@ import {
   SUPPORTED_CHARTS_FOR_KPI,
   VALIDATE_MESSAGES,
 } from '../../constants/DataInsight.constants';
+import { EntityType } from '../../enums/entity.enum';
 import {
   CreateKpiRequest,
   KpiTargetType,
@@ -142,7 +143,7 @@ const AddKPIPage = () => {
 
   const handleChartSelect = (value: string) => {
     const selectedChartValue = dataInsightCharts.find(
-      (chart) => chart.fullyQualifiedName === value
+      (chart) => chart.id === value
     );
     setSelectedChart(selectedChartValue);
   };
@@ -191,7 +192,10 @@ const AddKPIPage = () => {
     const targetValue = getKpiTargetValueByMetricType(metricType, metricValue);
 
     const formData: CreateKpiRequest = {
-      dataInsightChart: values.dataInsightChart,
+      dataInsightChart: {
+        id: values.dataInsightChart,
+        type: EntityType.DATA_INSIGHT_CHART,
+      },
       description,
       name: kebabCase(`${values.displayName} ${selectedMetric?.name}`),
       displayName: values.displayName,
@@ -255,10 +259,10 @@ const AddKPIPage = () => {
                 data-testid="dataInsightChart"
                 notFoundContent={t('message.all-charts-are-mapped')}
                 placeholder={t('label.select-a-chart')}
-                value={selectedChart?.fullyQualifiedName}
+                value={selectedChart?.id}
                 onChange={handleChartSelect}>
                 {chartOptions.map((chart) => (
-                  <Option key={chart.fullyQualifiedName}>
+                  <Option key={chart.id}>
                     {chart.displayName || chart.name}
                   </Option>
                 ))}

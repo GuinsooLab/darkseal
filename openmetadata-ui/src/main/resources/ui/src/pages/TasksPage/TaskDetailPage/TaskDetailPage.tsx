@@ -11,8 +11,9 @@
  *  limitations under the License.
  */
 
-import { CheckOutlined, CloseOutlined, DownOutlined } from '@ant-design/icons';
-import { Button, Card, Dropdown, Layout, MenuProps, Space, Tabs } from 'antd';
+import { faChevronDown } from '@fortawesome/free-solid-svg-icons';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { Button, Card, Dropdown, Layout, MenuProps, Tabs } from 'antd';
 import { AxiosError } from 'axios';
 import classNames from 'classnames';
 import ActivityFeedEditor from 'components/ActivityFeed/ActivityFeedEditor/ActivityFeedEditor';
@@ -41,7 +42,6 @@ import {
   updateThread,
 } from 'rest/feedsAPI';
 import AppState from '../../../AppState';
-import { ReactComponent as IconEdit } from '../../../assets/svg/ic-edit.svg';
 import { FQN_SEPARATOR_CHAR } from '../../../constants/char.constants';
 import { PanelTab, TaskOperation } from '../../../constants/Feeds.constants';
 import { EntityType } from '../../../enums/entity.enum';
@@ -67,6 +67,7 @@ import {
   updateThreadData,
 } from '../../../utils/FeedUtils';
 import { getEncodedFqn } from '../../../utils/StringsUtils';
+import SVGIcons from '../../../utils/SvgUtils';
 import { getEntityLink } from '../../../utils/TableUtils';
 import {
   fetchEntityDetail,
@@ -535,9 +536,7 @@ const TaskDetailPage = () => {
                   titleLinks={[
                     ...getBreadCrumbList(entityData, entityType as EntityType),
                     {
-                      name: t('label.task-title', {
-                        title: taskDetail.task?.id,
-                      }),
+                      name: `Task #${taskDetail.task?.id}`,
                       activeTitle: true,
                       url: '',
                     },
@@ -551,16 +550,14 @@ const TaskDetailPage = () => {
                   <p
                     className="tw-text-base tw-font-medium tw-mb-4"
                     data-testid="task-title">
-                    {t('label.task-title', {
-                      title: `${taskId} ${taskDetail.message}`,
-                    })}
+                    {`Task #${taskId}`} {taskDetail.message}
                   </p>
                   <div className="tw-flex tw-mb-4" data-testid="task-metadata">
                     <TaskStatus
                       status={taskDetail.task?.status as ThreadTaskStatus}
                     />
                     <span className="tw-mx-1.5 tw-inline-block tw-text-gray-400">
-                      {t('label.pipe-symbol')}
+                      |
                     </span>
                     <span className="tw-flex">
                       <UserPopOverCard userName={taskDetail.createdBy || ''}>
@@ -593,7 +590,7 @@ const TaskDetailPage = () => {
                       className={classNames('tw-text-grey-muted', {
                         'tw-self-center tw-mr-2': editAssignee,
                       })}>
-                      {`${t('label.assignee-plural')}:`}
+                      {t('label.assignee-plural')}:
                     </span>
                     {editAssignee ? (
                       <Fragment>
@@ -605,19 +602,25 @@ const TaskDetailPage = () => {
                         />
                         <Button
                           className="tw-mx-1 tw-self-center ant-btn-primary-custom"
-                          icon={<CloseOutlined />}
                           size="small"
                           type="primary"
-                          onClick={() => setEditAssignee(false)}
-                        />
+                          onClick={() => setEditAssignee(false)}>
+                          <FontAwesomeIcon
+                            className="tw-w-3.5 tw-h-3.5"
+                            icon="times"
+                          />
+                        </Button>
                         <Button
                           className="tw-mx-1 tw-self-center ant-btn-primary-custom"
                           disabled={!assignees.length}
-                          icon={<CheckOutlined />}
                           size="small"
                           type="primary"
-                          onClick={onTaskUpdate}
-                        />
+                          onClick={onTaskUpdate}>
+                          <FontAwesomeIcon
+                            className="tw-w-3.5 tw-h-3.5"
+                            icon="check"
+                          />
+                        </Button>
                       </Fragment>
                     ) : (
                       <Fragment>
@@ -626,14 +629,17 @@ const TaskDetailPage = () => {
                           className="tw-ml-0.5 tw-align-middle tw-inline-flex tw-flex-wrap"
                         />
                         {(hasEditAccess() || isCreator) && !isTaskClosed && (
-                          <Button
-                            className="p-0"
+                          <button
+                            className="focus:tw-outline-none tw-self-baseline tw-flex-none"
                             data-testid="edit-suggestion"
-                            icon={<IconEdit height={14} width={14} />}
-                            size="small"
-                            type="text"
-                            onClick={() => setEditAssignee(true)}
-                          />
+                            onClick={() => setEditAssignee(true)}>
+                            <SVGIcons
+                              alt="edit"
+                              icon="icon-edit"
+                              title="Edit"
+                              width="14px"
+                            />
+                          </button>
                         )}
                       </Fragment>
                     )}
@@ -668,10 +674,9 @@ const TaskDetailPage = () => {
                     />
                   )}
 
-                  <Space
-                    className="m-t-xss"
-                    data-testid="task-cta-buttons"
-                    size="small">
+                  <div
+                    className="tw-flex tw-justify-end"
+                    data-testid="task-cta-buttons">
                     {(hasEditAccess() || isCreator) && !isTaskClosed && (
                       <Button
                         className="ant-btn-link-custom"
@@ -687,7 +692,12 @@ const TaskDetailPage = () => {
                           <Dropdown.Button
                             className="ant-btn-primary-dropdown"
                             data-testid="complete-task"
-                            icon={<DownOutlined />}
+                            icon={
+                              <FontAwesomeIcon
+                                className="tw-text-sm"
+                                icon={faChevronDown}
+                              />
+                            }
                             menu={{
                               items: TASK_ACTION_LIST,
                               selectable: true,
@@ -712,7 +722,7 @@ const TaskDetailPage = () => {
                         )}
                       </Fragment>
                     )}
-                  </Space>
+                  </div>
 
                   {isTaskClosed && <ClosedTask task={taskDetail.task} />}
                 </Card>
@@ -733,7 +743,7 @@ const TaskDetailPage = () => {
                 theme="light"
                 width={600}>
                 <Tabs className="ant-tabs-custom-line" onChange={onTabChange}>
-                  <TabPane key={PanelTab.TASKS} tab={t('label.task')}>
+                  <TabPane key={PanelTab.TASKS} tab="Task">
                     {!isEmpty(taskFeedDetail) ? (
                       <div id="task-feed">
                         <FeedPanelBody
@@ -750,9 +760,7 @@ const TaskDetailPage = () => {
                     ) : null}
                   </TabPane>
 
-                  <TabPane
-                    key={PanelTab.CONVERSATIONS}
-                    tab={t('label.conversation-plural')}>
+                  <TabPane key={PanelTab.CONVERSATIONS} tab="Conversations">
                     {!isEmpty(taskFeedDetail) ? (
                       <ActivityThreadPanelBody
                         className="tw-p-0"

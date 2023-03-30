@@ -13,7 +13,7 @@
 
 import { AxiosResponse } from 'axios';
 import { Operation } from 'fast-json-patch';
-import { PagingWithoutTotal, RestoreRequestType } from 'Models';
+import { RestoreRequestType } from 'Models';
 import { ServicePageData } from 'pages/service';
 import { Dashboard } from '../generated/entity/data/dashboard';
 import { EntityHistory } from '../generated/type/entityHistory';
@@ -38,20 +38,19 @@ export const getDashboardVersion = async (id: string, version: string) => {
 };
 
 export const getDashboards = async (
-  service: string,
-  fields: string,
-  paging?: PagingWithoutTotal
+  serviceName: string,
+  arrQueryFields: string | string[],
+  paging?: string
 ) => {
+  const url = `${getURLWithQueryFields(
+    `/dashboards`,
+    arrQueryFields
+  )}&service=${serviceName}${paging ? paging : ''}`;
+
   const response = await APIClient.get<{
     data: ServicePageData[];
     paging: Paging;
-  }>(`/dashboards`, {
-    params: {
-      service,
-      fields,
-      ...paging,
-    },
-  });
+  }>(url);
 
   return response.data;
 };

@@ -12,16 +12,10 @@
 """
 Source connection handler
 """
-from functools import partial
-
 from metadata.generated.schema.entity.services.connections.pipeline.databricksPipelineConnection import (
     DatabricksPipelineConnection,
 )
-from metadata.ingestion.connections.test_connections import (
-    TestConnectionResult,
-    TestConnectionStep,
-    test_connection_steps,
-)
+from metadata.ingestion.connections.test_connections import SourceConnectionException
 from metadata.ingestion.source.database.databricks.client import DatabricksClient
 
 
@@ -32,29 +26,12 @@ def get_connection(connection: DatabricksPipelineConnection) -> DatabricksClient
     return DatabricksClient(connection)
 
 
-def test_connection(client: DatabricksClient, _) -> TestConnectionResult:
+def test_connection(client: DatabricksClient) -> None:
     """
     Test connection
     """
-
-    def custom_executor_for_pipeline():
-        result = client.list_jobs()
-        return list(result)
-
-    def custom_executor_for_pipeline_status():
-        jobs = list(client.list_jobs())
-        result = client.get_job_runs(jobs[0]["job_id"])
-        return list(result)
-
-    steps = [
-        TestConnectionStep(
-            function=partial(custom_executor_for_pipeline),
-            name="Get Pipeline",
-        ),
-        TestConnectionStep(
-            function=partial(custom_executor_for_pipeline_status),
-            name="Get Pipeline Status",
-        ),
-    ]
-
-    return test_connection_steps(steps)
+    try:
+        client.list_jobs()
+    except Exception as exc:
+        msg = f"Unknown error connecting with {client}: {exc}."
+        raise SourceConnectionException(msg) from exc

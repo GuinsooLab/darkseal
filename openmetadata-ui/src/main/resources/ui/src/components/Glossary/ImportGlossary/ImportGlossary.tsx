@@ -11,7 +11,6 @@
  *  limitations under the License.
  */
 import {
-  Affix,
   Button,
   Card,
   Col,
@@ -22,6 +21,7 @@ import {
   Upload,
   UploadProps,
 } from 'antd';
+import { ReactComponent as FailBadgeIcon } from 'assets/svg/fail-badge.svg';
 import { ReactComponent as BrowseFileIcon } from 'assets/svg/ic-browse-file.svg';
 import { ReactComponent as ImportIcon } from 'assets/svg/ic-import.svg';
 import { ReactComponent as SuccessBadgeIcon } from 'assets/svg/success-badge.svg';
@@ -46,6 +46,7 @@ interface Props {
   glossaryName: string;
 }
 
+const { Title } = Typography;
 const { Dragger } = Upload;
 
 const ImportGlossary: FC<Props> = ({ glossaryName }) => {
@@ -54,6 +55,7 @@ const ImportGlossary: FC<Props> = ({ glossaryName }) => {
   const history = useHistory();
 
   const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [isPreview, setIsPreview] = useState<boolean>(false);
 
   const [fileName, setFileName] = useState<string>('');
 
@@ -69,7 +71,7 @@ const ImportGlossary: FC<Props> = ({ glossaryName }) => {
         url: getGlossaryPath(glossaryName),
       },
       {
-        name: t('label.import-glossary-term-plural'),
+        name: t('label.import-glossary-terms'),
         url: '',
         activeTitle: true,
       },
@@ -77,15 +79,36 @@ const ImportGlossary: FC<Props> = ({ glossaryName }) => {
     [glossaryName]
   );
 
-  const { isFailure, isAborted } = useMemo(() => {
+  const {
+    isSuccess,
+    isFailure,
+    isAborted,
+    showAbortedResult,
+    showSuccessResult,
+    steps,
+  } = useMemo(() => {
     const status = csvImportResult?.status;
 
+    const isSuccess =
+      status === Status.Success || status === Status.PartialSuccess;
     const isFailure = status === Status.Failure;
     const isAborted = status === Status.Aborted;
 
+    const showAbortedResult = isAborted;
+    const showSuccessResult = isSuccess || isFailure;
+
+    const steps =
+      isUndefined(csvImportResult) || isSuccess
+        ? STEPS_FOR_IMPORT_GLOSSARY_TERMS
+        : STEPS_FOR_IMPORT_GLOSSARY_TERMS.slice(0, 2);
+
     return {
+      isSuccess,
       isFailure,
       isAborted,
+      showAbortedResult,
+      showSuccessResult,
+      steps,
     };
   }, [csvImportResult]);
 
@@ -124,7 +147,8 @@ const ImportGlossary: FC<Props> = ({ glossaryName }) => {
     setIsLoading(true);
     try {
       await importGlossaryInCSVFormat(glossaryName, csvFileResult, false);
-      setActiveStep(3);
+
+      history.push(getGlossaryPath(glossaryName));
     } catch (error) {
       showErrorToast(error as AxiosError);
     } finally {
@@ -132,13 +156,15 @@ const ImportGlossary: FC<Props> = ({ glossaryName }) => {
     }
   };
 
-  const handleGlossaryRedirection = () => {
-    history.push(getGlossaryPath(glossaryName));
+  const handlePreview = () => {
+    setIsPreview(true);
+    setActiveStep(3);
   };
 
   const handleCancel = () => {
     setCsvImportResult(undefined);
     setActiveStep(1);
+    setIsPreview(false);
   };
 
   return (
@@ -147,78 +173,122 @@ const ImportGlossary: FC<Props> = ({ glossaryName }) => {
         <TitleBreadcrumb titleLinks={breadcrumbList} />
       </Col>
       <Col span={24}>
-        <Typography.Title data-testid="title" level={5}>
-          {t('label.import-glossary-term-plural')}
-        </Typography.Title>
-      </Col>
-      <Col span={24}>
-        <Stepper
-          activeStep={activeStep}
-          steps={STEPS_FOR_IMPORT_GLOSSARY_TERMS}
-        />
-      </Col>
-      {isLoading ? (
-        <Loader />
-      ) : (
-        <Col span={24}>
-          {activeStep === 1 && (
+        <Space className="w-full justify-between">
+          <Title data-testid="title" level={5}>
+            {isPreview ? glossaryName : t('label.import-glossary-terms')}
+          </Title>
+          {isPreview && !isUndefined(csvImportResult) && (
             <>
-              <Dragger
-                accept=".csv"
-                beforeUpload={(file) => {
-                  setFileName(file.name);
-                }}
-                className="file-dragger-wrapper p-lg bg-white"
-                customRequest={handleUpload}
-                data-testid="upload-file-widget"
-                multiple={false}
-                showUploadList={false}>
-                <Space
-                  align="center"
-                  className="w-full justify-center"
-                  direction="vertical"
-                  size={16}>
-                  <ImportIcon height={58} width={58} />
-                  <Typography.Text>
-                    {t('message.drag-and-drop-files-here')}
-                  </Typography.Text>
-                </Space>
-                <Divider plain>
-                  <Typography.Text type="secondary">
-                    {t('label.or-lowercase')}
-                  </Typography.Text>
-                </Divider>
-                <Button data-testid="upload-button">
-                  <Space>
-                    <BrowseFileIcon width={16} />
-                    <Typography.Text className="text-primary">
-                      {t('label.browse-csv-file')}
-                    </Typography.Text>
-                  </Space>
+              {!isFailure && !isAborted && (
+                <Button
+                  data-testid="import-button"
+                  loading={isLoading}
+                  type="primary"
+                  onClick={handleImport}>
+                  {t('label.import')}
                 </Button>
-              </Dragger>
-              <Affix className="bg-white p-md glossary-preview-footer">
-                <Space className="justify-end w-full p-r-md">
-                  <Button
-                    ghost
-                    data-testid="cancel-button"
-                    type="primary"
-                    onClick={handleGlossaryRedirection}>
-                    {t('label.cancel')}
-                  </Button>
-                </Space>
-              </Affix>
+              )}
+              {(isFailure || isAborted) && (
+                <Button
+                  data-testid="preview-cancel-button"
+                  type="primary"
+                  onClick={handleCancel}>
+                  {t('label.cancel')}
+                </Button>
+              )}
             </>
           )}
-          {activeStep === 2 && !isUndefined(csvImportResult) && (
-            <>
-              {isAborted ? (
-                <Card>
+        </Space>
+      </Col>
+      <Col span={24}>
+        <Stepper activeStep={activeStep} steps={steps} />
+      </Col>
+      {isPreview && !isUndefined(csvImportResult) ? (
+        <Col span={24}>
+          <ImportResult csvImportResult={csvImportResult} />
+        </Col>
+      ) : (
+        <Col span={24}>
+          {isUndefined(csvImportResult) ? (
+            <Dragger
+              accept=".csv"
+              beforeUpload={(file) => {
+                setIsLoading(true);
+                setFileName(file.name);
+              }}
+              className="file-dragger-wrapper p-lg bg-white"
+              customRequest={handleUpload}
+              data-testid="upload-file-widget"
+              multiple={false}
+              showUploadList={false}>
+              {isLoading ? (
+                <Loader />
+              ) : (
+                <>
                   <Space
                     align="center"
-                    className="w-full justify-center p-lg"
+                    className="w-full justify-center"
                     direction="vertical"
                     size={16}>
+                    <ImportIcon height={58} width={58} />
+                    <Typography.Text>
+                      {t('label.drag-and-drop-files-here')}
+                    </Typography.Text>
+                  </Space>
+                  <Divider plain>
+                    <Typography.Text type="secondary">
+                      {t('label.or-lowercase')}
+                    </Typography.Text>
+                  </Divider>
+                  <Button data-testid="upload-button">
+                    <Space>
+                      <BrowseFileIcon width={16} />
+                      <Typography.Text className="text-primary">
+                        {t('label.browse-csv-file')}
+                      </Typography.Text>
+                    </Space>
+                  </Button>
+                </>
+              )}
+            </Dragger>
+          ) : (
+            <Card>
+              <Space
+                align="center"
+                className="w-full justify-center p-lg"
+                direction="vertical"
+                size={16}>
+                {isSuccess && (
+                  <SuccessBadgeIcon data-testid="success-badge" width={58} />
+                )}
+                {isFailure && (
+                  <FailBadgeIcon data-testid="failure-badge" width={58} />
+                )}
+
+                {showSuccessResult && (
+                  <>
+                    <Typography.Text>
+                      <strong data-testid="file-name">{fileName}</strong>{' '}
+                      {`${t('label.is-ready-for-preview')}.`}
+                    </Typography.Text>
+                    <Space size={16}>
+                      <Button
+                        data-testid="cancel-button"
+                        onClick={handleCancel}>
+                        {t('label.cancel')}
+                      </Button>
+                      <Button
+                        data-testid="preview-button"
+                        type="primary"
+                        onClick={handlePreview}>
+                        {t('label.preview')}
+                      </Button>
+                    </Space>
+                  </>
+                )}
+
+                {showAbortedResult && (
+                  <>
                     <Typography.Text
                       className="text-center"
                       data-testid="abort-reason">
@@ -227,65 +297,19 @@ const ImportGlossary: FC<Props> = ({ glossaryName }) => {
                     </Typography.Text>
                     <Space size={16}>
                       <Button
-                        ghost
                         data-testid="cancel-button"
-                        type="primary"
                         onClick={handleCancel}>
-                        {t('label.back')}
+                        {t('label.cancel')}
                       </Button>
-                    </Space>
-                  </Space>
-                </Card>
-              ) : (
-                // added extra margin to prevent data lost due to fixed footer at bottom
-                <div className="mb-16">
-                  <ImportResult csvImportResult={csvImportResult} />
-                  <Affix className="bg-white p-md glossary-preview-footer">
-                    <Space className="justify-end w-full p-r-md">
                       <Button
-                        ghost
-                        data-testid="preview-cancel-button"
+                        data-testid="preview-button"
                         type="primary"
-                        onClick={handleCancel}>
-                        {t('label.back')}
+                        onClick={handlePreview}>
+                        {t('label.preview')}
                       </Button>
-                      {!isFailure && (
-                        <Button
-                          data-testid="import-button"
-                          loading={isLoading}
-                          type="primary"
-                          onClick={handleImport}>
-                          {t('label.import')}
-                        </Button>
-                      )}
                     </Space>
-                  </Affix>
-                </div>
-              )}
-            </>
-          )}
-
-          {activeStep > 2 && (
-            <Card>
-              <Space
-                align="center"
-                className="w-full justify-center p-lg"
-                direction="vertical"
-                size={16}>
-                <SuccessBadgeIcon data-testid="success-badge" width={36} />
-
-                <Typography.Text>
-                  <strong data-testid="file-name">{fileName}</strong>{' '}
-                  {`${t('label.successfully-uploaded')}.`}
-                </Typography.Text>
-                <Space size={16}>
-                  <Button
-                    data-testid="preview-button"
-                    type="primary"
-                    onClick={handleGlossaryRedirection}>
-                    {t('label.view')}
-                  </Button>
-                </Space>
+                  </>
+                )}
               </Space>
             </Card>
           )}

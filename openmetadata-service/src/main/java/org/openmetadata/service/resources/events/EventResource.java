@@ -51,12 +51,12 @@ public class EventResource {
   @Getter private final ChangeEventRepository dao;
   private final Authorizer authorizer;
 
-  public static class EventList extends ResultList<ChangeEvent> {
+  public static class ChangeEventList extends ResultList<ChangeEvent> {
 
     @SuppressWarnings("unused") /* Required for tests */
-    public EventList() {}
+    public ChangeEventList() {}
 
-    public EventList(List<ChangeEvent> data, String beforeCursor, String afterCursor, int total) {
+    public ChangeEventList(List<ChangeEvent> data, String beforeCursor, String afterCursor, int total) {
       super(data, beforeCursor, afterCursor, total);
     }
   }
@@ -78,7 +78,8 @@ public class EventResource {
         @ApiResponse(
             responseCode = "200",
             description = "Entity events",
-            content = @Content(mediaType = "application/json", schema = @Schema(implementation = EventList.class))),
+            content =
+                @Content(mediaType = "application/json", schema = @Schema(implementation = ChangeEventList.class))),
         @ApiResponse(responseCode = "404", description = "Entity for instance {id} is not found")
       })
   public ResultList<ChangeEvent> get(
@@ -119,6 +120,6 @@ public class EventResource {
     List<String> entityDeletedList = EntityList.getEntityList("entityDeleted", entityDeleted);
     List<ChangeEvent> events = dao.list(timestamp, entityCreatedList, entityUpdatedList, entityDeletedList);
     events.sort(EntityUtil.compareChangeEvent); // Sort change events based on time
-    return new EventList(events, null, null, events.size()); // TODO
+    return new ChangeEventList(events, null, null, events.size()); // TODO
   }
 }

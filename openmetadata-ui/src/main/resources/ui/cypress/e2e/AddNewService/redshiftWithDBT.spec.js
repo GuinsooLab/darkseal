@@ -110,11 +110,7 @@ describe('RedShift Ingestion', () => {
 
     verifyResponseStatusCode('@getServices', 200);
     cy.intercept('/api/v1/services/ingestionPipelines?*').as('ingestionData');
-    interceptURL(
-      'GET',
-      '/api/v1/system/config/pipeline-service-client',
-      'airflow'
-    );
+    interceptURL('GET', '/api/v1/config/airflow', 'airflow');
     cy.get(`[data-testid="service-name-${REDSHIFT.serviceName}"]`)
       .should('exist')
       .click();
@@ -197,8 +193,8 @@ describe('RedShift Ingestion', () => {
       .should('be.visible')
       .should('contain', `${DBT.classification}.${DBT.tagName}`);
     // Verify DBT tab is present
-    cy.get('[data-testid="dbt"]').should('exist').should('be.visible');
-    cy.get('[data-testid="dbt"]').click();
+    cy.get('[data-testid="DBT"]').should('exist').should('be.visible');
+    cy.get('[data-testid="DBT"]').click();
     // Verify query is present in the DBT tab
     cy.get('.CodeMirror').should('be.visible').should('contain', DBT.dbtQuery);
 

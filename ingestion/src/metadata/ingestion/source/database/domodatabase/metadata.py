@@ -36,13 +36,16 @@ from metadata.generated.schema.metadataIngestion.databaseServiceMetadataPipeline
 from metadata.generated.schema.metadataIngestion.workflow import (
     Source as WorkflowSource,
 )
+from metadata.generated.schema.type.entityReference import EntityReference
 from metadata.ingestion.api.source import InvalidSourceException
 from metadata.ingestion.models.ometa_classification import OMetaTagAndClassification
 from metadata.ingestion.ometa.ometa_api import OpenMetadata
 from metadata.ingestion.source.connections import get_connection, get_test_connection_fn
-from metadata.ingestion.source.database.database_service import DatabaseServiceSource
+from metadata.ingestion.source.database.database_service import (
+    DatabaseServiceSource,
+    SQLSourceStatus,
+)
 from metadata.utils import fqn
-from metadata.utils.constants import DEFAULT_DATABASE
 from metadata.utils.filters import filter_by_table
 from metadata.utils.logger import ingestion_logger
 
@@ -56,16 +59,16 @@ class DomodatabaseSource(DatabaseServiceSource):
     """
 
     def __init__(self, config: WorkflowSource, metadata_config: OpenMetadataConnection):
-        super().__init__()
         self.config = config
         self.source_config: DatabaseServiceMetadataPipeline = (
             self.config.sourceConfig.config
         )
         self.metadata = OpenMetadata(metadata_config)
         self.service_connection = self.config.serviceConnection.__root__.config
+        self.status = SQLSourceStatus()
         self.domo_client = get_connection(self.service_connection)
         self.client = DomoClient(self.service_connection)
-        self.test_connection()
+        super().__init__()
 
     @classmethod
     def create(cls, config_dict: dict, metadata_config: OpenMetadataConnection):
@@ -78,13 +81,16 @@ class DomodatabaseSource(DatabaseServiceSource):
         return cls(config, metadata_config)
 
     def get_database_names(self) -> Iterable[str]:
-        database_name = self.service_connection.databaseName or DEFAULT_DATABASE
+        database_name = "default"
         yield database_name
 
     def yield_database(self, database_name: str) -> Iterable[CreateDatabaseRequest]:
         yield CreateDatabaseRequest(
             name=database_name,
-            service=self.context.database_service.fullyQualifiedName,
+            service=EntityReference(
+                id=self.context.database_service.id,
+                type="databaseService",
+            ),
         )
 
     def get_database_schema_names(self) -> Iterable[str]:
@@ -96,7 +102,7 @@ class DomodatabaseSource(DatabaseServiceSource):
     ) -> Iterable[CreateDatabaseSchemaRequest]:
         yield CreateDatabaseSchemaRequest(
             name=schema_name,
-            database=self.context.database.fullyQualifiedName,
+            database=EntityReference(id=self.context.database.id, type="database"),
         )
 
     def get_tables_name_and_type(self) -> Optional[Iterable[Tuple[str, str]]]:
@@ -150,7 +156,10 @@ class DomodatabaseSource(DatabaseServiceSource):
                 description=table_object.get("description"),
                 columns=columns,
                 tableConstraints=table_constraints,
-                databaseSchema=self.context.database_schema.fullyQualifiedName,
+                databaseSchema=EntityReference(
+                    id=self.context.database_schema.id,
+                    type="databaseSchema",
+                ),
             )
             yield table_request
             self.register_record(table_request=table_request)
@@ -176,7 +185,7 @@ class DomodatabaseSource(DatabaseServiceSource):
 
     def test_connection(self) -> None:
         test_connection_fn = get_test_connection_fn(self.service_connection)
-        test_connection_fn(self.domo_client, self.service_connection)
+        test_connection_fn(self.domo_client)
 
     def yield_tag(self, schema_name: str) -> Iterable[OMetaTagAndClassification]:
         pass

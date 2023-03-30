@@ -32,8 +32,6 @@ import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Locale;
 import java.util.Map;
-import java.util.UUID;
-import javax.ws.rs.client.WebTarget;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.http.client.HttpResponseException;
 import org.junit.jupiter.api.Test;
@@ -43,8 +41,6 @@ import org.openmetadata.schema.api.services.CreateDashboardService;
 import org.openmetadata.schema.api.services.CreateDashboardService.DashboardServiceType;
 import org.openmetadata.schema.entity.data.Chart;
 import org.openmetadata.schema.entity.services.DashboardService;
-import org.openmetadata.schema.entity.services.connections.TestConnectionResult;
-import org.openmetadata.schema.entity.services.connections.TestConnectionResultStatus;
 import org.openmetadata.schema.services.connections.dashboard.LookerConnection;
 import org.openmetadata.schema.services.connections.dashboard.MetabaseConnection;
 import org.openmetadata.schema.type.ChangeDescription;
@@ -155,31 +151,6 @@ public class DashboardServiceResourceTest extends EntityResourceTest<DashboardSe
     updatedService = getEntity(service.getId(), ADMIN_AUTH_HEADERS);
     validateConnection(
         dashboardConnection2, updatedService.getConnection(), updatedService.getServiceType(), ADMIN_AUTH_HEADERS);
-  }
-
-  @Test
-  void put_testConnectionResult_200(TestInfo test) throws IOException {
-    DashboardService service = createAndCheckEntity(createRequest(test), ADMIN_AUTH_HEADERS);
-    // By default, we have no result logged in
-    assertNull(service.getTestConnectionResult());
-    DashboardService updatedService =
-        putTestConnectionResult(service.getId(), TEST_CONNECTION_RESULT, ADMIN_AUTH_HEADERS);
-    // Validate that the data got properly stored
-    assertNotNull(updatedService.getTestConnectionResult());
-    assertEquals(updatedService.getTestConnectionResult().getStatus(), TestConnectionResultStatus.SUCCESSFUL);
-    assertEquals(updatedService.getConnection(), service.getConnection());
-    // Check that the stored data is also correct
-    DashboardService stored = getEntity(service.getId(), ADMIN_AUTH_HEADERS);
-    assertNotNull(stored.getTestConnectionResult());
-    assertEquals(stored.getTestConnectionResult().getStatus(), TestConnectionResultStatus.SUCCESSFUL);
-    assertEquals(stored.getConnection(), service.getConnection());
-  }
-
-  public DashboardService putTestConnectionResult(
-      UUID serviceId, TestConnectionResult testConnectionResult, Map<String, String> authHeaders)
-      throws HttpResponseException {
-    WebTarget target = getResource(serviceId).path("/testConnectionResult");
-    return TestUtils.put(target, testConnectionResult, DashboardService.class, OK, authHeaders);
   }
 
   @Override
@@ -322,9 +293,9 @@ public class DashboardServiceResourceTest extends EntityResourceTest<DashboardSe
     CHART_REFERENCES = new ArrayList<>();
     ChartResourceTest chartResourceTest = new ChartResourceTest();
     for (int i = 0; i < 3; i++) {
-      CreateChart createChart = chartResourceTest.createRequest(test, i).withService(METABASE_REFERENCE.getName());
+      CreateChart createChart = chartResourceTest.createRequest(test, i).withService(METABASE_REFERENCE);
       Chart chart = chartResourceTest.createEntity(createChart, ADMIN_AUTH_HEADERS);
-      CHART_REFERENCES.add(chart.getFullyQualifiedName());
+      CHART_REFERENCES.add(chart.getEntityReference());
     }
   }
 }

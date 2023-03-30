@@ -11,7 +11,7 @@
  *  limitations under the License.
  */
 
-import { CheckOutlined } from '@ant-design/icons';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { Button, Col, Popover, Row, Table, Tooltip } from 'antd';
 import { ColumnsType } from 'antd/lib/table';
 import { AxiosError } from 'axios';
@@ -27,7 +27,6 @@ import {
   triggerIngestionPipelineById,
 } from 'rest/ingestionPipelineAPI';
 import { fetchAirflowConfig } from 'rest/miscAPI';
-import { getEntityName } from 'utils/EntityUtils';
 import { Operation } from '../../generated/entity/policies/policy';
 import { IngestionPipeline } from '../../generated/entity/services/ingestionPipelines/ingestionPipeline';
 import { useAirflowStatus } from '../../hooks/useAirflowStatus';
@@ -311,9 +310,7 @@ const TestSuitePipelineTab = () => {
         title: t('label.name'),
         dataIndex: 'name',
         key: 'name',
-        render: (_, record) => {
-          const name = getEntityName(record);
-
+        render: (name: string) => {
           return (
             <Tooltip
               title={
@@ -451,7 +448,7 @@ const TestSuitePipelineTab = () => {
                         )
                       );
                     }}>
-                    {t('label.edit')}
+                    Edit
                   </Button>
                 </Tooltip>
                 {separator}
@@ -470,7 +467,7 @@ const TestSuitePipelineTab = () => {
                     }>
                     {deleteSelection.id === record.id ? (
                       deleteSelection.state === 'success' ? (
-                        <CheckOutlined />
+                        <FontAwesomeIcon icon="check" />
                       ) : (
                         <Loader size="small" type="default" />
                       )
@@ -494,7 +491,7 @@ const TestSuitePipelineTab = () => {
                       setIsKillModalOpen(true);
                       setSelectedPipeline(record);
                     }}>
-                    {t('label.kill')}
+                    Kill
                   </Button>
                 </Tooltip>
                 {separator}
@@ -516,7 +513,7 @@ const TestSuitePipelineTab = () => {
                     onClick={() => {
                       setSelectedPipeline(record);
                     }}>
-                    {t('label.log-plural')}
+                    Logs
                   </Button>
                 </Tooltip>
               </div>

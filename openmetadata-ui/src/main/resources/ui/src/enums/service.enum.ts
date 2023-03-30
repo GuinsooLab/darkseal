@@ -18,7 +18,6 @@ export enum ServiceCategory {
   PIPELINE_SERVICES = 'pipelineServices',
   ML_MODEL_SERVICES = 'mlmodelServices',
   METADATA_SERVICES = 'metadataServices',
-  OBJECT_STORE_SERVICES = 'objectstoreServices',
 }
 
 export enum IngestionType {

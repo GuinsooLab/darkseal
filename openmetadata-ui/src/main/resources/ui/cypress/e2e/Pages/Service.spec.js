@@ -32,11 +32,7 @@ describe('Services page should work properly', () => {
   });
 
   it('Update service description', () => {
-    interceptURL(
-      'GET',
-      '/api/v1/system/config/pipeline-service-client',
-      'getService'
-    );
+    interceptURL('GET', '/api/v1/config/airflow', 'getService');
     cy.get(`[data-testid="service-name-${service.name}"]`)
       .should('be.visible')
       .click();
@@ -56,11 +52,7 @@ describe('Services page should work properly', () => {
   });
 
   it('Update owner and check description', () => {
-    interceptURL(
-      'GET',
-      '/api/v1/system/config/pipeline-service-client',
-      'getService'
-    );
+    interceptURL('GET', '/api/v1/config/airflow', 'getService');
     cy.get(`[data-testid="service-name-${service.name}"]`)
       .should('be.visible')
       .click();

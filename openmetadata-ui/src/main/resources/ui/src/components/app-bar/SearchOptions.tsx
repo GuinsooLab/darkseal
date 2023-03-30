@@ -14,7 +14,7 @@
 import Tags from 'components/Tag/Tags/tags';
 import React, { FunctionComponent, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
-import { getExplorePath } from '../../constants/constants';
+import { getExplorePathWithSearch } from '../../constants/constants';
 
 type SearchOptionsProp = {
   searchText: string;
@@ -62,8 +62,8 @@ const SearchOptions: FunctionComponent<SearchOptionsProp> = ({
               <Link
                 className="link-text tw-flex tw-justify-between tw-px-4 tw-py-2 tw-text-sm 
                     hover:tw-bg-body-hover"
-                data-testid="InDarkseal"
-                to={getExplorePath({ search: searchText })}
+                data-testid="InOpenMetadata"
+                to={getExplorePathWithSearch(searchText)}
                 onClick={() => setIsOpen(false)}>
                 {searchText}
                 <Tags

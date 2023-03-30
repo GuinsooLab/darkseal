@@ -233,9 +233,7 @@ const AddIngestionPage = () => {
     } else {
       return (
         <div className="self-center">
-          <PageLayoutV1
-            center
-            pageTitle={t('label.add-entity', { entity: t('label.ingestion') })}>
+          <PageLayoutV1 center>
             <Space direction="vertical" size="middle">
               <TitleBreadcrumb titleLinks={slashedBreadcrumb} />
               <div className="form-container">

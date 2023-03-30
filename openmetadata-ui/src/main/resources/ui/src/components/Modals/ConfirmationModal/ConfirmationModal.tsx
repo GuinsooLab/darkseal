@@ -14,13 +14,12 @@
 import { Button, Typography } from 'antd';
 import Modal from 'antd/lib/modal/Modal';
 import classNames from 'classnames';
-import { LOADING_STATE } from 'enums/common.enum';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { ConfirmationModalProps } from './ConfirmationModal.interface';
 
 const ConfirmationModal = ({
-  loadingState = LOADING_STATE.INITIAL,
+  loadingState = 'initial',
   cancelText,
   confirmText,
   header,
@@ -58,12 +57,9 @@ const ConfirmationModal = ({
             className={confirmButtonCss}
             danger={confirmText === t('label.delete')}
             data-testid={
-              loadingState === LOADING_STATE.WAITING
-                ? 'loading-button'
-                : 'save-button'
+              loadingState === 'waiting' ? 'loading-button' : 'save-button'
             }
             key="save-btn"
-            loading={LOADING_STATE.WAITING === loadingState}
             type="primary"
             onClick={onConfirm}>
             {confirmText}

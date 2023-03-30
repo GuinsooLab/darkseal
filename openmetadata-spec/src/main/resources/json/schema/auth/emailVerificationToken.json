@@ -9,13 +9,12 @@
   "definitions": {
     "tokenType": {
       "javaType": "org.openmetadata.schema.auth.TokenType",
-      "description": "Different Type of User token",
+      "description": "Refresh Count",
       "type": "string",
       "enum": [
         "REFRESH_TOKEN",
         "EMAIL_VERIFICATION",
-        "PASSWORD_RESET",
-        "PERSONAL_ACCESS_TOKEN"
+        "PASSWORD_RESET"
       ]
     }
   },

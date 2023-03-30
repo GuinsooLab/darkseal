@@ -81,7 +81,7 @@ const GlossaryDetails = ({ permissions, glossary, updateGlossary }: props) => {
         .map((tag) => ({
           labelType: LabelType.Manual,
           state: State.Confirmed,
-          source: TagSource.Classification,
+          source: TagSource.Tag,
           tagFQN: tag,
         }));
       const updatedTags = [...prevTags, ...newTags];
@@ -149,10 +149,10 @@ const GlossaryDetails = ({ permissions, glossary, updateGlossary }: props) => {
         )}
         <Space
           className="items-center flex-wrap"
+          data-testid="tags"
           onClick={handleTagContainerClick}>
           <TagsContainer
             buttonContainerClass="m-t-0"
-            className="w-min-20"
             containerClass="flex items-center gap-2 m-t-xs"
             dropDownHorzPosRight={false}
             editable={isTagEditable}
@@ -170,8 +170,7 @@ const GlossaryDetails = ({ permissions, glossary, updateGlossary }: props) => {
             }}>
             {glossary?.tags && glossary?.tags.length ? (
               <Button
-                className="p-0 flex-center"
-                data-testid="edit-tag-icon"
+                className="p-0 m-l-xss flex-center"
                 disabled={!(permissions.EditTags || permissions.EditAll)}
                 icon={
                   <SVGIcons
@@ -181,7 +180,6 @@ const GlossaryDetails = ({ permissions, glossary, updateGlossary }: props) => {
                     width="16px"
                   />
                 }
-                size="small"
                 type="text"
               />
             ) : (

@@ -28,7 +28,7 @@ def get_connection(connection: DynamoDBConnection):
     return AWSClient(connection.awsConfig).get_dynamo_client()
 
 
-def test_connection(client, _) -> None:
+def test_connection(client) -> None:
     """
     Test connection
     """

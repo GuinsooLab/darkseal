@@ -48,23 +48,23 @@ Darkseal includes the following:
 
 ### Database Service
 
-![database_service](docs/overview/database_service.png)
+![database_service](openmetadata-docs/screenshots/database_service.png)
 
 ### Workflow DAG
 
-![workflow_dag](docs/overview/airflow_dag.png)
+![workflow_dag](openmetadata-docs/screenshots/airflow_dag.png)
 
 ### Data Tables
 
-![data_tables](docs/overview/data_tables.png)
+![data_tables](openmetadata-docs/screenshots/data_tables.png)
 
 ### Table Columns
 
-![table_columns](docs/overview/table_columns.png)
+![table_columns](openmetadata-docs/screenshots/table_columns.png)
 
 ### Stream Lineage
 
-![stream_lineage](docs/overview/stream_lineage.png)
+![stream_lineage](openmetadata-docs/screenshots/stream_lineage.png)
 
 ## Documentation & Supports
 

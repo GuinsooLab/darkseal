@@ -18,7 +18,6 @@ import { Operation } from 'fast-json-patch';
 import { uniqueId } from 'lodash';
 import { observer } from 'mobx-react';
 import React, { FC, useMemo, useState } from 'react';
-import { useTranslation } from 'react-i18next';
 import { postFeedById, postThread } from 'rest/feedsAPI';
 import AppState from '../../../../AppState';
 import {
@@ -47,7 +46,6 @@ const AnnouncementDrawer: FC<Props> = ({
   entityType,
   entityName,
 }) => {
-  const { t } = useTranslation();
   const [isAnnouncement, setIsAnnouncement] = useState<boolean>(false);
 
   // get current user details
@@ -62,7 +60,7 @@ const AnnouncementDrawer: FC<Props> = ({
       data-testid="title"
       style={{ width: '100%' }}>
       <Typography.Text className="tw-font-medium">
-        {t('label.announcement-on-entity', { entity: entityName })}
+        Announcements on {entityName}
       </Typography.Text>
       <CloseOutlined onClick={onClose} />
     </Space>
@@ -120,7 +118,7 @@ const AnnouncementDrawer: FC<Props> = ({
               data-testid="add-announcement"
               type="primary"
               onClick={() => setIsAnnouncement(true)}>
-              {t('label.add-entity', { entity: t('label.announcement') })}
+              Add Announcement
             </Button>
           </div>
 

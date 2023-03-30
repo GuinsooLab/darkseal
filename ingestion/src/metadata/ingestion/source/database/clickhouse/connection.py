@@ -12,10 +12,7 @@
 """
 Source connection handler
 """
-from functools import partial
-
 from sqlalchemy.engine import Engine
-from sqlalchemy.inspection import inspect
 
 from metadata.generated.schema.entity.services.connections.database.clickhouseConnection import (
     ClickhouseConnection,
@@ -24,30 +21,14 @@ from metadata.ingestion.connections.builders import (
     create_generic_db_connection,
     get_connection_args_common,
     get_connection_url_common,
-    init_empty_connection_arguments,
 )
-from metadata.ingestion.connections.test_connections import (
-    TestConnectionResult,
-    TestConnectionStep,
-    test_connection_db_common,
-)
-from metadata.ingestion.source.database.clickhouse.queries import (
-    CLICKHOUSE_SQL_STATEMENT_TEST,
-)
+from metadata.ingestion.connections.test_connections import test_connection_db_common
 
 
 def get_connection(connection: ClickhouseConnection) -> Engine:
     """
-    Create Clickhouse connection
+    Create MySQL connection
     """
-    if connection.secure or connection.keyfile:
-        if connection.connectionArguments:
-            connection.connectionArguments = init_empty_connection_arguments()
-        if connection.secure:
-            connection.connectionArguments.__root__["secure"] = connection.secure
-        if connection.keyfile:
-            connection.connectionArguments.__root__["keyfile"] = connection.keyfile
-
     return create_generic_db_connection(
         connection=connection,
         get_connection_url_fn=get_connection_url_common,
@@ -55,50 +36,8 @@ def get_connection(connection: ClickhouseConnection) -> Engine:
     )
 
 
-def test_connection(engine: Engine, _) -> TestConnectionResult:
+def test_connection(engine: Engine) -> None:
     """
-    Test Clickhouse connection
+    Test MySQL connection
     """
-
-    def custom_executor(engine, statement):
-        cursor = engine.execute(statement)
-        return list(cursor.all())
-
-    inspector = inspect(engine)
-
-    def custom_executor_for_tables():
-        schema_name = inspector.get_schema_names()
-
-        if schema_name:
-            for schema in schema_name:
-                if schema not in ("INFORMATION_SCHEMA", "system"):
-                    table_name = inspector.get_table_names(schema)
-                    return table_name
-        return None
-
-    steps = [
-        TestConnectionStep(
-            function=inspector.get_schema_names,
-            name="Get Schemas",
-        ),
-        TestConnectionStep(
-            function=partial(custom_executor_for_tables),
-            name="Get Tables",
-        ),
-        TestConnectionStep(
-            function=inspector.get_view_names,
-            name="Get Views",
-            mandatory=False,
-        ),
-        TestConnectionStep(
-            function=partial(
-                custom_executor,
-                statement=CLICKHOUSE_SQL_STATEMENT_TEST,
-                engine=engine,
-            ),
-            name="Get Usage and Lineage",
-            mandatory=False,
-        ),
-    ]
-
-    return test_connection_db_common(engine, steps)
+    test_connection_db_common(engine)

@@ -19,8 +19,6 @@ import PageHeader from 'components/header/PageHeader.component';
 import Loader from 'components/Loader/Loader';
 import { usePermissionProvider } from 'components/PermissionProvider/PermissionProvider';
 import { ResourceEntity } from 'components/PermissionProvider/PermissionProvider.interface';
-import { ERROR_PLACEHOLDER_TYPE } from 'enums/common.enum';
-import { t } from 'i18next';
 import { isEmpty } from 'lodash';
 import React, { useEffect, useMemo, useState } from 'react';
 import { useHistory } from 'react-router-dom';
@@ -91,8 +89,8 @@ const RolesListPage = () => {
   }, []);
 
   const fetchErrorPlaceHolder = useMemo(
-    () => () =>
-      (
+    () => () => {
+      return (
         <ErrorPlaceHolder
           buttons={
             <Button
@@ -101,14 +99,15 @@ const RolesListPage = () => {
               disabled={!addRolePermission}
               type="primary"
               onClick={handleAddRole}>
-              {t('label.add-entity', { entity: t('label.role') })}
+              Add Role
             </Button>
           }
-          heading={t('label.role')}
-          type={ERROR_PLACEHOLDER_TYPE.ADD}
+          heading="Role"
+          type="ADD_DATA"
         />
-      ),
-    [addRolePermission]
+      );
+    },
+    []
   );
 
   return isLoading ? (
@@ -125,19 +124,13 @@ const RolesListPage = () => {
           <PageHeader data={PAGE_HEADERS.ROLES} />
           <Tooltip
             placement="left"
-            title={
-              addRolePermission
-                ? t('label.add-entity', {
-                    entity: t('label.role'),
-                  })
-                : NO_PERMISSION_FOR_ACTION
-            }>
+            title={addRolePermission ? 'Add Role' : NO_PERMISSION_FOR_ACTION}>
             <Button
               data-testid="add-role"
               disabled={!addRolePermission}
               type="primary"
               onClick={handleAddRole}>
-              {t('label.add-entity', { entity: t('label.role') })}
+              Add Role
             </Button>
           </Tooltip>
         </Space>

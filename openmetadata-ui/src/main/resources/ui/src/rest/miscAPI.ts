@@ -14,11 +14,9 @@
 import { AxiosResponse } from 'axios';
 import { Edge } from 'components/EntityLineage/EntityLineage.interface';
 import { ExploreSearchIndex } from 'components/Explore/explore.interface';
-import { ApplicationConfiguration } from 'generated/configuration/applicationConfiguration';
-import { AuthorizerConfiguration } from 'generated/configuration/authorizerConfiguration';
 import { SearchIndex } from '../enums/search.enum';
+import { AirflowConfiguration } from '../generated/configuration/airflowConfiguration';
 import { AuthenticationConfiguration } from '../generated/configuration/authenticationConfiguration';
-import { PipelineServiceClientConfiguration } from '../generated/configuration/pipelineServiceClientConfiguration';
 import { EntitiesCount } from '../generated/entity/utils/entitiesCount';
 import { Paging } from '../generated/type/paging';
 import {
@@ -67,22 +65,7 @@ export const getOwnershipCount = (
 
 export const fetchAuthenticationConfig = async () => {
   const response = await APIClient.get<AuthenticationConfiguration>(
-    '/system/config/auth'
-  );
-
-  return response.data;
-};
-export const getApplicationConfig = async () => {
-  const response = await APIClient.get<ApplicationConfiguration>(
-    '/system/config/applicationConfig'
-  );
-
-  return response.data;
-};
-
-export const fetchAuthorizerConfig = async () => {
-  const response = await APIClient.get<AuthorizerConfiguration>(
-    '/system/config/authorizer'
+    '/config/auth'
   );
 
   return response.data;
@@ -90,16 +73,18 @@ export const fetchAuthorizerConfig = async () => {
 
 export const fetchSandboxConfig = async () => {
   const response = await APIClient.get<{ sandboxModeEnabled: boolean }>(
-    '/system/config/sandbox'
+    '/config/sandbox'
   );
 
   return response.data;
 };
 
+export const fetchSlackConfig = (): Promise<AxiosResponse> => {
+  return APIClient.get('/config/slackChat');
+};
+
 export const fetchAirflowConfig = async () => {
-  const response = await APIClient.get<PipelineServiceClientConfiguration>(
-    '/system/config/pipeline-service-client'
-  );
+  const response = await APIClient.get<AirflowConfiguration>('/config/airflow');
 
   return response.data;
 };
@@ -134,7 +119,7 @@ export const getSuggestions = <T extends SearchIndex>(
 };
 
 export const getVersion = async () => {
-  const response = await APIClient.get<{ version: string }>('/system/version');
+  const response = await APIClient.get<{ version: string }>('/version');
 
   return response.data;
 };
@@ -298,28 +283,7 @@ export const getEntityCount = async (
 };
 
 export const getAllEntityCount = async () => {
-  const response = await APIClient.get<EntitiesCount>('/system/entities/count');
-
-  return response.data;
-};
-
-export const fetchMarkdownFile = async (filePath: string) => {
-  let baseURL = '/';
-
-  try {
-    const url = new URL(filePath);
-    baseURL = `${url.origin}/`;
-  } catch (error) {
-    baseURL = '/';
-  }
-
-  const response = await APIClient.get<string>(filePath, {
-    baseURL,
-    headers: {
-      'Content-Type': 'text/markdown',
-      Accept: 'text/markdown',
-    },
-  });
+  const response = await APIClient.get<EntitiesCount>('/util/entities/count');
 
   return response.data;
 };

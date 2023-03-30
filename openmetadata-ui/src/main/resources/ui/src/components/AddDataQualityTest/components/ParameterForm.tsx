@@ -12,12 +12,9 @@
  */
 
 import { PlusOutlined } from '@ant-design/icons';
-import { Button, Form, Input, InputNumber, Select, Switch } from 'antd';
+import { Button, Form, Input, InputNumber, Switch } from 'antd';
 import 'codemirror/addon/fold/foldgutter.css';
-import { SUPPORTED_PARTITION_TYPE } from 'constants/profiler.constant';
-import { isUndefined } from 'lodash';
 import React from 'react';
-import { useTranslation } from 'react-i18next';
 import {
   TestCaseParameterDefinition,
   TestDataType,
@@ -26,55 +23,12 @@ import SVGIcons, { Icons } from '../../../utils/SvgUtils';
 import '../../TableProfiler/tableProfiler.less';
 import { ParameterFormProps } from '../AddDataQualityTest.interface';
 
-const ParameterForm: React.FC<ParameterFormProps> = ({ definition, table }) => {
-  const { t } = useTranslation();
-
+const ParameterForm: React.FC<ParameterFormProps> = ({ definition }) => {
   const prepareForm = (data: TestCaseParameterDefinition) => {
-    let Field = (
-      <Input
-        placeholder={`${t('message.enter-a-field', {
-          field: data.displayName,
-        })}`}
-      />
-    );
+    let Field = <Input placeholder={`Enter ${data.displayName}`} />;
     switch (data.dataType) {
       case TestDataType.String:
-        if (
-          !isUndefined(table) &&
-          definition.name === 'tableRowInsertedCountToBeBetween' &&
-          data.name === 'columnName'
-        ) {
-          const partitionColumnOptions = table.columns.reduce(
-            (result, column) => {
-              if (SUPPORTED_PARTITION_TYPE.includes(column.dataType)) {
-                return [
-                  ...result,
-                  {
-                    value: column.name,
-                    label: column.name,
-                  },
-                ];
-              }
-
-              return result;
-            },
-            [] as { value: string; label: string }[]
-          );
-          Field = (
-            <Select
-              options={partitionColumnOptions}
-              placeholder={t('message.select-column-name')}
-            />
-          );
-        } else {
-          Field = (
-            <Input
-              placeholder={`${t('message.enter-a-field', {
-                field: data.displayName,
-              })}`}
-            />
-          );
-        }
+        Field = <Input placeholder={`Enter ${data.displayName}`} />;
 
         break;
       case TestDataType.Number:
@@ -85,9 +39,7 @@ const ParameterForm: React.FC<ParameterFormProps> = ({ definition, table }) => {
         Field = (
           <InputNumber
             className="tw-w-full"
-            placeholder={`${t('message.enter-a-field', {
-              field: data.displayName,
-            })}`}
+            placeholder={`Enter ${data.displayName}`}
           />
         );
 
@@ -99,11 +51,7 @@ const ParameterForm: React.FC<ParameterFormProps> = ({ definition, table }) => {
       case TestDataType.Array:
       case TestDataType.Set:
         Field = (
-          <Input
-            placeholder={`${t('message.enter-comma-separated-field', {
-              field: data.displayName,
-            })}`}
-          />
+          <Input placeholder={`Enter comma(,) separated ${data.displayName}`} />
         );
 
         return (
@@ -136,16 +84,10 @@ const ParameterForm: React.FC<ParameterFormProps> = ({ definition, table }) => {
                       rules={[
                         {
                           required: data.required,
-                          message: `${t('message.field-text-is-required', {
-                            fieldText: data.displayName,
-                          })}`,
+                          message: `${data.displayName} is required!`,
                         },
                       ]}>
-                      <Input
-                        placeholder={`${t('message.enter-a-field', {
-                          field: data.displayName,
-                        })}`}
-                      />
+                      <Input placeholder={`Enter ${data.displayName}`} />
                     </Form.Item>
                     <Button
                       icon={
@@ -168,16 +110,13 @@ const ParameterForm: React.FC<ParameterFormProps> = ({ definition, table }) => {
 
     return (
       <Form.Item
-        data-testid="parameter"
         key={data.name}
         label={`${data.displayName}:`}
         name={data.name}
         rules={[
           {
             required: data.required,
-            message: `${t('message.field-text-is-required', {
-              fieldText: data.displayName,
-            })}`,
+            message: `${data.displayName} is required!`,
           },
         ]}
         tooltip={data.description}>

@@ -45,23 +45,6 @@ def get_connection(
     """
     Create connection
     """
-    if connection.saslUsername or connection.saslPassword or connection.saslMechanism:
-        connection.consumerConfig = connection.consumerConfig or {}
-        if connection.saslUsername:
-            connection.consumerConfig["sasl.username"] = connection.saslUsername
-        if connection.saslPassword:
-            connection.consumerConfig[
-                "sasl.password"
-            ] = connection.saslPassword.get_secret_value()
-        if connection.saslMechanism:
-            connection.consumerConfig["sasl.mechanism"] = connection.saslMechanism
-
-    if connection.basicAuthUserInfo:
-        connection.schemaRegistryConfig = connection.schemaRegistryConfig or {}
-        connection.schemaRegistryConfig[
-            "basic.auth.user.info"
-        ] = connection.basicAuthUserInfo
-
     admin_client_config = connection.consumerConfig
     admin_client_config["bootstrap.servers"] = connection.bootstrapServers
     admin_client = AdminClient(admin_client_config)
@@ -79,8 +62,7 @@ def get_connection(
         if "group.id" not in consumer_config:
             consumer_config["group.id"] = "openmetadata-consumer"
         if "auto.offset.reset" not in consumer_config:
-            consumer_config["auto.offset.reset"] = "largest"
-        consumer_config["enable.auto.commit"] = False
+            consumer_config["auto.offset.reset"] = "earliest"
         logger.debug(f"Using Kafka consumer config: {consumer_config}")
         consumer_client = AvroConsumer(
             consumer_config, schema_registry=schema_registry_client
@@ -93,7 +75,7 @@ def get_connection(
     )
 
 
-def test_connection(client: KafkaClient, _) -> None:
+def test_connection(client: KafkaClient) -> None:
     """
     Test connection
     """

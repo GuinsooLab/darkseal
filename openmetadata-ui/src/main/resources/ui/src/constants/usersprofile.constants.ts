@@ -10,7 +10,6 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
-import i18n from 'utils/i18next/LocalUtil';
 
 export const getUserCurrentTab = (tab: string) => {
   let currentTab = 1;
@@ -56,22 +55,22 @@ export const profileInfo = [
 
 export const USER_PROFILE_TABS = [
   {
-    name: i18n.t('label.activity'),
+    name: 'Activity',
     isProtected: false,
     position: 1,
   },
   {
-    name: i18n.t('label.task-plural'),
+    name: 'Tasks',
     isProtected: false,
     position: 2,
   },
   {
-    name: i18n.t('label.my-data'),
+    name: 'My Data',
     isProtected: false,
     position: 3,
   },
   {
-    name: i18n.t('label.following'),
+    name: 'Following',
     isProtected: false,
     position: 4,
   },

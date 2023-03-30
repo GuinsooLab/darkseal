@@ -13,7 +13,6 @@
 Source connection handler
 """
 from metadata.generated.schema.entity.services.connections.pipeline.nifiConnection import (
-    BasicAuthentication,
     NifiConnection,
 )
 from metadata.ingestion.connections.test_connections import SourceConnectionException
@@ -24,25 +23,15 @@ def get_connection(connection: NifiConnection) -> NifiClient:
     """
     Create connection
     """
-    if isinstance(connection.nifiConfig, BasicAuthentication):
-        return NifiClient(
-            host_port=connection.hostPort,
-            username=connection.nifiConfig.username,
-            password=connection.nifiConfig.password.get_secret_value()
-            if connection.nifiConfig.password
-            else None,
-            verify=connection.nifiConfig.verifySSL,
-        )
-
     return NifiClient(
         host_port=connection.hostPort,
-        ca_file_path=connection.nifiConfig.certificateAuthorityPath,
-        client_cert_path=connection.nifiConfig.clientCertificatePath,
-        client_key_path=connection.nifiConfig.clientkeyPath,
+        username=connection.username,
+        password=connection.password.get_secret_value(),
+        verify=connection.verifySSL,
     )
 
 
-def test_connection(client: NifiClient, _) -> None:
+def test_connection(client: NifiClient) -> None:
     """
     Test connection
     """

@@ -41,18 +41,6 @@
     "testSuiteCount": {
       "description": "Test Suite Count",
       "type": "integer"
-    },
-    "storageContainerCount": {
-      "description": "Storage Container Count",
-      "type": "integer"
-    },
-    "glossaryCount": {
-      "description": "Glossary Count",
-      "type": "integer"
-    },
-    "glossaryTermCount": {
-      "description": "Glossary Term Count",
-      "type": "integer"
     }
   },
   "additionalProperties": false

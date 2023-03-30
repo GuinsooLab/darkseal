@@ -16,10 +16,8 @@ import { Operation } from 'fast-json-patch';
 import { PagingResponse } from 'Models';
 import { IngestionPipelineLogByIdInterface } from 'pages/LogsViewer/LogsViewer.interfaces';
 import { CreateIngestionPipeline } from '../generated/api/services/ingestionPipelines/createIngestionPipeline';
-import {
-  IngestionPipeline,
-  PipelineStatus,
-} from '../generated/entity/services/ingestionPipelines/ingestionPipeline';
+import { PipelineStatus } from '../generated/entity/data/pipeline';
+import { IngestionPipeline } from '../generated/entity/services/ingestionPipelines/ingestionPipeline';
 import { Paging } from '../generated/type/paging';
 import { getURLWithQueryFields } from '../utils/APIUtils';
 import APIClient from './index';
@@ -93,13 +91,10 @@ export const getIngestionPipelines = async (
   return response.data;
 };
 
-export const triggerIngestionPipelineById = async (id: string) => {
-  const response = await APIClient.post<
-    unknown,
-    AxiosResponse<IngestionPipeline>
-  >(`/services/ingestionPipelines/trigger/${id}`);
-
-  return response.data;
+export const triggerIngestionPipelineById = (
+  id: string
+): Promise<AxiosResponse> => {
+  return APIClient.post(`/services/ingestionPipelines/trigger/${id}`);
 };
 
 export const deployIngestionPipelineById = (

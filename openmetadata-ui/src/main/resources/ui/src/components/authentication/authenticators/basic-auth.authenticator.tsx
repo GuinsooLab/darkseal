@@ -17,7 +17,6 @@ import React, {
   ReactNode,
   useImperativeHandle,
 } from 'react';
-import { useTranslation } from 'react-i18next';
 import { AccessTokenResponse, getAccessTokenOnExpiry } from 'rest/auth-API';
 import { AuthTypes } from '../../../enums/signin.enum';
 import localState from '../../../utils/LocalStorageUtils';
@@ -31,7 +30,6 @@ interface BasicAuthenticatorInterface {
 const BasicAuthenticator = forwardRef(
   ({ children }: BasicAuthenticatorInterface, ref) => {
     const { handleLogout } = useBasicAuth();
-    const { t } = useTranslation();
     const { setIsAuthenticated, authConfig } = useAuthContext();
 
     const handleSilentSignIn = async (): Promise<AccessTokenResponse> => {
@@ -41,7 +39,7 @@ const BasicAuthenticator = forwardRef(
         authConfig.provider !== AuthTypes.BASIC &&
         authConfig.provider !== AuthTypes.LDAP
       ) {
-        Promise.reject(t('message.authProvider-is-not-basic'));
+        Promise.reject('AuthProvider is not Basic');
       }
 
       const response = await getAccessTokenOnExpiry({

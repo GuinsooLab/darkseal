@@ -34,6 +34,7 @@ from metadata.generated.schema.entity.services.connections.pipeline.domoPipeline
 from metadata.generated.schema.metadataIngestion.workflow import (
     Source as WorkflowSource,
 )
+from metadata.generated.schema.type.entityReference import EntityReference
 from metadata.ingestion.api.source import InvalidSourceException
 from metadata.ingestion.models.pipeline_status import OMetaPipelineStatus
 from metadata.ingestion.source.pipeline.pipeline_service import PipelineServiceSource
@@ -53,6 +54,8 @@ class DomopipelineSource(PipelineServiceSource):
     Implements the necessary methods to extract
     Pipeline metadata from Domo's metadata db
     """
+
+    config: WorkflowSource
 
     @classmethod
     def create(cls, config_dict, metadata_config: OpenMetadataConnection):
@@ -86,7 +89,9 @@ class DomopipelineSource(PipelineServiceSource):
                 displayName=pipeline_details.get("name"),
                 description=pipeline_details.get("description", ""),
                 tasks=[task],
-                service=self.context.pipeline_service.fullyQualifiedName.__root__,
+                service=EntityReference(
+                    id=self.context.pipeline_service.id.__root__, type="pipelineService"
+                ),
                 startDate=pipeline_details.get("created"),
             )
             yield pipeline_yield

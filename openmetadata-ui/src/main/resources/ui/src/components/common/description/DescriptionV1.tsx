@@ -65,18 +65,14 @@ const DescriptionV1 = ({
   const editButton = () => {
     return !isReadOnly ? (
       <Tooltip
-        title={
-          hasEditAccess
-            ? t('label.edit-entity', { entity: t('label.description') })
-            : NO_PERMISSION_FOR_ACTION
-        }>
+        title={hasEditAccess ? 'Edit Description' : NO_PERMISSION_FOR_ACTION}>
         <button
           className="focus:tw-outline-none tw-text-primary"
           data-testid="edit-description"
           disabled={!hasEditAccess}
           onClick={onDescriptionEdit}>
           <SVGIcons
-            alt={t('label.edit')}
+            alt="edit"
             icon={Icons.IC_EDIT_PRIMARY}
             title="Edit"
             width="16px"
@@ -96,7 +92,7 @@ const DescriptionV1 = ({
           width: '100%',
           justifyContent: 'space-between',
         }}>
-        <Text type="secondary">{t('label.description')}</Text>
+        <Text type="secondary">Description</Text>
         <div>{editButton()}</div>
       </Space>
       <div>
@@ -106,7 +102,7 @@ const DescriptionV1 = ({
             markdown={description}
           />
         ) : (
-          <span>{t('label.no-description')}</span>
+          <span className="">No description </span>
         )}
         <ModalWithMarkdownEditor
           header={t('label.edit-description-for', { entityName })}
@@ -134,10 +130,10 @@ const DescriptionV1 = ({
               onClick={() => onEntityFieldSelect?.(EntityField.DESCRIPTION)}>
               <Tooltip
                 placement="top"
-                title={t('message.request-description')}
+                title="Request description"
                 trigger="hover">
                 <SVGIcons
-                  alt={t('message.request-description')}
+                  alt="request-description"
                   className="tw-mt-2"
                   icon={Icons.REQUEST}
                 />

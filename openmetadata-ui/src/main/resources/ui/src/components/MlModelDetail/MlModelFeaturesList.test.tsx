@@ -176,13 +176,9 @@ describe('Test MlModel feature list', () => {
     });
 
     const featureList = await screen.findByTestId('feature-list');
-    const salesFeatureCard = await screen.findByTestId('feature-card-sales');
-    const personaFeatureCard = await screen.findByTestId(
-      'feature-card-persona'
-    );
+    const featureCards = await screen.findAllByTestId('feature-card');
 
     expect(featureList).toBeInTheDocument();
-    expect(salesFeatureCard).toBeInTheDocument();
-    expect(personaFeatureCard).toBeInTheDocument();
+    expect(featureCards).toHaveLength(mockData['mlFeatures'].length);
   });
 });

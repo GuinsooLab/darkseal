@@ -15,12 +15,12 @@ import { Alert, Button, Card, Col, Form, Input, Row, Typography } from 'antd';
 import { AxiosError } from 'axios';
 import { useBasicAuth } from 'components/authentication/auth-provider/basic-auth.provider';
 import React, { useEffect, useMemo } from 'react';
-import { useTranslation } from 'react-i18next';
 import { useHistory, useLocation } from 'react-router-dom';
 import { VALIDATION_MESSAGES } from '../../constants/auth.constants';
 import { ROUTES } from '../../constants/constants';
 import { passwordRegex } from '../../constants/regex.constants';
 import { PasswordResetRequest } from '../../generated/auth/passwordResetRequest';
+import jsonData from '../../jsons/en';
 import SVGIcons, { Icons } from '../../utils/SvgUtils';
 import { showErrorToast } from '../../utils/ToastUtils';
 import './reset-password.style.less';
@@ -32,7 +32,6 @@ interface ResetFormData {
 }
 
 const ResetPassword = () => {
-  const { t } = useTranslation();
   const [form] = Form.useForm();
   const location = useLocation();
 
@@ -63,7 +62,10 @@ const ResetPassword = () => {
       await handleResetPassword(ResetRequest);
       history.push(ROUTES.SIGNIN);
     } catch (err) {
-      showErrorToast(err as AxiosError, t('server.unexpected-response'));
+      showErrorToast(
+        err as AxiosError,
+        jsonData['api-error-messages']['unexpected-server-response']
+      );
     }
   };
 
@@ -80,14 +82,14 @@ const ResetPassword = () => {
             <Alert
               showIcon
               description="Please re-initiate email verification process"
-              message={t('message.email-verification-token-expired')}
+              message="Email Verification Token Expired"
               type="error"
             />
           </div>
 
           <div className="mt-20 flex-center">
             <Typography.Link underline onClick={handleReVerify}>
-              {t('label.re-verify')}
+              Re verify
             </Typography.Link>
           </div>
         </Card>
@@ -98,12 +100,12 @@ const ResetPassword = () => {
           style={{ maxWidth: '450px' }}>
           <Row gutter={[16, 24]}>
             <Col className="text-center" span={24}>
-              <SVGIcons alt="Darkseal Logo" icon={Icons.LOGO} width="60" />
+              <SVGIcons alt="Logo" icon={Icons.LOGO} width="40" />
             </Col>
 
             <Col className="mt-12 text-center" span={24}>
-              <Typography.Text className="text-base font-medium text-grey-muted">
-                {t('label.reset-your-password')}
+              <Typography.Text className="text-xl font-medium text-grey-muted">
+                Reset your Password
               </Typography.Text>
             </Col>
 
@@ -115,36 +117,31 @@ const ResetPassword = () => {
                 validateMessages={VALIDATION_MESSAGES}
                 onFinish={handleSubmit}>
                 <Form.Item
-                  label={t('label.new-password')}
+                  label="New Password"
                   name="password"
                   rules={[
                     {
                       required: true,
-                      message: t('message.field-text-is-required', {
-                        fieldText: t('label.password'),
-                      }),
+                      message: 'Password is required',
                     },
                     {
                       pattern: passwordRegex,
-                      message: t('message.password-pattern-error'),
+                      message:
+                        'Password must be of minimum 8 and maximum 16 characters, with one special , one upper, one lower case character',
                     },
                   ]}>
                   <Input.Password
                     className="w-full"
-                    placeholder={t('label.enter-entity', {
-                      entity: t('label.new-password'),
-                    })}
+                    placeholder="Enter new password"
                   />
                 </Form.Item>
                 <Form.Item
-                  label={t('label.confirm-new-password')}
+                  label="Confirm New Password"
                   name="confirmPassword"
                   rules={[
                     {
                       required: true,
-                      message: t('message.field-text-is-required', {
-                        fieldText: t('label.confirm-new-password'),
-                      }),
+                      message: 'Confirm password is required',
                     },
                     {
                       validator: (_, value) => {
@@ -152,13 +149,13 @@ const ResetPassword = () => {
                           return Promise.resolve();
                         }
 
-                        return Promise.reject(t('label.password-not-match'));
+                        return Promise.reject("Password doesn't match");
                       },
                     },
                   ]}>
                   <Input.Password
                     className="w-full"
-                    placeholder={t('label.re-enter-new-password')}
+                    placeholder="Re-enter New Password"
                   />
                 </Form.Item>
 
@@ -166,7 +163,7 @@ const ResetPassword = () => {
                   className="w-full m-t-lg"
                   htmlType="submit"
                   type="primary">
-                  {t('label.submit')}
+                  Submit
                 </Button>
               </Form>
             </Col>

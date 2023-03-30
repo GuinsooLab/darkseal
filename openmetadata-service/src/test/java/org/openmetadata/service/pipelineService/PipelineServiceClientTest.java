@@ -4,17 +4,12 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import org.junit.jupiter.api.Test;
-import org.openmetadata.schema.api.configuration.pipelineServiceClient.PipelineServiceClientConfiguration;
-import org.openmetadata.sdk.exception.PipelineServiceVersionException;
+import org.openmetadata.service.exception.PipelineServiceVersionException;
 
 public class PipelineServiceClientTest {
 
   final MockPipelineServiceClient mockPipelineServiceClient =
-      new MockPipelineServiceClient(
-          new PipelineServiceClientConfiguration()
-              .withClassName("")
-              .withMetadataApiEndpoint("http://openmetadata-server:8585/api")
-              .withApiEndpoint("http://ingestion:8080"));
+      new MockPipelineServiceClient("user", "password", "https://endpoint.com", "111.11.11.1", 10);
 
   @Test
   public void testGetVersionFromString() {

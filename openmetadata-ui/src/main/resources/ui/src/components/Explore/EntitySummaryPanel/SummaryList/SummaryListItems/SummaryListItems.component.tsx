@@ -49,12 +49,8 @@ function SummaryListItem({
             <Col>
               {entityDetails.type && (
                 <Space size={4}>
-                  <Text className="text-grey-muted">{`${t(
-                    'label.type'
-                  )}:`}</Text>
-                  <Text
-                    className="font-medium text-grey-body"
-                    data-testid="entity-type">
+                  <Text className="text-gray">{`${t('label.type')}:`}</Text>
+                  <Text className="font-medium" data-testid="entity-type">
                     {entityDetails.type}
                   </Text>
                 </Space>
@@ -68,12 +64,10 @@ function SummaryListItem({
                 </Col>
                 <Col>
                   <Space size={4}>
-                    <Text className="text-grey-muted">{`${t(
+                    <Text className="text-gray">{`${t(
                       'label.algorithm'
                     )}:`}</Text>
-                    <Text
-                      className="font-medium text-grey-body"
-                      data-testid="algorithm">
+                    <Text className="font-medium" data-testid="algorithm">
                       {entityDetails.algorithm}
                     </Text>
                   </Space>
@@ -91,20 +85,22 @@ function SummaryListItem({
                       className="w-12 h-12"
                       data-testid="tag-grey-icon"
                     />
-                    <TagsViewer
-                      sizeCap={-1}
-                      tags={(entityDetails.tags || []).map((tag) =>
-                        getTagValue(tag)
-                      )}
-                    />
+                    <Row wrap>
+                      <TagsViewer
+                        sizeCap={-1}
+                        tags={(entityDetails.tags || []).map((tag) =>
+                          getTagValue(tag)
+                        )}
+                      />
+                    </Row>
                   </Space>
                 </Col>
               </>
             )}
           </Row>
         </Col>
-        <Col className="m-t-md" span={24}>
-          <Paragraph className="text-grey-body">
+        <Col span={24}>
+          <Paragraph>
             {entityDetails.description ? (
               <RichTextEditorPreviewer
                 markdown={entityDetails.description || ''}
@@ -116,7 +112,7 @@ function SummaryListItem({
           </Paragraph>
         </Col>
       </Row>
-      <Divider className="m-y-xs" />
+      <Divider />
     </Col>
   );
 }

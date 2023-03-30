@@ -13,7 +13,7 @@
 
 /* eslint-disable @typescript-eslint/ban-types */
 
-import { CheckOutlined } from '@ant-design/icons';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { Typography } from 'antd';
 import { AxiosError } from 'axios';
 import classNames from 'classnames';
@@ -63,12 +63,27 @@ import {
 import { SIZE } from '../enums/common.enum';
 import { EntityType, FqnPart, TabSpecificField } from '../enums/entity.enum';
 import { FilterPatternEnum } from '../enums/filterPattern.enum';
+import { Field } from '../generated/api/data/createTopic';
+import { Kpi } from '../generated/dataInsight/kpi/kpi';
+import { Bot } from '../generated/entity/bot';
+import { Classification } from '../generated/entity/classification/classification';
+import { Dashboard } from '../generated/entity/data/dashboard';
+import { Database } from '../generated/entity/data/database';
+import { GlossaryTerm } from '../generated/entity/data/glossaryTerm';
+import { Pipeline } from '../generated/entity/data/pipeline';
+import { Table } from '../generated/entity/data/table';
+import { Topic } from '../generated/entity/data/topic';
+import { Webhook } from '../generated/entity/events/webhook';
 import { ThreadTaskStatus, ThreadType } from '../generated/entity/feed/thread';
+import { Policy } from '../generated/entity/policies/policy';
 import { PipelineType } from '../generated/entity/services/ingestionPipelines/ingestionPipeline';
-import { EntityReference } from '../generated/entity/teams/user';
+import { Role } from '../generated/entity/teams/role';
+import { Team } from '../generated/entity/teams/team';
+import { EntityReference, User } from '../generated/entity/teams/user';
 import { Paging } from '../generated/type/paging';
 import { TagLabel } from '../generated/type/tagLabel';
 import { EntityFieldThreadCount } from '../interface/feed.interface';
+import { ServicesType } from '../interface/service.interface';
 import jsonData from '../jsons/en';
 import { getEntityFeedLink, getTitleCase } from './EntityUtils';
 import Fqn from './Fqn';
@@ -438,9 +453,7 @@ export const getFields = (defaultFields: string, tabSpecificField: string) => {
 export const getEntityMissingError = (entityType: string, fqn: string) => {
   return (
     <p>
-      {capitalize(entityType)} {t('label.instance-lowercase')}{' '}
-      {t('label.for-lowercase')} <strong>{fqn}</strong>{' '}
-      {t('label.not-found-lowercase')}
+      {capitalize(entityType)} instance for <strong>{fqn}</strong> not found
     </p>
   );
 };
@@ -532,6 +545,49 @@ export const getEntityPlaceHolder = (value: string, isDeleted?: boolean) => {
     return value;
   }
 };
+
+/**
+ * Take entity reference as input and return name for entity
+ * @param entity - entity reference
+ * @returns - entity name
+ */
+export const getEntityName = (
+  entity?:
+    | EntityReference
+    | ServicesType
+    | User
+    | Topic
+    | Database
+    | Dashboard
+    | Table
+    | Pipeline
+    | Team
+    | Policy
+    | Role
+    | GlossaryTerm
+    | Webhook
+    | Bot
+    | Kpi
+    | Classification
+    | Field
+) => {
+  return entity?.displayName || entity?.name || '';
+};
+
+export const getEntityId = (
+  entity?:
+    | EntityReference
+    | ServicesType
+    | User
+    | Topic
+    | Database
+    | Dashboard
+    | Table
+    | Pipeline
+    | Team
+    | Policy
+    | Role
+) => entity?.id || '';
 
 export const getEntityDeleteMessage = (entity: string, dependents: string) => {
   if (dependents) {
@@ -741,7 +797,7 @@ export const getLoadingStatus = (
 ) => {
   return current.id === id ? (
     current.state === 'success' ? (
-      <CheckOutlined />
+      <FontAwesomeIcon icon="check" />
     ) : (
       <Loader size="small" type="default" />
     )
@@ -754,9 +810,6 @@ export const refreshPage = () => window.location.reload();
 // return array of id as  strings
 export const getEntityIdArray = (entities: EntityReference[]): string[] =>
   entities.map((item) => item.id);
-
-export const getEntityFqnArray = (entities: EntityReference[]): string[] =>
-  entities.map((item) => item.fullyQualifiedName!);
 
 export const getTierFromEntityInfo = (entity: FormattedTableData) => {
   return (

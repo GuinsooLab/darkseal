@@ -63,7 +63,7 @@ pre {
   color: #e9a800 !important;
 }
 .text-info {
-  color: #7558c1 !important;
+  color: #004ab3ff !important;
 }
 .text-secondary {
   color: #c45296 !important;
@@ -83,7 +83,7 @@ pre {
 }
 .bg-info {
   color: #ffffff;
-  background-color: #7558c1 !important;
+  background-color: #004ab3ff !important;
 }
 .bg-secondary {
   color: #ffffff;
@@ -401,7 +401,7 @@ pre {
   background: rgb(94, 92, 88, 0.15);
 }
 .badge-table {
-  color: #7558c1;
+  color: #004ab3ff;
   background: rgba(117, 88, 193, 0.15);
 }
 
@@ -429,7 +429,7 @@ pre {
   border-radius: 4px;
 }
 .sl-label.uuid {
-  color: #7558c1;
+  color: #004ab3ff;
   background-color: rgba(117, 88, 193, 0.15);
 }
 .sl-label.numeric {
@@ -724,7 +724,7 @@ body .profiler-graph .recharts-active-dot circle {
   background-color: #6b7280;
 }
 .leaf-node.core .react-flow__handle {
-  background-color: #1e61f0;
+  background-color: #004ab3;
 }
 .react-flow__edge {
   pointer-events: all;
@@ -732,7 +732,7 @@ body .profiler-graph .recharts-active-dot circle {
 }
 
 .react-flow__edge.selected .react-flow__edge-path {
-  stroke: #1e61f0;
+  stroke: #004ab3;
 }
 
 .react-flow__node-default,
@@ -944,7 +944,7 @@ code {
 }
 
 .page-not-found-container::after {
-  background-color: #fff;
+  background-color: #f8f9fa;
 }
 .page-not-found-container::before {
   background-color: #fff;
@@ -966,7 +966,7 @@ code {
 
 .ant-btn-text:hover span {
   text-decoration: underline;
-  color: #1e61f0;
+  color: #004ab3;
   background-color: transparent;
 }
 
@@ -1005,8 +1005,8 @@ code {
 /* Reaction CSS Start */
 .ant-btn-add-reactions:hover,
 .ant-btn-add-reactions:focus {
-  color: #1e61f0;
-  border-color: #1e61f0;
+  color: #004ab3;
+  border-color: #004ab3;
 }
 
 .ant-btn-reaction,
@@ -1019,28 +1019,28 @@ code {
 }
 
 .ant-btn-popover-reaction:hover {
-  background-color: #1e61f060;
+  background-color: #004ab360;
 }
 
 .ant-btn-reaction:hover,
 .ant-btn-isReacted {
-  color: #1e61f0;
-  border-color: #1e61f0;
+  color: #004ab3;
+  border-color: #004ab3;
 }
 
 .ant-btn-isReacted:hover {
-  color: #1e61f0;
-  border-color: #1e61f080;
+  color: #004ab3;
+  border-color: #004ab380;
 }
 
 .ant-btn-popover-isReacted,
 .ant-btn-popover-isReacted:hover {
-  background-color: #1e61f060;
+  background-color: #004ab360;
 }
 
 /* Reaction CSS End */
 .ant-advaced-field-select {
-  color: #1e61f0;
+  color: #004ab3;
   min-width: 130px;
 }
 .ant-suggestion-dropdown {
@@ -1069,10 +1069,7 @@ code {
 /* Feed popover CSS start */
 
 .ant-popover-inner-content {
-  padding-top: 4px;
-  padding-bottom: 6px;
-  padding-left: 8px;
-  padding-right: 8px;
+  padding: 4px 8px 6px;
 }
 
 .ant-popover-feed > .ant-popover-content > .ant-popover-arrow,
@@ -1111,28 +1108,28 @@ code {
 /* Antd custom button CSS */
 .ant-btn-link-custom,
 .ant-btn-link-custom:hover {
-  color: #1e61f0;
+  color: #004ab3;
 }
 .ant-dropdown-button.ant-btn-primary-dropdown > .ant-btn-primary,
 .ant-btn-primary-custom {
-  background: #1e61f0;
+  background: #004ab3;
   color: #ffffff;
-  border-color: #1e61f0;
+  border-color: #004ab3;
 }
 
 .ant-dropdown-button.ant-btn-primary-dropdown
   > .ant-btn-primary.ant-btn-icon-only {
-  background: #1e61f0;
+  background: #004ab3;
   color: #ffffff;
-  border-color: #1e61f0;
+  border-color: #004ab3;
   border-left-color: #ffffff;
 }
 .ant-btn-primary-custom:hover,
 .ant-dropdown-button.ant-btn-primary-dropdown > .ant-btn-primary,
 .ant-btn-primary-custom span:hover {
-  background: #1e61f0;
+  background: #004ab3;
   color: #ffffff;
-  border-color: #1e61f0;
+  border-color: #004ab3;
   text-decoration: none;
 }
 
@@ -1146,11 +1143,11 @@ code {
   margin: 8px 0px;
   outline: none;
 }
-.ant-select-assignee:not(.ant-select-disabled):hover .ant-select-selector {
-  border-color: #1e61f0;
+.ant-select-custom:not(.ant-select-disabled):hover .ant-select-selector {
+  border-color: #004ab3;
 }
 .ant-select-focused {
-  border-color: #1e61f0;
+  border-color: #004ab3;
   outline: none;
 }
 
@@ -1184,13 +1181,13 @@ code {
   > .ant-tabs-nav-wrap
   > .ant-tabs-nav-list
   > .ant-tabs-tab:hover {
-  color: #1e61f0;
+  color: #004ab3;
 }
 .ant-tabs-custom-threadpanel > .ant-tabs-nav > .ant-tabs-nav-wrap {
   padding: 0px 16px;
 }
 .ant-tabs-ink-bar {
-  background: #1e61f0;
+  background: #004ab3;
 }
 /* Description tabs CSS */
 
@@ -1211,15 +1208,15 @@ code {
 }
 
 .data-box.Successful {
-  background-color: #07a35a;
+  background-color: #28a745;
 }
 
 .data-box.Failed {
-  background-color: #e54937;
+  background-color: #cb2431;
 }
 
 .data-box.Pending {
-  background-color: #276ef1;
+  background-color: #1890ff;
 }
 
 .exec-date-time {
@@ -1279,20 +1276,13 @@ div.ant-typography-ellipsis-custom {
   overflow: hidden;
 }
 
-.ant-input:hover,
-.ant-input:focus {
-  border-color: #1e61f0;
-  border-right-width: 0px;
-  box-shadow: none;
-}
-
 .add-webhook-container #center {
   padding-right: 0px;
 }
 
 .ant-dropdown-menu-item-selected {
-  color: #1e61f0;
-  background-color: #1e61f025;
+  color: #004ab3;
+  background-color: #004ab325;
 }
 
 .table-query-editor pre.CodeMirror-line {
@@ -1301,7 +1291,7 @@ div.ant-typography-ellipsis-custom {
 
 /* antd switch css */
 .ant-switch-checked {
-  background: #1e61f0;
+  background: #004ab3;
 }
 /* antd switch css */
 

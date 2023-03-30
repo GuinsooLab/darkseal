@@ -14,12 +14,11 @@
 import { Button, Tooltip } from 'antd';
 import Table, { ColumnsType } from 'antd/lib/table';
 import React, { useMemo } from 'react';
-import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
-import { getEntityName } from 'utils/EntityUtils';
 import { NO_PERMISSION_FOR_ACTION } from '../../constants/HelperTextUtil';
 import { EntityType } from '../../enums/entity.enum';
 import { EntityReference } from '../../generated/type/entityReference';
+import { getEntityName } from '../../utils/CommonUtils';
 import {
   getPolicyWithFqnPath,
   getRoleWithFqnPath,
@@ -38,11 +37,10 @@ const ListEntities = ({
   onDelete: (record: EntityReference) => void;
   hasAccess: boolean;
 }) => {
-  const { t } = useTranslation();
   const columns: ColumnsType<EntityReference> = useMemo(() => {
     return [
       {
-        title: t('label.name'),
+        title: 'Name',
         dataIndex: 'name',
         width: '200px',
         key: 'name',
@@ -73,7 +71,7 @@ const ListEntities = ({
         },
       },
       {
-        title: t('label.description'),
+        title: 'Description',
         dataIndex: 'description',
         key: 'description',
         render: (_, record) => (
@@ -81,7 +79,7 @@ const ListEntities = ({
         ),
       },
       {
-        title: t('label.action-plural'),
+        title: 'Actions',
         dataIndex: 'actions',
         width: '80px',
         key: 'actions',
@@ -89,7 +87,7 @@ const ListEntities = ({
           return (
             <Tooltip
               placement="bottomRight"
-              title={hasAccess ? t('label.remove') : NO_PERMISSION_FOR_ACTION}>
+              title={hasAccess ? 'Remove' : NO_PERMISSION_FOR_ACTION}>
               <Button
                 data-testid={`remove-action-${getEntityName(record)}`}
                 disabled={!hasAccess}

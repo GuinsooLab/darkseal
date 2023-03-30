@@ -36,7 +36,6 @@ from looker_sdk.sdk.api40.models import (
 from metadata.generated.schema.api.data.createChart import CreateChartRequest
 from metadata.generated.schema.api.data.createDashboard import CreateDashboardRequest
 from metadata.generated.schema.api.lineage.addLineage import AddLineageRequest
-from metadata.generated.schema.entity.data.chart import Chart
 from metadata.generated.schema.entity.data.dashboard import (
     Dashboard as MetadataDashboard,
 )
@@ -104,9 +103,7 @@ class LookerSource(DashboardServiceSource):
         self._owners_ref = {}
 
     @classmethod
-    def create(
-        cls, config_dict: dict, metadata_config: OpenMetadataConnection
-    ) -> "LookerSource":
+    def create(cls, config_dict: dict, metadata_config: OpenMetadataConnection):
         config = WorkflowSource.parse_obj(config_dict)
         connection: LookerConnection = config.serviceConnection.__root__.config
         if not isinstance(connection, LookerConnection):
@@ -159,6 +156,7 @@ class LookerSource(DashboardServiceSource):
         Returns:
             Optional[EntityReference]
         """
+
         try:
             if (
                 dashboard_details.user_id is not None
@@ -194,16 +192,14 @@ class LookerSource(DashboardServiceSource):
             displayName=dashboard_details.title,
             description=dashboard_details.description or None,
             charts=[
-                fqn.build(
-                    self.metadata,
-                    entity_type=Chart,
-                    service_name=self.context.dashboard_service.fullyQualifiedName.__root__,
-                    chart_name=chart.name.__root__,
-                )
+                EntityReference(id=chart.id.__root__, type="chart")
                 for chart in self.context.charts
             ],
             dashboardUrl=f"/dashboards/{dashboard_details.id}",
-            service=self.context.dashboard_service.fullyQualifiedName.__root__,
+            service=EntityReference(
+                id=self.context.dashboard_service.id.__root__, type="dashboardService"
+            ),
+            owner=self.get_owner_details(dashboard_details),
         )
 
     @staticmethod
@@ -366,7 +362,10 @@ class LookerSource(DashboardServiceSource):
                     description=self.build_chart_description(chart) or None,
                     chartType=get_standard_chart_type(chart.type).value,
                     chartUrl=f"/dashboard_elements/{chart.id}",
-                    service=self.context.dashboard_service.fullyQualifiedName.__root__,
+                    service=EntityReference(
+                        id=self.context.dashboard_service.id.__root__,
+                        type="dashboardService",
+                    ),
                 )
                 self.status.scanned(chart.id)
 

@@ -31,7 +31,7 @@ const mockColumnData = {
       tagFQN: 'PersonalData.Personal',
       description:
         'Data that can be used to directly or indirectly identify a person.',
-      source: 'Classification',
+      source: 'Tag',
       labelType: 'Manual',
       state: 'Confirmed',
     },

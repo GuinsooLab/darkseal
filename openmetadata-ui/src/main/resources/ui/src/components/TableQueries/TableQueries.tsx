@@ -13,10 +13,10 @@
 
 import { Col, Row } from 'antd';
 import { AxiosError } from 'axios';
-import { Query } from 'generated/entity/data/query';
 import { isEmpty } from 'lodash';
 import React, { FC, useEffect, useState } from 'react';
-import { getQueriesList } from 'rest/queryAPI';
+import { getTableQueryByTableId } from 'rest/tableAPI';
+import { Table } from '../../generated/entity/data/table';
 import { withLoader } from '../../hoc/withLoader';
 import { showErrorToast } from '../../utils/ToastUtils';
 import ErrorPlaceHolder from '../common/error-with-placeholder/ErrorPlaceHolder';
@@ -32,13 +32,13 @@ const TableQueries: FC<TableQueriesProp> = ({
   isTableDeleted,
   tableId,
 }: TableQueriesProp) => {
-  const [tableQueries, setTableQueries] = useState<Query[]>([]);
+  const [tableQueries, setTableQueries] = useState<Table['tableQueries']>([]);
   const [isQueriesLoading, setIsQueriesLoading] = useState(true);
 
   const fetchTableQuery = async () => {
     try {
-      const queries = await getQueriesList({ entityId: tableId });
-      setTableQueries(queries.data);
+      const queries = await getTableQueryByTableId(tableId);
+      setTableQueries(queries.tableQueries ?? []);
     } catch (error) {
       showErrorToast(error as AxiosError);
     } finally {

@@ -35,6 +35,7 @@ from metadata.generated.schema.entity.services.connections.mlmodel.mlflowConnect
 from metadata.generated.schema.metadataIngestion.workflow import (
     Source as WorkflowSource,
 )
+from metadata.generated.schema.type.entityReference import EntityReference
 from metadata.ingestion.api.source import InvalidSourceException
 from metadata.ingestion.source.mlmodel.mlmodel_service import MlModelServiceSource
 from metadata.utils.filters import filter_by_mlmodel
@@ -87,7 +88,7 @@ class MlflowSource(MlModelServiceSource):
                 None,
             )
             if not latest_version:
-                self.status.failure(model.name, reason="Invalid version")
+                self.status.failed(model.name, reason="Invalid version")
                 continue
 
             yield model, latest_version
@@ -116,7 +117,9 @@ class MlflowSource(MlModelServiceSource):
                 run.data, latest_version.run_id, model.name
             ),
             mlStore=self._get_ml_store(latest_version),
-            service=self.context.mlmodel_service.fullyQualifiedName,
+            service=EntityReference(
+                id=self.context.mlmodel_service.id, type="mlmodelService"
+            ),
         )
 
     def _get_hyper_params(  # pylint: disable=arguments-differ
@@ -185,7 +188,7 @@ class MlflowSource(MlModelServiceSource):
                 if not latest_props:
                     reason = f"Cannot find the run ID properties for {run_id}"
                     logger.warning(reason)
-                    self.status.warning(model_name, reason)
+                    self.status.warned(model_name, reason)
                     return None
 
                 if latest_props.get("signature") and latest_props["signature"].get(
@@ -208,6 +211,6 @@ class MlflowSource(MlModelServiceSource):
                 logger.debug(traceback.format_exc())
                 reason = f"Cannot extract properties from RunData: {exc}"
                 logger.warning(reason)
-                self.status.warning(model_name, reason)
+                self.status.warned(model_name, reason)
 
         return None

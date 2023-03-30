@@ -10,7 +10,7 @@
 #  limitations under the License.
 """Metadata source module"""
 import traceback
-from typing import Iterable
+from typing import Iterable, List
 
 from metadata.generated.schema.entity.classification.classification import (
     Classification,
@@ -35,11 +35,29 @@ from metadata.generated.schema.metadataIngestion.workflow import (
     Source as WorkflowSource,
 )
 from metadata.ingestion.api.common import Entity
-from metadata.ingestion.api.source import Source
+from metadata.ingestion.api.source import Source, SourceStatus
 from metadata.ingestion.ometa.ometa_api import OpenMetadata
 from metadata.utils.logger import ingestion_logger
 
 logger = ingestion_logger()
+
+
+class MetadataSourceStatus(SourceStatus):
+
+    success: List[str] = []
+    failures: List[str] = []
+    warnings: List[str] = []
+
+    def scanned_entity(self, entity_class_name: str, entity_name: str) -> None:
+        self.success.append(entity_name)
+        logger.info("%s Scanned: %s", entity_class_name, entity_name)
+
+    # pylint: disable=unused-argument
+    def filtered(
+        self, table_name: str, err: str, dataset_name: str = None, col_type: str = None
+    ) -> None:
+        self.warnings.append(table_name)
+        logger.warning("Dropped Entity %s due to %s", table_name, err)
 
 
 class MetadataSource(Source[Entity]):
@@ -48,6 +66,7 @@ class MetadataSource(Source[Entity]):
     """
 
     config: WorkflowSource
+    report: SourceStatus
 
     def __init__(
         self,
@@ -59,6 +78,7 @@ class MetadataSource(Source[Entity]):
         self.metadata_config = metadata_config
         self.metadata = OpenMetadata(metadata_config)
         self.service_connection = config.serviceConnection.__root__.config
+        self.status = MetadataSourceStatus()
         self.wrote_something = False
         self.tables = None
         self.topics = None
@@ -162,14 +182,6 @@ class MetadataSource(Source[Entity]):
             )
 
     def fetch_entities(self, entity_class, fields):
-        """
-        Args:
-            entity_class: class of the entities to be fetched
-            fields: fields that must be additionally fetched
-
-        Returns:
-            A list of entities with the requested fields
-        """
         try:
             after = None
             while True:
@@ -180,9 +192,7 @@ class MetadataSource(Source[Entity]):
                     limit=self.service_connection.limitRecords,
                 )
                 for entity in entities_list.entities:
-                    self.status.scanned(
-                        f"{entity_class.__name__} Scanned {entity.name}"
-                    )
+                    self.status.scanned_entity(entity_class.__name__, entity.name)
                     yield entity
                 if entities_list.after is None:
                     break
@@ -193,6 +203,9 @@ class MetadataSource(Source[Entity]):
             logger.error(
                 f"Fetching entities failed for [{entity_class.__name__}]: {exc}"
             )
+
+    def get_status(self) -> SourceStatus:
+        return self.status
 
     def close(self):
         pass

@@ -18,7 +18,6 @@ import { MsalProvider } from '@azure/msal-react';
 import { LoginCallback } from '@okta/okta-react';
 import { AxiosError } from 'axios';
 import { CookieStorage } from 'cookie-storage';
-import { AuthorizerConfiguration } from 'generated/configuration/authorizerConfiguration';
 import { isEmpty, isNil, isNumber } from 'lodash';
 import { observer } from 'mobx-react';
 import React, {
@@ -31,11 +30,10 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import { useTranslation } from 'react-i18next';
 import { useHistory, useLocation } from 'react-router-dom';
 import axiosClient from 'rest/index';
-import { fetchAuthenticationConfig, fetchAuthorizerConfig } from 'rest/miscAPI';
-import { getLoggedInUser, updateUser } from 'rest/userAPI';
+import { fetchAuthenticationConfig } from 'rest/miscAPI';
+import { getLoggedInUser, getUserByName, updateUser } from 'rest/userAPI';
 import appState from '../../../AppState';
 import { NO_AUTH } from '../../../constants/auth.constants';
 import { REDIRECT_PATHNAME, ROUTES } from '../../../constants/constants';
@@ -43,9 +41,11 @@ import { ClientErrors } from '../../../enums/axios.enum';
 import { AuthTypes } from '../../../enums/signin.enum';
 import { AuthenticationConfiguration } from '../../../generated/configuration/authenticationConfiguration';
 import { AuthType, User } from '../../../generated/entity/teams/user';
+import jsonData from '../../../jsons/en';
 import {
   extractDetailsFromToken,
   getAuthConfig,
+  getNameFromEmail,
   getUrlPathnameExpiry,
   getUserManagerConfig,
   isProtectedRoute,
@@ -95,7 +95,6 @@ export const AuthProvider = ({
 }: AuthProviderProps) => {
   const location = useLocation();
   const history = useHistory();
-  const { t } = useTranslation();
   const [timeoutId, setTimeoutId] = useState<number>();
   const authenticatorRef = useRef<AuthenticatorRef>(null);
 
@@ -108,9 +107,6 @@ export const AuthProvider = ({
   const [loading, setLoading] = useState(true);
   const [authConfig, setAuthConfig] =
     useState<Record<string, string | boolean>>();
-
-  const [authorizerConfig, setAuthorizerConfig] =
-    useState<AuthorizerConfiguration>();
   const [isSigningIn, setIsSigningIn] = useState(false);
   const [isUserCreated, setIsUserCreated] = useState(false);
 
@@ -191,9 +187,7 @@ export const AuthProvider = ({
         if (err.response?.status !== 404) {
           showErrorToast(
             err,
-            t('server.entity-fetch-error', {
-              entity: t('label.logged-in-user-lowercase'),
-            })
+            jsonData['api-error-messages']['fetch-logged-in-user-error']
           );
         }
       })
@@ -234,16 +228,14 @@ export const AuthProvider = ({
         if (res.data) {
           appState.updateUserDetails(res.data);
         } else {
-          throw t('server.unexpected-response');
+          throw jsonData['api-error-messages']['unexpected-server-response'];
         }
       })
       .catch((error: AxiosError) => {
         appState.updateUserDetails(existingData);
         showErrorToast(
           error,
-          t('server.entity-updating-error', {
-            entity: t('label.admin-profile'),
-          })
+          jsonData['api-error-messages']['update-admin-profile-error']
         );
       });
   };
@@ -253,14 +245,14 @@ export const AuthProvider = ({
    * This method will be called when the id token is about to expire.
    */
   const renewIdToken = async () => {
-    const onRenewIdTokenHandlerPromise = onRenewIdTokenHandler();
-    if (onRenewIdTokenHandlerPromise) {
-      await onRenewIdTokenHandlerPromise;
-
-      return localState.getOidcToken();
-    } else {
-      throw new Error('No handler attached for Renew Token.');
+    try {
+      const onRenewIdTokenHandlerPromise = onRenewIdTokenHandler();
+      onRenewIdTokenHandlerPromise && (await onRenewIdTokenHandlerPromise);
+    } catch (error) {
+      console.error((error as AxiosError).message);
     }
+
+    return localState.getOidcToken();
   };
 
   /**
@@ -333,7 +325,7 @@ export const AuthProvider = ({
       authConfig?.provider === AuthType.Basic
         ? userAPIQueryFields + ',' + isEmailVerifyField
         : userAPIQueryFields;
-    getLoggedInUser(fields)
+    getUserByName(getNameFromEmail(user.profile.email), fields)
       .then((res) => {
         if (res) {
           const updatedUserData = getUserDataFromOidc(res, user);
@@ -429,58 +421,50 @@ export const AuthProvider = ({
     );
   };
 
-  const fetchAuthConfig = async () => {
-    try {
-      const [authConfig, authorizerConfig] = await Promise.all([
-        fetchAuthenticationConfig(),
-        fetchAuthorizerConfig(),
-      ]);
-      const isSecureMode =
-        !isNil(authConfig) && authConfig.provider !== NO_AUTH;
-      if (isSecureMode) {
-        const provider = authConfig?.provider;
-        // show an error toast if provider is null or not supported
-        if (
-          provider &&
-          Object.values(AuthTypes).includes(provider as AuthTypes)
-        ) {
-          const configJson = getAuthConfig(authConfig);
-          setJwtPrincipalClaims(authConfig.jwtPrincipalClaims);
-          initializeAxiosInterceptors();
-          setAuthConfig(configJson);
-          setAuthorizerConfig(authorizerConfig);
-          updateAuthInstance(configJson);
-          if (!oidcUserToken) {
-            if (isProtectedRoute(location.pathname)) {
-              storeRedirectPath();
+  const fetchAuthConfig = (): void => {
+    fetchAuthenticationConfig()
+      .then((authRes) => {
+        const isSecureMode = !isNil(authRes) && authRes.provider !== NO_AUTH;
+        if (isSecureMode) {
+          const provider = authRes?.provider;
+          // show an error toast if provider is null or not supported
+          if (
+            provider &&
+            Object.values(AuthTypes).includes(provider as AuthTypes)
+          ) {
+            const configJson = getAuthConfig(authRes);
+            setJwtPrincipalClaims(authRes.jwtPrincipalClaims);
+            initializeAxiosInterceptors();
+            setAuthConfig(configJson);
+            updateAuthInstance(configJson);
+            if (!oidcUserToken) {
+              if (isProtectedRoute(location.pathname)) {
+                storeRedirectPath();
+              }
+              setLoading(false);
+            } else {
+              getLoggedInUserDetails();
             }
-            setLoading(false);
           } else {
-            getLoggedInUserDetails();
+            // provider is either null or not supported
+            setLoading(false);
+            showErrorToast(
+              `The configured SSO Provider "${authRes?.provider}" is not supported. Please check the authentication configuration in the server.`
+            );
           }
         } else {
-          // provider is either null or not supported
           setLoading(false);
-          showErrorToast(
-            t('message.configured-sso-provider-is-not-supported', {
-              provider: authConfig?.provider,
-            })
-          );
+          setIsAuthDisabled(true);
+          fetchAllUsers();
         }
-      } else {
+      })
+      .catch((err: AxiosError) => {
         setLoading(false);
-        setIsAuthDisabled(true);
-        fetchAllUsers();
-      }
-    } catch (error) {
-      setLoading(false);
-      showErrorToast(
-        error as AxiosError,
-        t('server.entity-fetch-error', {
-          entity: t('label.auth-config-lowercase-plural'),
-        })
-      );
-    }
+        showErrorToast(
+          err,
+          jsonData['api-error-messages']['fetch-auth-config-error']
+        );
+      });
   };
 
   const getCallBackComponent = () => {
@@ -623,7 +607,6 @@ export const AuthProvider = ({
     isUserCreated,
     setIsAuthDisabled,
     authConfig,
-    authorizerConfig,
     setAuthConfig,
     isSigningIn,
     setIsSigningIn,

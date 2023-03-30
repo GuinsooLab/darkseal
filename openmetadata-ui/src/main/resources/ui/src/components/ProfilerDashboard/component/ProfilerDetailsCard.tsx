@@ -12,7 +12,6 @@
  */
 
 import { Card, Col, Row } from 'antd';
-import { t } from 'i18next';
 import React, { useState } from 'react';
 import {
   CartesianGrid,
@@ -36,7 +35,6 @@ import { ProfilerDetailsCardProps } from '../profilerDashboard.interface';
 import ProfilerLatestValue from './ProfilerLatestValue';
 
 const ProfilerDetailsCard: React.FC<ProfilerDetailsCardProps> = ({
-  showYAxisCategory = false,
   chartCollection,
   tickFormatter,
   name,
@@ -52,7 +50,7 @@ const ProfilerDetailsCard: React.FC<ProfilerDetailsCardProps> = ({
   };
 
   return (
-    <Card className="shadow-none" data-testid="profiler-details-card-container">
+    <Card className="tw-rounded-md tw-border">
       <Row gutter={[16, 16]}>
         <Col span={4}>
           <ProfilerLatestValue
@@ -69,7 +67,7 @@ const ProfilerDetailsCard: React.FC<ProfilerDetailsCardProps> = ({
               <LineChart
                 className="tw-w-full"
                 data={data}
-                margin={{ left: 24 }}>
+                margin={{ left: 16 }}>
                 <CartesianGrid stroke={GRAPH_BACKGROUND_COLOR} />
                 <XAxis
                   dataKey="name"
@@ -84,10 +82,9 @@ const ProfilerDetailsCard: React.FC<ProfilerDetailsCardProps> = ({
                   tickFormatter={(props) =>
                     axisTickFormatter(props, tickFormatter)
                   }
-                  type={showYAxisCategory ? 'category' : 'number'}
                 />
                 <Tooltip
-                  formatter={(value: number | string) =>
+                  formatter={(value: number) =>
                     tooltipFormatter(value, tickFormatter)
                   }
                 />
@@ -115,7 +112,7 @@ const ProfilerDetailsCard: React.FC<ProfilerDetailsCardProps> = ({
               justify="center">
               <Col>
                 <ErrorPlaceHolder>
-                  <p>{t('message.no-data-available')}</p>
+                  <p>No Data Available</p>
                 </ErrorPlaceHolder>
               </Col>
             </Row>

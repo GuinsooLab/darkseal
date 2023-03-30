@@ -22,7 +22,6 @@ const mockManifestChange = jest.fn();
 const mockRunResultsHttpPathChange = jest.fn();
 const mockUpdateDescriptions = jest.fn();
 const mockUpdateDBTClassification = jest.fn();
-const mockHandleEnableDebugLogCheck = jest.fn();
 
 jest.mock('./DBTCommonFields.component', () =>
   jest.fn().mockImplementation(() => <div>DBT Common Fields</div>)
@@ -42,8 +41,6 @@ const mockProps = {
   handleRunResultsHttpPathChange: mockRunResultsHttpPathChange,
   handleUpdateDescriptions: mockUpdateDescriptions,
   handleUpdateDBTClassification: mockUpdateDBTClassification,
-  enableDebugLog: false,
-  handleEnableDebugLogCheck: mockHandleEnableDebugLogCheck,
 };
 
 describe('Test DBT Http Config Form', () => {

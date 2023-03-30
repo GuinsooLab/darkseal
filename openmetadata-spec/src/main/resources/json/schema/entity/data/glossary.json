@@ -6,6 +6,12 @@
   "type": "object",
   "javaType": "org.openmetadata.schema.entity.data.Glossary",
   "javaInterfaces": ["org.openmetadata.schema.EntityInterface"],
+  "definitions": {
+    "name": {
+      "description": "Name that identifies a glossary term.",
+      "$ref": "../../type/basic.json#/definitions/entityName"
+    }
+  },
   "properties": {
     "id": {
       "description": "Unique identifier of a glossary instance.",
@@ -13,7 +19,8 @@
     },
     "name": {
       "description": "Name of the glossary",
-      "$ref": "../../type/basic.json#/definitions/entityName"
+      "type": "string",
+      "$ref": "#/definitions/name"
     },
     "fullyQualifiedName": {
       "description": "FullyQualifiedName same as name.",

@@ -23,6 +23,7 @@ import static org.openmetadata.service.util.EntityUtil.getCustomField;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import java.io.IOException;
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -64,10 +65,11 @@ public class TypeRepository extends EntityRepository<Type> {
 
   @Override
   public void storeEntity(Type type, boolean update) throws IOException {
+    URI href = type.getHref();
     List<CustomProperty> customProperties = type.getCustomProperties();
-    type.withCustomProperties(null);
+    type.withHref(null).withCustomProperties(null);
     store(type, update);
-    type.withCustomProperties(customProperties);
+    type.withHref(href).withCustomProperties(customProperties);
     updateTypeMap(type);
   }
 

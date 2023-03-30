@@ -11,7 +11,7 @@
  *  limitations under the License.
  */
 
-import { CheckOutlined, PlusOutlined } from '@ant-design/icons';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { Space, Switch } from 'antd';
 import classNames from 'classnames';
 import Tags from 'components/Tag/Tags/tags';
@@ -209,12 +209,10 @@ const AddGlossaryTerm = ({
       }))
       .filter((ref) => !isEmpty(ref.endpoint) && !isEmpty(ref.name));
 
-    const updatedTerms = relatedTerms.map(function (term) {
-      return term.fullyQualifiedName || '';
-    });
-    const updatedReviewers = reviewer.map(function (r) {
-      return r.fullyQualifiedName || '';
-    });
+    const updatedTerms = relatedTerms.map((term) => ({
+      id: term.id,
+      type: 'tag',
+    }));
 
     if (validateForm(updatedReference)) {
       const updatedName = name.trim();
@@ -222,15 +220,24 @@ const AddGlossaryTerm = ({
         name: updatedName,
         displayName: updatedName,
         description: getDescription(),
-        reviewers: updatedReviewers.length > 0 ? updatedReviewers : undefined,
+        reviewers: reviewer.map((r) => ({
+          id: r.id,
+          type: r.type,
+        })),
         relatedTerms: relatedTerms.length > 0 ? updatedTerms : undefined,
         references: updatedReference.length > 0 ? updatedReference : undefined,
         parent: !isUndefined(parentGlossaryData)
-          ? parentGlossaryData.fullyQualifiedName
+          ? {
+              type: 'glossaryTerm',
+              id: parentGlossaryData.id,
+            }
           : undefined,
         synonyms: synonyms ? synonyms.split(',') : undefined,
         mutuallyExclusive,
-        glossary: glossaryData.name,
+        glossary: {
+          id: glossaryData.id,
+          type: 'glossary',
+        },
         tags: tags,
       };
 
@@ -257,7 +264,7 @@ const AddGlossaryTerm = ({
             size="regular"
             theme="primary"
             variant="contained">
-            <CheckOutlined />
+            <FontAwesomeIcon icon="check" />
           </Button>
         ) : (
           <Button
@@ -296,7 +303,6 @@ const AddGlossaryTerm = ({
       classes="tw-max-w-full-hd tw-h-full tw-pt-4"
       header={<TitleBreadcrumb titleLinks={slashedBreadcrumb} />}
       layout={PageLayoutType['2ColRTL']}
-      pageTitle={t('label.add-entity', { entity: t('label.glossary-term') })}
       rightPanel={fetchRightPanel()}>
       <div className="tw-form-container">
         <h6 className="tw-heading tw-text-base">
@@ -357,11 +363,8 @@ const AddGlossaryTerm = ({
           </Field>
 
           <Field>
-            <Space
-              className="w-full"
-              data-testid="tags-container"
-              direction="vertical">
-              <label htmlFor="tags">{`${t('label.tag-plural')}:`}</label>
+            <Space className="w-full" direction="vertical">
+              <label htmlFor="tags">{t('label.tag-plural')}:</label>
               <AddTags
                 data-testid="tags"
                 setTags={(tag: EntityTags[]) => setTags(tag)}
@@ -371,7 +374,7 @@ const AddGlossaryTerm = ({
 
           <Field>
             <label className="tw-block tw-form-label" htmlFor="synonyms">
-              {`${t('label.synonym-plural')}:`}
+              {t('label.synonym-plural')}:
             </label>
 
             <input
@@ -379,9 +382,7 @@ const AddGlossaryTerm = ({
               data-testid="synonyms"
               id="synonyms"
               name="synonyms"
-              placeholder={t('message.enter-comma-separated-field', {
-                field: t('label.keyword-lowercase-plural'),
-              })}
+              placeholder="Enter comma seprated keywords"
               type="text"
               value={synonyms}
               onChange={handleValidation}
@@ -413,12 +414,11 @@ const AddGlossaryTerm = ({
                 </label>
                 <Button
                   className="tw-h-5 tw-px-2"
-                  data-testid="add-reference"
                   size="x-small"
                   theme="primary"
                   variant="contained"
                   onClick={addReferenceFields}>
-                  <PlusOutlined />
+                  <FontAwesomeIcon icon="plus" />
                 </Button>
               </Space>
             </Field>
@@ -464,7 +464,7 @@ const AddGlossaryTerm = ({
                     e.preventDefault();
                   }}>
                   <SVGIcons
-                    alt={t('message.valid-url-endpoint')}
+                    alt={t('label.valid-url-endpoint')}
                     icon="icon-delete"
                     title="Delete"
                     width="16px"
@@ -484,12 +484,11 @@ const AddGlossaryTerm = ({
               </p>
               <Button
                 className="tw-h-5 tw-px-2"
-                data-testid="add-related-terms"
                 size="x-small"
                 theme="primary"
                 variant="contained"
                 onClick={() => setShowRelatedTermsModal(true)}>
-                <PlusOutlined />
+                <FontAwesomeIcon icon="plus" />
               </Button>
             </div>
             <div className="tw-my-4">
@@ -521,7 +520,7 @@ const AddGlossaryTerm = ({
                 theme="primary"
                 variant="contained"
                 onClick={() => setShowReviewerModal(true)}>
-                <PlusOutlined />
+                <FontAwesomeIcon icon="plus" />
               </Button>
             </div>
             <div className="tw-my-4">

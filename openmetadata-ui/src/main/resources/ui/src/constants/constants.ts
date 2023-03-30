@@ -13,8 +13,6 @@
 
 import { COOKIE_VERSION } from 'components/Modals/WhatsNewModal/whatsNewData';
 import { t } from 'i18next';
-import { isUndefined } from 'lodash';
-import Qs from 'qs';
 import { getSettingPath } from '../utils/RouterUtils';
 import { getEncodedFqn } from '../utils/StringsUtils';
 import { FQN_SEPARATOR_CHAR } from './char.constants';
@@ -23,7 +21,8 @@ import {
   GlobalSettingsMenuCategory,
 } from './GlobalSettings.constants';
 
-export const PRIMERY_COLOR = '#1e61f0';
+export const PRIMERY_COLOR = '#004AB3';
+export const SECONDARY_COLOR = '#1e61f0';
 export const LITE_GRAY_COLOR = '#DBE0EB';
 export const TEXT_BODY_COLOR = '#37352F';
 export const SUCCESS_COLOR = '#008376';
@@ -75,8 +74,6 @@ export const imageTypes = {
   image512: 's512-c',
   image72: 's72-c',
 };
-export const NO_DATA_PLACEHOLDER = '---';
-export const ELLIPSES = '...';
 
 export const TOUR_SEARCH_TERM = 'dim_a';
 export const ERROR404 = t('label.no-data-found');
@@ -161,11 +158,6 @@ export const ROUTES = {
   TOUR: '/tour',
   REPORTS: '/reports',
   EXPLORE: '/explore',
-  EXPLORE_TABLES: '/explore/tables',
-  EXPLORE_TOPICS: '/explore/topics',
-  EXPLORE_DASHBOARDS: '/explore/dashboards',
-  EXPLORE_PIPELINES: '/explore/pipelines',
-  EXPLORE_MODELS: '/explore/models',
   EXPLORE_WITH_SEARCH: `/explore/${PLACEHOLDER_ROUTE_TAB}/${PLACEHOLDER_ROUTE_SEARCHQUERY}`,
   EXPLORE_WITH_TAB: `/explore/${PLACEHOLDER_ROUTE_TAB}`,
   WORKFLOWS: '/workflows',
@@ -261,9 +253,6 @@ export const ROUTES = {
   KPI_LIST: `/data-insights/kpi`,
   ADD_KPI: `/data-insights/kpi/add-kpi`,
   EDIT_KPI: `/data-insights/kpi/edit-kpi/${KPI_NAME}`,
-
-  CONTAINER_DETAILS: `/container/${PLACEHOLDER_ROUTE_ENTITY_FQN}`,
-  CONTAINER_DETAILS_WITH_TAB: `/container/${PLACEHOLDER_ROUTE_ENTITY_FQN}/${PLACEHOLDER_ROUTE_TAB}`,
 };
 
 export const SOCKET_EVENTS = {
@@ -324,51 +313,13 @@ export const getServiceDetailsPath = (
   return path;
 };
 
-export const getExplorePath: (args: {
-  tab?: string;
-  search?: string;
-  extraParameters?: Record<string, unknown>;
-  isPersistFilters?: boolean;
-}) => string = ({ tab, search, extraParameters, isPersistFilters = true }) => {
-  const pathname = ROUTES.EXPLORE_WITH_TAB.replace(
-    PLACEHOLDER_ROUTE_TAB,
-    tab ?? ''
-  );
-  let paramsObject: Record<string, unknown> = Qs.parse(
-    location.search.startsWith('?')
-      ? location.search.substr(1)
-      : location.search
-  );
+export const getExplorePathWithSearch = (searchQuery = '', tab = 'tables') => {
+  let path = ROUTES.EXPLORE_WITH_SEARCH;
+  path = path
+    .replace(PLACEHOLDER_ROUTE_SEARCHQUERY, searchQuery)
+    .replace(PLACEHOLDER_ROUTE_TAB, tab);
 
-  const { search: paramSearch } = paramsObject;
-
-  /**
-   * persist the filters if isPersistFilters is true
-   * otherwise only persist the search and passed extra params
-   * */
-  if (isPersistFilters) {
-    if (!isUndefined(search)) {
-      paramsObject = {
-        ...paramsObject,
-        search,
-      };
-    }
-    if (!isUndefined(extraParameters)) {
-      paramsObject = {
-        ...paramsObject,
-        ...extraParameters,
-      };
-    }
-  } else {
-    paramsObject = {
-      search: isUndefined(search) ? paramSearch : search,
-      ...(!isUndefined(extraParameters) ? extraParameters : {}),
-    };
-  }
-
-  const query = Qs.stringify(paramsObject);
-
-  return `${pathname}?${query}`;
+  return path;
 };
 
 export const getDatabaseDetailsPath = (databaseFQN: string, tab?: string) => {
@@ -541,11 +492,4 @@ export const ENTITY_PATH: Record<string, string> = {
   dashboards: 'dashboard',
   pipelines: 'pipeline',
   mlmodels: 'mlmodel',
-  containers: 'container',
-};
-
-export const VALIDATE_MESSAGES = {
-  required: t('message.field-text-is-required', {
-    fieldText: '${label}',
-  }),
 };

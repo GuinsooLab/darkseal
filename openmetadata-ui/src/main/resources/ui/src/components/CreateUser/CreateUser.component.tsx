@@ -11,6 +11,7 @@
  *  limitations under the License.
  */
 
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
   Button,
   Form,
@@ -23,7 +24,6 @@ import {
 } from 'antd';
 import { AxiosError } from 'axios';
 import classNames from 'classnames';
-import { LOADING_STATE } from 'enums/common.enum';
 import { isUndefined, trim } from 'lodash';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -116,7 +116,7 @@ const CreateUser = ({
   const slashedBreadcrumbList = useMemo(
     () => [
       {
-        name: forceBot ? t('label.bot-plural') : t('label.user-plural'),
+        name: forceBot ? t('label.bot-plural') : t('label.users'),
         url: forceBot ? getBotsPagePath() : getUsersPagePath(),
       },
       {
@@ -606,7 +606,7 @@ const CreateUser = ({
               <Input
                 data-testid="oktaEmail"
                 name="oktaEmail"
-                placeholder={t('label.okta-service-account-email')}
+                placeholder={t('label.okta-email')}
                 value={ssoClientConfig?.email}
                 onChange={handleOnChange}
               />
@@ -700,8 +700,7 @@ const CreateUser = ({
     <PageLayout
       classes="tw-max-w-full-hd tw-h-full tw-pt-4"
       header={<TitleBreadcrumb titleLinks={slashedBreadcrumbList} />}
-      layout={PageLayoutType['2ColRTL']}
-      pageTitle={t('label.create-entity', { entity: t('label.user') })}>
+      layout={PageLayoutType['2ColRTL']}>
       <div className="tw-form-container">
         <h6 className="tw-heading tw-text-base">
           {t('label.create-entity', {
@@ -985,14 +984,25 @@ const CreateUser = ({
             <Button data-testid="cancel-user" type="link" onClick={onCancel}>
               {t('label.cancel')}
             </Button>
-            <Button
-              data-testid="save-user"
-              form="create-user-bot-form"
-              htmlType="submit"
-              loading={saveState === LOADING_STATE.WAITING}
-              type="primary">
-              {t('label.create')}
-            </Button>
+            <>
+              {saveState === 'waiting' ? (
+                <Button disabled type="primary">
+                  <Loader size="small" type="white" />
+                </Button>
+              ) : saveState === 'success' ? (
+                <Button disabled type="primary">
+                  <FontAwesomeIcon icon="check" />
+                </Button>
+              ) : (
+                <Button
+                  data-testid="save-user"
+                  form="create-user-bot-form"
+                  htmlType="submit"
+                  type="primary">
+                  {t('label.create')}
+                </Button>
+              )}
+            </>
           </Space>
         </Form>
       </div>

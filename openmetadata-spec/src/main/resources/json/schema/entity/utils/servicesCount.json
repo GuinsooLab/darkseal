@@ -25,10 +25,6 @@
     "mlModelServiceCount": {
       "description": "MlModel Service Count",
       "type": "integer"
-    },
-    "objectStorageServiceCount": {
-      "description": "Object Storage Service Count",
-      "type": "integer"
     }
   },
   "additionalProperties": false

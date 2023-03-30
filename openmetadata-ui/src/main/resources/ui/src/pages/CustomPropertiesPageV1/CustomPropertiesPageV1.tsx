@@ -11,8 +11,9 @@
  *  limitations under the License.
  */
 
-import { Button, Col, Row, Tooltip } from 'antd';
+import { Button as ButtonAntd, Col, Row, Tooltip } from 'antd';
 import { AxiosError } from 'axios';
+import { Button } from 'components/buttons/Button/Button';
 import ErrorPlaceHolder from 'components/common/error-with-placeholder/ErrorPlaceHolder';
 import TabsPane from 'components/common/TabsPane/TabsPane';
 import { CustomPropertyTable } from 'components/CustomEntityDetail/CustomPropertyTable';
@@ -24,11 +25,9 @@ import {
   ResourceEntity,
 } from 'components/PermissionProvider/PermissionProvider.interface';
 import SchemaEditor from 'components/schema-editor/SchemaEditor';
-import { ERROR_PLACEHOLDER_TYPE, LOADING_STATE } from 'enums/common.enum';
 import { compare } from 'fast-json-patch';
 import { isEmpty, isUndefined } from 'lodash';
-import { default as React, useEffect, useMemo, useState } from 'react';
-import { useTranslation } from 'react-i18next';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useHistory, useParams } from 'react-router-dom';
 import { getTypeByFQN, updateType } from 'rest/metadataTypeAPI';
 import {
@@ -48,7 +47,6 @@ import { showErrorToast } from '../../utils/ToastUtils';
 import './CustomPropertiesPageV1.less';
 
 const CustomEntityDetailV1 = () => {
-  const { t } = useTranslation();
   const { tab } = useParams<{ [key: string]: string }>();
   const history = useHistory();
 
@@ -57,8 +55,6 @@ const CustomEntityDetailV1 = () => {
   const [isError, setIsError] = useState<boolean>(false);
   const [selectedEntityTypeDetail, setSelectedEntityTypeDetail] =
     useState<Type>({} as Type);
-
-  const [loadingState, setLoadingState] = useState(LOADING_STATE.INITIAL);
 
   const tabAttributePath = ENTITY_PATH[tab.toLowerCase()];
 
@@ -115,13 +111,13 @@ const CustomEntityDetailV1 = () => {
 
     return [
       {
-        name: t('label.custom-property-plural'),
+        name: 'Custom Properties',
         isProtected: false,
         position: 1,
         count: (customProperties || []).length,
       },
       {
-        name: t('label.schema'),
+        name: 'Schema',
         isProtected: false,
         position: 2,
       },
@@ -129,7 +125,6 @@ const CustomEntityDetailV1 = () => {
   }, [selectedEntityTypeDetail]);
 
   const updateEntityType = async (properties: Type['customProperties']) => {
-    setLoadingState(LOADING_STATE.WAITING);
     const patch = compare(selectedEntityTypeDetail, {
       ...selectedEntityTypeDetail,
       customProperties: properties,
@@ -143,30 +138,22 @@ const CustomEntityDetailV1 = () => {
       }));
     } catch (error) {
       showErrorToast(error as AxiosError);
-    } finally {
-      setLoadingState(LOADING_STATE.INITIAL);
     }
   };
 
-  const customPageHeader = useMemo(() => {
+  const getCustomPageHeader = useCallback(() => {
     switch (tabAttributePath) {
       case ENTITY_PATH.tables:
         return PAGE_HEADERS.TABLES_CUSTOM_ATTRIBUTES;
-
       case ENTITY_PATH.topics:
         return PAGE_HEADERS.TOPICS_CUSTOM_ATTRIBUTES;
-
       case ENTITY_PATH.dashboards:
         return PAGE_HEADERS.DASHBOARD_CUSTOM_ATTRIBUTES;
-
       case ENTITY_PATH.pipelines:
         return PAGE_HEADERS.PIPELINES_CUSTOM_ATTRIBUTES;
-
       case ENTITY_PATH.mlmodels:
         return PAGE_HEADERS.ML_MODELS_CUSTOM_ATTRIBUTES;
 
-      case ENTITY_PATH.containers:
-        return PAGE_HEADERS.CONTAINER_CUSTOM_ATTRIBUTES;
       default:
         return PAGE_HEADERS.TABLES_CUSTOM_ATTRIBUTES;
     }
@@ -204,7 +191,7 @@ const CustomEntityDetailV1 = () => {
       data-testid="custom-entity-container"
       gutter={[16, 16]}>
       <Col span={24}>
-        <PageHeader data={customPageHeader} />
+        <PageHeader data={getCustomPageHeader()} />
       </Col>
       <Col className="global-settings-tabs" span={24}>
         <TabsPane
@@ -229,54 +216,36 @@ const CustomEntityDetailV1 = () => {
               <ErrorPlaceHolder
                 buttons={
                   <Tooltip
-                    title={
-                      editPermission
-                        ? t('label.add-custom-entity-property', {
-                            entity: customPageHeader.header,
-                          })
-                        : NO_PERMISSION_FOR_ACTION
-                    }>
-                    <Button
+                    title={editPermission ? 'Add' : NO_PERMISSION_FOR_ACTION}>
+                    <ButtonAntd
                       ghost
                       data-testid="add-field-button"
                       disabled={!editPermission}
                       type="primary"
                       onClick={() => handleAddProperty()}>
-                      {t('label.add-entity', {
-                        entity: t('label.property'),
-                      })}
-                    </Button>
+                      Add Property
+                    </ButtonAntd>
                   </Tooltip>
                 }
-                classes="mt-24"
                 dataTestId="custom-properties-no-data"
                 doc={CUSTOM_PROPERTIES_DOCS}
                 heading="Property"
-                type={ERROR_PLACEHOLDER_TYPE.ADD}
+                type="ADD_DATA"
               />
             </div>
           ) : (
             <div data-testid="entity-custom-fields">
               <div className="flex justify-end">
                 <Tooltip
-                  placement="topRight"
-                  title={
-                    editPermission
-                      ? t('label.add-custom-entity-property', {
-                          entity: customPageHeader.header,
-                        })
-                      : NO_PERMISSION_FOR_ACTION
-                  }>
+                  title={editPermission ? 'Add' : NO_PERMISSION_FOR_ACTION}>
                   <Button
                     className="m-b-md p-y-xss p-x-xs rounded-4"
                     data-testid="add-field-button"
                     disabled={!editPermission}
-                    size="middle"
-                    type="primary"
+                    size="custom"
+                    theme="primary"
                     onClick={() => handleAddProperty()}>
-                    {t('label.add-entity', {
-                      entity: t('label.property'),
-                    })}
+                    Add Property
                   </Button>
                 </Tooltip>
               </div>
@@ -285,7 +254,6 @@ const CustomEntityDetailV1 = () => {
                   selectedEntityTypeDetail.customProperties || []
                 }
                 hasAccess={editPermission}
-                loadingState={loadingState}
                 updateEntityType={updateEntityType}
               />
             </div>

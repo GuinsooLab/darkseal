@@ -2,9 +2,9 @@ package org.openmetadata.service.events;
 
 import com.lmax.disruptor.EventHandler;
 import com.lmax.disruptor.LifecycleAware;
-import org.openmetadata.service.resources.events.EventResource.EventList;
+import org.openmetadata.service.resources.events.EventResource.ChangeEventList;
 
 public interface EventPublisher extends EventHandler<EventPubSub.ChangeEventHolder>, LifecycleAware {
 
-  void publish(EventList events) throws Exception;
+  void publish(ChangeEventList events) throws Exception;
 }

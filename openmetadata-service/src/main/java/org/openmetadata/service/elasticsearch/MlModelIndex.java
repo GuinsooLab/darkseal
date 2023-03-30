@@ -1,7 +1,5 @@
 package org.openmetadata.service.elasticsearch;
 
-import static org.openmetadata.service.elasticsearch.ElasticSearchIndexUtils.parseTags;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -24,7 +22,7 @@ public class MlModelIndex implements ElasticSearchIndex {
     suggest.add(ElasticSearchSuggest.builder().input(mlModel.getFullyQualifiedName()).weight(5).build());
     suggest.add(ElasticSearchSuggest.builder().input(mlModel.getName()).weight(10).build());
 
-    ParseTags parseTags = new ParseTags(Entity.getEntityTags(Entity.MLMODEL, mlModel));
+    ParseTags parseTags = new ParseTags(ElasticSearchIndexUtils.parseTags(mlModel.getTags()));
     doc.put("displayName", mlModel.getDisplayName() != null ? mlModel.getDisplayName() : mlModel.getName());
     doc.put("tags", parseTags.tags);
     doc.put("tier", parseTags.tierTag);

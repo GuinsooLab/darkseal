@@ -281,7 +281,7 @@ EXPTECTED_TABLE = Table(
         TagLabel(
             tagFQN="AtlasMetadata.atlas_table",
             description="test tag",
-            source="Classification",
+            source="Tag",
             labelType="Automated",
             state="Confirmed",
             href=None,
@@ -293,6 +293,7 @@ EXPTECTED_TABLE = Table(
     sampleData=None,
     tableProfilerConfig=None,
     profile=None,
+    tableQueries=None,
     dataModel=None,
     changeDescription=None,
     deleted=False,
@@ -348,13 +349,16 @@ class AtlasUnitTest(TestCase):
                 description=None,
                 tags=None,
                 owner=None,
-                service=mock_database_service_object.fullyQualifiedName,
+                service=EntityReference(
+                    id=mock_database_service_object.id,
+                    type="databaseService",
+                ),
             )
         )
         mock_database_schema_object = self.metadata.create_or_update(
             CreateDatabaseSchemaRequest(
                 name="Reporting",
-                database=mock_database_object.fullyQualifiedName,
+                database=EntityReference(id=mock_database_object.id, type="database"),
             )
         )
         _ = self.metadata.create_or_update(
@@ -440,7 +444,9 @@ class AtlasUnitTest(TestCase):
                         profile=None,
                     ),
                 ],
-                databaseSchema=mock_database_schema_object.fullyQualifiedName,
+                databaseSchema=EntityReference(
+                    id=mock_database_schema_object.id, type="databaseSchema"
+                ),
             ),
         )
 

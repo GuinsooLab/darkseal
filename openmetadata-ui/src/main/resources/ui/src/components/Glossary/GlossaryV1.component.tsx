@@ -11,15 +11,13 @@
  *  limitations under the License.
  */
 
-import { Button, Col, Dropdown, Row, Tooltip, Typography } from 'antd';
-import { ReactComponent as ExportIcon } from 'assets/svg/ic-export.svg';
-import { ReactComponent as ImportIcon } from 'assets/svg/ic-import.svg';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { Col, Dropdown, Row, Tooltip, Typography } from 'antd';
 import { AxiosError } from 'axios';
 import { isEmpty } from 'lodash';
 import React, { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useHistory, useParams } from 'react-router-dom';
-import { ReactComponent as IconDropdown } from '../../assets/svg/menu.svg';
 import { FQN_SEPARATOR_CHAR } from '../../constants/char.constants';
 import { NO_PERMISSION_FOR_ACTION } from '../../constants/HelperTextUtil';
 import { Glossary } from '../../generated/entity/data/glossary';
@@ -33,7 +31,7 @@ import {
 } from '../../utils/RouterUtils';
 import SVGIcons, { Icons } from '../../utils/SvgUtils';
 import { showErrorToast } from '../../utils/ToastUtils';
-import '../common/entityPageInfo/ManageButton/ManageButton.less';
+import { Button } from '../buttons/Button/Button';
 import TitleBreadcrumb from '../common/title-breadcrumb/title-breadcrumb.component';
 import { TitleBreadcrumbProps } from '../common/title-breadcrumb/title-breadcrumb.interface';
 import GlossaryDetails from '../GlossaryDetails/GlossaryDetails.component';
@@ -44,9 +42,12 @@ import {
   OperationPermission,
   ResourceEntity,
 } from '../PermissionProvider/PermissionProvider.interface';
-import ExportGlossaryModal from './ExportGlossaryModal/ExportGlossaryModal';
 import { GlossaryAction, GlossaryV1Props } from './GlossaryV1.interfaces';
 import './GlossaryV1.style.less';
+
+import { ReactComponent as ExportIcon } from 'assets/svg/ic-export.svg';
+import { ReactComponent as ImportIcon } from 'assets/svg/ic-import.svg';
+import ExportGlossaryModal from './ExportGlossaryModal/ExportGlossaryModal';
 import ImportGlossary from './ImportGlossary/ImportGlossary';
 
 const GlossaryV1 = ({
@@ -105,11 +106,6 @@ const GlossaryV1 = ({
   const isExportAction = useMemo(
     () => action === GlossaryAction.EXPORT,
     [action]
-  );
-
-  const isGlossaryDeletePermission = useMemo(
-    () => glossaryPermission.Delete || glossaryTermPermission.Delete,
-    [glossaryPermission, glossaryTermPermission]
   );
 
   const fetchGlossaryPermission = async () => {
@@ -244,7 +240,7 @@ const GlossaryV1 = ({
                     </Col>
                     <Col className="p-t-xss">
                       <Typography.Paragraph className="text-grey-muted text-xs m-b-0 line-height-16">
-                        {t('label.import-glossary-term-plural')}
+                        {t('label.import-glossary-terms')}
                       </Typography.Paragraph>
                     </Col>
                   </Row>
@@ -269,14 +265,11 @@ const GlossaryV1 = ({
           </Col>
           <Col className="tw-text-left" data-testid="delete-button" span={21}>
             <p className="tw-font-medium" data-testid="delete-button-title">
-              {t('label.delete')}
+              Delete
             </p>
             <p className="tw-text-grey-muted tw-text-xs">
-              {t('message.delete-entity-type-action-description', {
-                entityType: isGlossaryActive
-                  ? t('label.glossary')
-                  : t('label.glossary-term'),
-              })}
+              Deleting this {isGlossaryActive ? 'Glossary' : 'GlossaryTerm'}{' '}
+              will permanently remove its metadata from Darkseal.
             </p>
           </Col>
         </Row>
@@ -327,23 +320,26 @@ const GlossaryV1 = ({
             trigger={['click']}
             onOpenChange={setShowActions}>
             <Tooltip
-              placement="right"
               title={
-                isGlossaryDeletePermission
+                glossaryPermission.Delete || glossaryTermPermission.Delete
                   ? isGlossaryActive
-                    ? t('label.manage-entity', { entity: t('label.glossary') })
-                    : t('label.manage-entity', {
-                        entity: t('label.glossary-term'),
-                      })
+                    ? 'Manage Glossary'
+                    : 'Manage GlossaryTerm'
                   : NO_PERMISSION_FOR_ACTION
               }>
               <Button
-                className="manage-dropdown-button"
+                className="tw-rounded tw-justify-center tw-w-8 tw-h-8 glossary-manage-button tw-flex"
                 data-testid="manage-button"
-                disabled={!isGlossaryDeletePermission}
+                disabled={
+                  !(glossaryPermission.Delete || glossaryTermPermission.Delete)
+                }
                 size="small"
+                theme="primary"
+                variant="outlined"
                 onClick={() => setShowActions(true)}>
-                <IconDropdown className="anticon text-primary self-center manage-dropdown-icon" />
+                <span>
+                  <FontAwesomeIcon icon="ellipsis-vertical" />
+                </span>
               </Button>
             </Tooltip>
           </Dropdown>
